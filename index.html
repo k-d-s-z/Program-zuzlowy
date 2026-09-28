@@ -1,0 +1,1792 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<!-- Polityka bezpiecze&#324;stwa tre&#347;ci: brak zewn&#281;trznych skrypt&#243;w, brak po&#322;&#261;cze&#324; sieciowych poza w&#322;asnym hostem,
+     obrazy tylko data:, czcionki tylko systemowe. Inline-JS dozwolony (handlery onclick). -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; font-src 'none'; img-src data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'">
+<title>Program &#380;u&#380;lowy</title>
+
+<!-- Typografia: wy&#322;&#261;cznie czcionki systemowe (zero po&#322;&#261;cze&#324; sieciowych) -->
+
+<!-- ===== Instalacja jako aplikacja (PWA) ===== -->
+<!-- Ikonka i tryb pe&#322;noekranowy dzia&#322;aj&#261; od razu, nawet otwarte jako pojedynczy plik.
+     Pe&#322;ny przycisk "Zainstaluj aplikacj&#281;" na Androidzie wymaga jednak hostowania
+     przez HTTPS wraz z plikami manifest.json i sw.js (patrz README-PWA.txt). -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxODAgMTgwIj48cmVjdCB3aWR0aD0iMTgwIiBoZWlnaHQ9IjE4MCIgcng9IjM2IiBmaWxsPSIjMGIwZjE5Ii8+PHRleHQgeD0iOTAiIHk9IjEzMCIgZm9udC1mYW1pbHk9IkFyaWFsLCBIZWx2ZXRpY2EsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTEyIiBmb250LXdlaWdodD0iODAwIiBmaWxsPSIjMzhiZGY4IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj7FuzwvdGV4dD48L3N2Zz4=">
+<link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxODAgMTgwIj48cmVjdCB3aWR0aD0iMTgwIiBoZWlnaHQ9IjE4MCIgcng9IjM2IiBmaWxsPSIjMGIwZjE5Ii8+PHRleHQgeD0iOTAiIHk9IjEzMCIgZm9udC1mYW1pbHk9IkFyaWFsLCBIZWx2ZXRpY2EsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTEyIiBmb250LXdlaWdodD0iODAwIiBmaWxsPSIjMzhiZGY4IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj7FuzwvdGV4dD48L3N2Zz4=">
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#0b0f19">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="&#379;u&#380;el">
+
+<style>
+:root {
+  font-size: 16px;
+  --bg-main: #0b0f19;
+  --bg-card: #111827;
+  --bg-card-hover: #1f2937;
+  --border-color: #1f2937;
+  --accent-blue: #38bdf8;
+  --text-main: #f9fafb;
+  --text-muted: #9ca3af;
+  --danger: #ef4444;
+  --danger-bg: #450a0a;
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+:root {
+  --font-body: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-head: "Manrope", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  font-feature-settings: "cv11", "ss01";
+  -webkit-font-smoothing: antialiased;
+  background: var(--bg-main);
+  color: var(--text-main);
+  user-select: none;
+  overscroll-behavior-y: contain;
+}
+html { overscroll-behavior-y: contain; }
+button { font-family: inherit; cursor: pointer; }
+.screen { display: none; min-height: 100vh; padding: 12px 12px 80px; }
+.screen.on { display: block; }
+
+/* Nag&#322;&#243;wki i stylistyka */
+h1, h2, h3 { font-family: var(--font-head); margin: 0 0 12px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase; }
+h1 { font-size: 1.35rem; color: #fff; text-align: center; }
+h2 { font-size: 1.1rem; color: #fff; display: flex; align-items: center; gap: 8px; }
+h3 { font-size: 0.85rem; color: var(--text-muted); text-align: center; letter-spacing: 1px; }
+
+.wrap { max-width: 900px; margin: 0 auto; }
+
+/* Przyciski g&#322;&#243;wne */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: rgba(255,255,255,0.05);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 12px 16px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  text-align: center;
+  width: 100%;
+  min-height: 44px;
+  margin: 4px 0;
+  transition: all 0.15s ease;
+}
+.btn:hover { background: rgba(255,255,255,0.1); }
+.btn:active { transform: scale(0.98); }
+
+.btn.primary {
+  background: linear-gradient(180deg, #d1d5db 0%, #9ca3af 100%);
+  color: #0b0f19;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
+.btn.primary:hover {
+  background: linear-gradient(180deg, #e5e7eb 0%, #d1d5db 100%);
+}
+.btn.secondary {
+  background: #374151;
+  border: 1px solid #4b5563;
+  color: #f9fafb;
+}
+.btn.secondary:hover {
+  background: #4b5563;
+}
+.btn.danger { background: #311213; border-color: #7f1d1d; color: #fca5a5; }
+.btn.small { width: auto; min-height: 44px; padding: 6px 12px; font-size: 0.75rem; margin: 2px; }
+
+/* Przycisk ikony w kwadratowej ramce */
+.iconbtn {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: #fff;
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.iconbtn:hover { background: var(--bg-card-hover); }
+.iconbtn svg { width: 20px; height: 20px; fill: currentColor; }
+.iconbtn.sm { width: 44px; height: 44px; border-radius: 10px; }
+.iconbtn.sm svg { width: 20px; height: 20px; }
+
+/* Karty i kontenery */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  padding: 16px;
+  margin: 10px 0;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+/* Pola formularzy */
+input[type="text"], input[type="number"], select, textarea {
+  background: var(--bg-card-hover);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 11px 12px;
+  font-size: 0.9rem;
+  font-family: inherit;
+  width: 100%;
+  min-height: 42px;
+  box-sizing: border-box;
+}
+input[type="text"]:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--accent-blue);
+}
+select {
+  -webkit-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='%239ca3af' d='M7 10l5 5 5-5z'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 18px;
+  padding-right: 34px;
+}
+select option { background: var(--bg-card); color: var(--text-main); }
+
+/* Przyklejone menu g&#243;rne */
+.sticky-header {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  background: var(--bg-main);
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.topbar { display: flex; align-items: center; gap: 6px; }
+.topbar .grow { flex: 1; }
+
+/* Tabela punktowa z przypi&#281;t&#261; kolumn&#261; Nazwisk */
+.tblwrap { 
+  max-height: 72vh;
+  overflow: auto;
+  border: 1px solid var(--border-color); 
+  border-radius: 10px; 
+}
+table.pts { border-collapse: separate; border-spacing: 0; min-width: 100%; }
+table.pts th, table.pts td { 
+  padding: 8px 7px; 
+  text-align: center; 
+  white-space: nowrap; 
+  border-bottom: 1px solid var(--border-color); 
+  font-size: 0.8rem; 
+}
+table.pts th { 
+  position: sticky; 
+  top: 0; 
+  background: #182232; 
+  z-index: 10; 
+  font-weight: 800; 
+  color: var(--text-muted); 
+}
+
+/* PRZYPI&#280;CIE TYLKO NAZWISKA */
+table.pts th.col-nm, table.pts td.col-nm { 
+  position: sticky; 
+  left: 0; 
+  background: var(--bg-card); 
+  z-index: 11; 
+  text-align: left; 
+  font-weight: 700;
+  max-width: 140px; 
+  overflow: hidden; 
+  text-overflow: ellipsis;
+  border-right: 2px solid var(--border-color);
+}
+table.pts th.col-nm { z-index: 12; background: #182232; }
+
+/* Osobna, przypi&#281;ta kolumna z numerem zawodnika (wy&#347;rodkowana) */
+table.pts th.col-no, table.pts td.col-no {
+  position: sticky;
+  left: 0;
+  width: 38px; min-width: 38px; max-width: 38px;
+  padding-left: 4px; padding-right: 4px;
+  text-align: center;
+  background: var(--bg-card);
+  z-index: 11;
+}
+table.pts th.col-no { z-index: 12; background: #182232; }
+table.pts td.col-no { color: var(--accent-blue); font-weight: 800; font-family: var(--font-head); }
+table.pts { font-variant-numeric: tabular-nums; }
+table.pts th { font-family: var(--font-head); letter-spacing: 0.3px; }
+table.pts td.plc, .cell, .heatnum, .heattime { font-family: var(--font-head); }
+table.pts th.col-nm, table.pts td.col-nm { left: 38px; }
+
+table.pts td.num { font-weight: 700; color: var(--accent-blue); }
+table.pts td.plc { font-weight: 800; color: #f59e0b; user-select: none; }
+
+.ridernum {
+  font-family: var(--font-head);
+  display: inline-block;
+  color: var(--accent-blue);
+  font-weight: 800;
+  margin-right: 6px;
+}
+
+.cell { display: inline-block; min-width: 26px; padding: 2px 4px; border-radius: 4px; font-weight: 800; text-align: center; }
+.mA { background: #ef4444; color: #fff; }
+.mB { background: #3b82f6; color: #fff; }
+.mC { background: #f8fafc; color: #0b0f19; }
+.mD { background: #eab308; color: #0b0f19; }
+
+/* Wy&#347;cigi &#8212; glassmorphism */
+.heat {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 18px;
+  padding: 16px;
+  margin: 14px 0;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.08);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+.heat.dim { opacity: 0.45; }
+.heat.active { border-color: rgba(255,255,255,0.35); box-shadow: 0 0 0 1px rgba(229,231,235,0.2), 0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.12); }
+.heathead { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; gap: 8px; }
+.heatnum { font-weight: 800; color: #fff; font-size: 1.1rem; }
+.heattime { margin-left: 8px; font-size: 0.85rem; color: var(--accent-blue); font-weight: 700; letter-spacing: 0.5px; }
+.heatactions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+
+.hrows { display: flex; flex-direction: column; gap: 8px; }
+.rcard {
+  position: relative;
+  background: rgba(0,0,0,0.35);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 12px;
+  padding: 12px 12px 12px 44px;
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+  font-weight: 700;
+  font-size: 1rem;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
+}
+.rcard .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+.rcard.ex { opacity: 0.85; font-size: 0.9rem; background: rgba(127,29,29,0.25); border-color: rgba(248,113,113,0.35); }
+.rcard.locked { opacity: 0.75; }
+.rcard .dot { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; border-radius: 50%; box-shadow: 0 0 0 2px rgba(255,255,255,0.15); }
+.rcardbtns { display: flex; gap: 6px; margin-left: 10px; flex-shrink: 0; }
+.cardbtn {
+  width: 44px; height: 44px; padding: 0; flex-shrink: 0;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 12px;
+  color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
+}
+.cardbtn svg { width: 20px; height: 20px; fill: currentColor; }
+.cardbtn:active { transform: scale(0.92); }
+.cardbtn:disabled { opacity: 0.25; pointer-events: none; }
+.cardbtn.flag { color: #fb923c; border-color: rgba(251,146,60,0.5); background: rgba(124,45,18,0.3); }
+.cardbtn.del { color: #fca5a5; border-color: rgba(248,113,113,0.5); background: rgba(69,10,10,0.35); }
+.rcard .mk { margin-left: 6px; color: #fb923c; font-weight: 800; }
+.rcard .pos { margin-left: 6px; font-weight: 800; color: #fff; font-size: 1rem; }
+.slotmark { border: 1px dashed rgba(255,255,255,0.25); border-radius: 12px; color: var(--text-muted); display: flex; align-items: center; justify-content: center; min-height: 56px; padding: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 600; background: rgba(255,255,255,0.03); }
+.slotmark:hover { background: rgba(255,255,255,0.1); }
+
+/* Uporz&#261;dkowana lista zapisanych zawod&#243;w */
+.saved-item {
+  background: #000;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.saved-info { display: flex; flex-direction: column; gap: 2px; }
+.saved-title { font-weight: 800; font-size: 0.9rem; color: #fff; }
+.saved-meta { font-size: 0.75rem; color: var(--text-muted); }
+.saved-actions { display: flex; flex-direction: column; gap: 6px; width: 100%; }
+.saved-actions .btn.small { width: 100%; margin: 0; padding: 8px 12px; }
+
+/* Modal & Toast */
+.overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 100; padding: 16px; }
+.overlay.on { display: flex; }
+.modal { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 16px; padding: 20px; max-width: 400px; width: 100%; max-height: 85vh; overflow: auto; }
+.modal h3 { color: #fff; margin-bottom: 12px; }
+.riderlist .ri { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--border-color); }
+.numpad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.numpad .btn { margin: 0; }
+.timedisplay { text-align: center; font-size: 2.2rem; font-weight: 800; margin: 6px 0 16px; letter-spacing: 1px; color: var(--accent-blue); }
+.toast { position: fixed; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); left: 50%; transform: translateX(-50%); max-width: 90vw; text-align: center; background: #10b981; color: #0b0f19; padding: 10px 16px; border-radius: 8px; font-weight: 800; display: none; z-index: 101; font-size: 0.85rem; box-shadow: 0 4px 16px rgba(0,0,0,0.5); }
+.toast.err { background: #dc2626; color: #fff; }
+
+/* Przycisk destrukcyjny w nag&#322;&#243;wku (reset wszystkich wy&#347;cig&#243;w) */
+.iconbtn.danger { color: #fca5a5; border-color: rgba(248,113,113,0.55); background: rgba(69,10,10,0.4); }
+.iconbtn.danger:hover { background: rgba(127,29,29,0.5); }
+
+/* Widoczny fokus dla obs&#322;ugi klawiatur&#261; */
+button:focus-visible, [role="button"]:focus-visible, [role="switch"]:focus-visible, .modal:focus-visible {
+  outline: 2px solid var(--accent-blue); outline-offset: 2px;
+}
+.modal:focus { outline: none; }
+.heat { scroll-margin-top: 76px; }
+.ptssub { display: block; font-size: 0.68rem; font-weight: 700; color: var(--text-muted); letter-spacing: 0.4px; margin-top: 2px; }
+table.pts td.plc.tie { cursor: pointer; text-decoration: underline dotted; text-underline-offset: 3px; }
+table.pts td.plc:not(.tie) { cursor: default; }
+
+/* Ikona nawigacji g&#322;&#243;wnej &#8212; aktywny ekran pod&#347;wietlony jak przycisk primary */
+.iconbtn.active {
+  background: linear-gradient(180deg, #d1d5db 0%, #9ca3af 100%);
+  color: #0b0f19;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
+
+/* Suwak TAK/NIE */
+.switch {
+  width: 56px; height: 30px; border-radius: 15px;
+  border: 1px solid var(--border-color);
+  background: #374151;
+  position: relative; cursor: pointer; flex-shrink: 0;
+  transition: background 0.15s ease;
+}
+.switch.on { background: #0369a1; border-color: var(--accent-blue); }
+.switch .knob {
+  position: absolute; top: 2px; left: 2px;
+  width: 24px; height: 24px; border-radius: 50%;
+  background: #f9fafb; box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+  transition: left 0.15s ease;
+}
+.switch.on .knob { left: 28px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- ============ EKRAN G&#321;&#211;WNY ============ -->
+<section id="home" class="screen on">
+  <div style="display:flex;align-items:center;justify-content:center;gap:16px;padding:18px 0 6px;flex-wrap:wrap">
+    <svg width="118" height="88" viewBox="0 0 132 96" role="img" aria-label="Flaga szachownica" style="flex-shrink:0">
+      <defs>
+        <clipPath id="flagWave">
+          <path d="M4 20 C24 8 44 26 66 18 C88 10 108 28 128 16 L128 78 C108 90 88 72 66 80 C44 88 24 70 4 82 Z"/>
+        </clipPath>
+      </defs>
+      <g clip-path="url(#flagWave)">
+        <rect x="0" y="0" width="132" height="96" fill="#f9fafb"/>
+        <g fill="#0b0f19">
+          <rect x="0" y="0" width="16" height="16"/><rect x="32" y="0" width="16" height="16"/><rect x="64" y="0" width="16" height="16"/><rect x="96" y="0" width="16" height="16"/><rect x="128" y="0" width="16" height="16"/>
+          <rect x="16" y="16" width="16" height="16"/><rect x="48" y="16" width="16" height="16"/><rect x="80" y="16" width="16" height="16"/><rect x="112" y="16" width="16" height="16"/>
+          <rect x="0" y="32" width="16" height="16"/><rect x="32" y="32" width="16" height="16"/><rect x="64" y="32" width="16" height="16"/><rect x="96" y="32" width="16" height="16"/><rect x="128" y="32" width="16" height="16"/>
+          <rect x="16" y="48" width="16" height="16"/><rect x="48" y="48" width="16" height="16"/><rect x="80" y="48" width="16" height="16"/><rect x="112" y="48" width="16" height="16"/>
+          <rect x="0" y="64" width="16" height="16"/><rect x="32" y="64" width="16" height="16"/><rect x="64" y="64" width="16" height="16"/><rect x="96" y="64" width="16" height="16"/><rect x="128" y="64" width="16" height="16"/>
+          <rect x="16" y="80" width="16" height="16"/><rect x="48" y="80" width="16" height="16"/><rect x="80" y="80" width="16" height="16"/><rect x="112" y="80" width="16" height="16"/>
+        </g>
+        <path d="M4 20 C24 8 44 26 66 18 C88 10 108 28 128 16 L128 26 C108 38 88 20 66 28 C44 36 24 18 4 30 Z" fill="#0b0f19" opacity="0.25"/>
+        <path d="M4 60 C24 48 44 66 66 58 C88 50 108 68 128 56 L128 66 C108 78 88 60 66 68 C44 76 24 58 4 70 Z" fill="#f9fafb" opacity="0.12"/>
+      </g>
+      <path d="M4 20 C24 8 44 26 66 18 C88 10 108 28 128 16 L128 78 C108 90 88 72 66 80 C44 88 24 70 4 82 Z" fill="none" stroke="#e2e8f0" stroke-width="2" opacity="0.6"/>
+      <rect x="2" y="8" width="4" height="86" rx="2" fill="#94a3b8"/>
+      <circle cx="4" cy="6" r="4" fill="#e2e8f0"/>
+    </svg>
+    <div style="width:2px;align-self:stretch;min-height:56px;background:linear-gradient(180deg,transparent,#e2e8f0 20%,#e2e8f0 80%,transparent);flex-shrink:0"></div>
+    <div style="background:linear-gradient(180deg,#f8fafc 0%,#cbd5e1 55%,#94a3b8 100%);-webkit-background-clip:text;background-clip:text;color:transparent;font-weight:800;letter-spacing:2px;font-size:1.05rem;line-height:1.35;text-transform:uppercase;text-shadow:0 2px 6px rgba(0,0,0,0.5)">Program<br>&#380;u&#380;lowy</div>
+  </div>
+  <div class="card">
+    <button class="btn primary" id="continueBtn" style="display:none;flex-direction:column;gap:2px" onclick="UI.continueLast()"></button>
+    <button class="btn primary" id="newCompBtn" onclick="UI.startComp()">+ Nowe zawody</button>
+    <button class="btn" onclick="UI.screen('riders')">ZAWODNICY</button>
+    <button class="btn" onclick="UI.screen('options')">USTAWIENIA</button>
+  </div>
+</section>
+
+<!-- ZAWODNICY -->
+<section id="riders" class="screen">
+  <div class="topbar"><button class="iconbtn" title="Wr&#243;&#263;" onclick="UI.screen('home')"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></button><h2>Baza zawodnik&#243;w</h2></div>
+  <div class="card">
+    <button class="btn primary" onclick="UI.addRider()">+ DODAJ ZAWODNIKA</button>
+    <div id="riderList" class="riderlist"></div>
+  </div>
+</section>
+
+<!-- USTAWIENIA -->
+<section id="options" class="screen">
+  <div class="topbar"><button class="iconbtn" title="Wr&#243;&#263;" onclick="UI.screen('home')"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></button><h2>USTAWIENIA</h2></div>
+  
+  <div class="card">
+    <h3>ZAPISANE ZAWODY</h3>
+    <div id="savedList"></div>
+  </div>
+
+  <div class="card">
+    <h3>OPCJE APLIKACJI</h3>
+    <button class="btn" id="setAutoNext" onclick="UI.toggleAutoNext()"></button>
+    <div style="display:flex;gap:6px;margin-top:4px">
+      <span style="align-self:center;font-size:0.75rem;color:var(--text-muted);flex:1;font-weight:700">ROZMIAR CZCIONKI:</span>
+      <button class="btn small" id="fontS" onclick="UI.setFont('S')">S</button>
+      <button class="btn small" id="fontM" onclick="UI.setFont('M')">M</button>
+      <button class="btn small" id="fontL" onclick="UI.setFont('L')">L</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>KOPIA BEZPIECZE&#323;STWA</h3>
+    <button class="btn" onclick="UI.exportData()">Utw&#243;rz kopi&#281; bezpiecze&#324;stwa</button>
+    <button class="btn" onclick="document.getElementById('impFile').click()">Wczytaj kopi&#281; bezpiecze&#324;stwa</button>
+    <input type="file" id="impFile" accept=".json" style="display:none" onchange="UI.importData(this)">
+  </div>
+</section>
+
+<!-- WYB&#211;R FORMATU -->
+<section id="pick" class="screen">
+  <div class="topbar"><button class="iconbtn" title="Wr&#243;&#263;" onclick="UI.screen('home')"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></button><h2>WYB&#211;R FORMATU</h2></div>
+  <div class="card">
+    <button class="btn primary" onclick="UI.newComp(23)">Indywidualne &#8212; 23 wy&#347;cigi</button>
+    <button class="btn" onclick="UI.newComp(22)">Indywidualne &#8212; 22 wy&#347;cigi</button>
+    <button class="btn" onclick="UI.newComp(20)">Indywidualne &#8212; 20 wy&#347;cig&#243;w</button>
+  </div>
+</section>
+
+<!-- SK&#321;ADY PRZED STARTEM -->
+<section id="lineup" class="screen">
+  <div class="topbar"><button class="iconbtn" title="Wr&#243;&#263;" onclick="UI.cancelLineup()"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></button><h2 class="grow">PRZYPISZ NUMERY</h2></div>
+  <div class="card" style="padding:6px">
+    <div id="lineupList"></div>
+  </div>
+  <div class="card" style="padding:10px">
+    <p style="font-size:0.75rem;color:var(--text-muted);text-align:center;margin:0 0 8px;font-weight:700;letter-spacing:0.5px">DECYDUJ&#260; BEZPO&#346;REDNIE POJEDYNKI</p>
+    <div style="display:flex;align-items:center;justify-content:center;gap:12px">
+      <span style="font-size:0.8rem;font-weight:800;color:var(--text-muted)">NIE</span>
+      <div class="switch" id="h2hSwitch" role="switch" tabindex="0" aria-checked="false" aria-label="Decyduj&#261; bezpo&#347;rednie pojedynki" onclick="UI.toggleH2H()"><div class="knob"></div></div>
+      <span style="font-size:0.8rem;font-weight:800;color:var(--text-muted)">TAK</span>
+    </div>
+    <p style="font-size:0.7rem;color:var(--text-muted);text-align:center;margin:8px 0 0">Gdy w&#322;&#261;czona, idealne remisy s&#261; rozstrzygane wynikami bezpo&#347;rednich pojedynk&#243;w mi&#281;dzy zremisowanymi zawodnikami.</p>
+  </div>
+  <button class="btn primary" onclick="UI.launch()">URUCHOM ZAWODY</button>
+</section>
+
+<!-- ============ OKNO PUNKTACJA ============ -->
+<section id="points" class="screen">
+  <div class="sticky-header">
+    <div class="topbar">
+      <button class="iconbtn" title="Ekran g&#322;&#243;wny" onclick="UI.leave('points')"><svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></button>
+      <h2 class="grow" id="ptsTitle" style="font-size:0.85rem;margin:0;text-align:center;display:block;min-width:0">KLASYFIKACJA</h2>
+      <button class="iconbtn navpts active" title="Klasyfikacja" onclick="UI.navScreen('points')"></button>
+      <button class="iconbtn navraces" title="Wy&#347;cigi" onclick="UI.navScreen('races')"></button>
+      <button class="iconbtn" id="sortPts" title="Sortuj wg zajmowanego miejsca" onclick="UI.toggleSort()"><svg viewBox="0 0 24 24"><path d="M3 18h6v-2H3v2zm0-12v2h18V6H3zm0 7h12v-2H3v2z"/></svg></button>
+      <button class="iconbtn" title="Utw&#243;rz kopi&#281; bezpiecze&#324;stwa" onclick="UI.exportData()"><svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg></button>
+    </div>
+  </div>
+
+  <div class="card" style="padding:4px; margin-top:8px;">
+    <div class="tblwrap" id="ptsWrap">
+      <table class="pts" id="ptsTable"></table>
+    </div>
+  </div>
+</section>
+
+<!-- ============ OKNO WY&#346;CIGI ============ -->
+<section id="races" class="screen">
+  <div class="sticky-header">
+    <div class="topbar">
+      <button class="iconbtn" title="Ekran g&#322;&#243;wny" onclick="UI.leave('races')"><svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></button>
+      <h2 class="grow" id="racesTitle" style="font-size:0.85rem;margin:0;text-align:center;display:block;min-width:0">WY&#346;CIGI</h2>
+      <button class="iconbtn navpts" title="Klasyfikacja" onclick="UI.navScreen('points')"></button>
+      <button class="iconbtn navraces active" title="Wy&#347;cigi" onclick="UI.navScreen('races')"></button>
+      <button class="iconbtn danger" title="Resetuj WSZYSTKIE wy&#347;cigi" onclick="UI.resetAllHeats()"><svg viewBox="0 0 24 24"><path d="M15 16h4v2h-4zm0-8h7v2h-7zm0 4h6v2h-6zM3 18c0 1.1.9 2 2 2h6c1.1 0 2-.9 2-2V8H3v10zM14 5h-3l-1-1H6L5 5H2v2h12z"/></svg></button>
+      <button class="iconbtn" title="Utw&#243;rz kopi&#281; bezpiecze&#324;stwa" onclick="UI.exportData()"><svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg></button>
+    </div>
+  </div>
+
+  <div id="heatList"></div>
+  <button class="btn" style="margin-top:12px" onclick="UI.promptExtraHeat()">+ WY&#346;CIG DODATKOWY</button>
+</section>
+
+</div>
+
+<div class="overlay" id="overlay" onclick="if(event.target===this)UI.closeModal()"><div class="modal" id="modal"></div></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+"use strict";
+const T20=[
+[1,2,3,4],[5,7,6,8],[10,11,9,12],[15,14,16,13],[13,1,5,9],[14,10,2,6],[11,15,7,3],[4,8,12,16],
+[6,16,1,11],[12,5,15,2],[8,9,3,14],[13,4,10,7],[7,12,14,1],[2,13,8,11],[16,3,10,5],[9,6,4,15],
+[1,8,15,10],[9,2,7,16],[3,12,13,6],[5,14,11,4]];
+const GATES=["A","B","C","D"];
+const GATE_ORDER_DISPLAY=["D","C","B","A"];
+const GATE_COLOR={A:"#ef4444",B:"#3b82f6",C:"#f8fafc",D:"#eab308"};
+const MARKS=["W","D","T","U","W2","U/-","-"];
+const LS="zuzel.v1";
+
+const ICON_EDIT='<svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>';
+const ICON_RESET='<svg viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg>';
+const ICON_CLOCK='<svg viewBox="0 0 24 24"><path d="M22 5.72l-4.6-3.86-1.29 1.53 4.6 3.86L22 5.72zM7.88 3.39L6.6 1.86 2 5.71l1.29 1.53 4.59-3.85zM12.5 8H11v6l4.75 2.85.75-1.23-4-2.37V8zM12 4c-4.97 0-9 4.03-9 9s4.02 9 9 9c4.97 0 9-4.03 9-9s-4.03-9-9-9zm0 16c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/></svg>';
+const ICON_LOCK_SM='<svg viewBox="0 0 24 24" style="width:14px;height:14px;vertical-align:-2px;margin-right:4px;fill:currentColor"><path d="M12 17a2 2 0 0 0 2-2 2 2 0 0 0-2-2 2 2 0 0 0-2 2 2 2 0 0 0 2 2m6-9a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V10a2 2 0 0 1 2-2h1V6a5 5 0 0 1 5-5 5 5 0 0 1 5 5v2h1zM12 3a3 3 0 0 0-3 3v2h6V6a3 3 0 0 0-3-3z"/></svg>';
+const ICON_UP='<svg viewBox="0 0 24 24"><path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/></svg>';
+const ICON_DOWN='<svg viewBox="0 0 24 24"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg>';
+const ICON_FLAG='<svg viewBox="0 0 24 24"><path d="M14.4 6L14 4H5v17h2v-7h5.6l.4 2h7V6z"/></svg>';
+const ICON_X='<svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>';
+
+/* Bezpieczny dost\u0119p do localStorage \u2014 w iframe/trybie prywatnym dost\u0119p mo\u017ce rzuca\u0107 wyj\u0105tkiem.
+   Bez magazynu aplikacja dzia\u0142a w pami\u0119ci (dane znikaj\u0105 po zamkni\u0119ciu karty). */
+const store={
+  get(k){try{return localStorage.getItem(k);}catch(e){return null;}},
+  /* Zapis rzuca wyj\u0105tek przy b\u0142\u0119dzie (np. pe\u0142ny magazyn) \u2014 wyciszenie b\u0142\u0119du
+     mog\u0142oby suggestowa\u0107 udany zapis. Odbiorcy (persist/persistAll) \u0142api\u0105 i raportuj\u0105. */
+  set(k,v){localStorage.setItem(k,v);},
+  remove(k){try{localStorage.removeItem(k);}catch(e){}},
+  keys(){try{const out=[];for(let i=0;i<localStorage.length;i++)out.push(localStorage.key(i));return out;}catch(e){return [];}}
+};
+const DB={
+  metaKey:LS+".meta",
+  compKey:id=>LS+".c."+id,
+  get(k){try{return JSON.parse(store.get(k));}catch(e){return null;}},
+  set(k,v){return store.set(k,JSON.stringify(v));},
+  /* Migracja ze starego, jednego klucza zuzel.v1 */
+  migrateOld(){
+    const old=this.get(LS);
+    if(!old||typeof old!=="object"||!old.comps)return;
+    try{
+      this.set(this.metaKey,{riders:Array.isArray(old.riders)?old.riders:[],current:old.current||null});
+      Object.values(old.comps).forEach(c=>{if(c&&c.id)this.set(this.compKey(c.id),c);});
+      store.remove(LS);
+    }catch(e){}
+  },
+  loadAll(){
+    this.migrateOld();
+    const meta=this.get(this.metaKey)||{};
+    const comps={};
+    store.keys().forEach(k=>{
+      if(k&&k.indexOf(LS+".c.")===0){
+        const c=this.get(k);
+        if(c&&c.id)comps[c.id]=c;
+      }
+    });
+    return {riders:Array.isArray(meta.riders)?meta.riders:[],comps,current:(meta.current&&comps[meta.current])?meta.current:null,
+      settings:Object.assign({autoNext:true,font:"M"},(meta.settings&&typeof meta.settings==="object")?meta.settings:{})};
+  },
+  removeComp(id){store.remove(this.compKey(id));}
+};
+let S=DB.loadAll();
+function persist(){
+  try{
+    DB.set(DB.metaKey,{riders:S.riders,current:S.current,settings:S.settings});
+    const c=cur();if(c)DB.set(DB.compKey(c.id),c);
+    return true;
+  }catch(e){UI.toast("\u274c Zapis nieudany \u2014 brak miejsca w pami\u0119ci przegl\u0105darki.");return false;}
+}
+function persistAll(){
+  try{
+    DB.set(DB.metaKey,{riders:S.riders,current:S.current,settings:S.settings});
+    Object.values(S.comps).forEach(c=>DB.set(DB.compKey(c.id),c));
+    return true;
+  }catch(e){UI.toast("\u274c Zapis nieudany \u2014 brak miejsca w pami\u0119ci przegl\u0105darki.");return false;}
+}
+/* Transakcyjna mutacja: snapshot \u2192 operacja \u2192 zapis; przy b\u0142\u0119dzie operacji
+   LUB nieudanym zapisie nast\u0119puje rollback stanu i widoczny komunikat. */
+function mutate(fn){
+  const snap=JSON.stringify(S);
+  try{fn();}
+  catch(err){try{S=JSON.parse(snap);}catch(e2){}UI.toast("\u274c B\u0142\u0105d operacji \u2014 zmiany cofni\u0119te.");return false;}
+  if(!persist()){
+    try{S=JSON.parse(snap);}catch(e2){}
+    UI.toast("\u274c Zapis nieudany \u2014 zmiany cofni\u0119te.");
+    return false;
+  }
+  return true;
+}
+/* Batchowanie render\u00f3w przez requestAnimationFrame (mniej DOM thrashingu). */
+let _rafPending=false;
+function scheduleRenders(){
+  if(_rafPending)return;_rafPending=true;
+  requestAnimationFrame(()=>{_rafPending=false;
+    if($("races").classList.contains("on"))renderRaces();
+    if($("points").classList.contains("on"))renderPoints();
+  });
+}
+
+/* Pomocnicza funkcja do sformatowania nazwy/numeru biegu (np. "21", "D1", "D2") */
+function getHeatLabel(h){
+  if(h.extra) return "D" + (h.n - 100);
+  return String(h.n);
+}
+
+/* Formatuje liczb\u0119 milisekund jako "SS,mmm" (np. 64254 -> "64,254"). */
+function fmtHeatTime(ms){
+  ms=ms||0;
+  return Math.floor(ms/1000)+","+String(ms%1000).padStart(3,"0");
+}
+
+function newComp(fmt){
+  const heats=[];
+  for(let n=1;n<=fmt;n++){
+    const entries=[];
+    if(n<=20){for(let g=0;g<4;g++)entries.push({gate:GATES[g],rider:T20[n-1][g],mark:null,repl:null});}
+    else{for(let g=0;g<4;g++)entries.push({gate:GATES[g],rider:null,mark:null,repl:null});}
+    heats.push({n,entries,order:GATE_ORDER_DISPLAY.map((_,i)=>i),confirmed:false,extra:false});
+  }
+  return {id:(typeof crypto!=="undefined"&&crypto.randomUUID)?crypto.randomUUID():("c"+Date.now()),date:new Date().toLocaleDateString("pl-PL"),format:fmt,heats,mapping:{},overrides:{}};
+}
+function cur(){return S.current?S.comps[S.current]:null;}
+function compHeats(c){return (c.heats.length?c.heats:c.heats0);}
+
+function normalizeOrder(h){
+  const fins=h.order.filter(i=>!h.entries[i].mark);
+  const marks=h.order.filter(i=>h.entries[i].mark)
+    .sort((a,b)=>(h.entries[b].markSeq||0)-(h.entries[a].markSeq||0));
+  h.order=[...fins,...marks];
+}
+
+function removeRepl(h,slotIdx){
+  const idx=h.entries.findIndex(x=>x.replOf===slotIdx);
+  if(idx<0)return;
+  h.entries.splice(idx,1);
+  h.order=h.order.filter(i=>i!==idx).map(i=>i>idx?i-1:i);
+}
+function effRider(e){return e.repl!==null&&e.repl!==undefined?e.repl:e.rider;}
+
+function heatResults(h){
+  const res={};
+  if(!h.confirmed)return res;
+  h.entries.forEach(e=>{
+    if(e.mark&&e.rider!==null&&e.rider!==undefined)res[e.rider]={pts:0,mark:e.mark};
+  });
+  let rank=0;
+  h.order.forEach(ei=>{
+    const e=h.entries[ei];
+    if(e.mark)return;
+    const fin=e.rider;
+    if(fin!==null&&fin!==undefined){
+      const p=[3,2,1,0][Math.min(rank,3)];rank++;
+      if(res[fin])res[fin].pts=p;else res[fin]={pts:p,mark:null};
+    }
+  });
+  return res;
+}
+function fmtRes(rr){return rr?((rr.mark!==null&&rr.mark!==undefined)?escq(rr.mark):rr.pts+" pkt"):"";}
+
+function standings(c,upto){
+  const st={};
+  for(let n=1;n<=18;n++)if(c.mapping[n])st[n]={num:n,pts:0,c3:0,c2:0,c1:0,c0:0,x:0};
+  compHeats(c).forEach(h=>{
+    if(!h.confirmed || h.extra || (upto && h.n>upto)) return;
+    const r=heatResults(h);
+    for(const[k,v]of Object.entries(r)){
+      if(!st[k])continue;
+      st[k].pts+=v.pts;
+      if(v.mark)st[k].x++;
+      else{if(v.pts===3)st[k].c3++;else if(v.pts===2)st[k].c2++;else if(v.pts===1)st[k].c1++;else st[k].c0++;}
+    }
+  });
+  return st;
+}
+function cmpGroup(a,b){
+  const ra=a.num>=17&&a.pts<=0,rb=b.num>=17&&b.pts<=0;
+  if(ra!==rb)return ra?1:-1;
+  return b.pts-a.pts||b.c3-a.c3||b.c2-a.c2||b.c1-a.c1||b.c0-a.c0||a.x-b.x;
+}
+function cmpStats(a,b){return cmpGroup(a,b)||a.num-b.num;}
+
+function heatFinishOrder(h){
+  if(!h||!h.confirmed)return null;
+  const res=[];
+  h.order.forEach(ei=>{
+    const e=h.entries[ei];
+    if(e.mark)return;
+    if(e.rider!==null&&e.rider!==undefined)res.push(e.rider);
+  });
+  return res;
+}
+
+function bracketOrder(c){
+  if(c.format!==22&&c.format!==23)return null;
+  const heats=compHeats(c);
+  const byN=n=>heats.find(x=>x.n===n);
+  const arr20=Object.values(standings(c,20)).sort(cmpStats).map(r=>r.num);
+  const rank=n=>arr20.indexOf(n);
+  const result={};let changed=false;
+
+  if(c.format===23){
+    const f23=heatFinishOrder(byN(23));
+    const f21=heatFinishOrder(byN(21));
+    const f22=heatFinishOrder(byN(22));
+    if(f23&&f23.length){f23.forEach((num,i)=>{result[i+1]=num;});changed=true;}
+    if(f21&&f21.length>=4&&f22&&f22.length>=4){
+      [[1,5],[2,7],[3,9]].forEach(([idx,base])=>{
+        const a=f21[idx],b=f22[idx];
+        if(a===undefined||b===undefined)return;
+        const better=rank(a)<=rank(b)?a:b;
+        const worse=better===a?b:a;
+        result[base]=better;result[base+1]=worse;
+      });
+      changed=true;
+    }
+  }else if(c.format===22){
+    const f22=heatFinishOrder(byN(22));
+    const f21=heatFinishOrder(byN(21));
+    if(f22&&f22.length){f22.forEach((num,i)=>{result[i+1]=num;});changed=true;}
+    if(f21&&f21.length>=4){
+      result[5]=f21[2];result[6]=f21[3];changed=true;
+    }
+  }
+  return changed?result:null;
+}
+
+/* Punkty wirtualne z bezpo\u015brednich pojedynk\u00f3w mi\u0119dzy wskazanymi zawodnikami:
+   w ka\u017cdym zatwierdzonym (nie dodatkowym) biegu, za ka\u017cd\u0105 par\u0119 z grupy, kt\u00f3ra
+   uko\u0144czy\u0142a bieg, zawodnik wy\u017cej sklasyfikowany dostaje 1 wirtualny punkt. */
+function h2hPoints(c,nums){
+  const set=new Set(nums);const pts={};nums.forEach(n=>pts[n]=0);
+  compHeats(c).forEach(h=>{
+    if(!h.confirmed||h.extra)return;
+    const fins=[];
+    h.order.forEach(ei=>{
+      const e=h.entries[ei];
+      if(e.mark)return;
+      const r=e.rider;
+      if(r!==null&&r!==undefined&&set.has(r))fins.push(r);
+    });
+    for(let i=0;i<fins.length;i++)for(let j=i+1;j<fins.length;j++)pts[fins[i]]++;
+  });
+  return pts;
+}
+/* Dzieli grupy remisowe wg punkt\u00f3w bezpo\u015brednich pojedynk\u00f3w (gdy opcja w\u0142\u0105czona).
+   Zawodnicy z r\u00f3wn\u0105 liczb\u0105 punkt\u00f3w pozostaj\u0105 w podgrupie do r\u0119cznego rozstrzygni\u0119cia. */
+function splitGroupsH2H(c,groups){
+  if(!c.h2h)return groups;
+  const out=[];
+  groups.forEach(g=>{
+    if(g.nums.length<2){out.push(g);return;}
+    const pts=h2hPoints(c,g.nums);
+    const sorted=[...g.nums].sort((a,b)=>pts[b]-pts[a]);
+    let i=0;
+    while(i<sorted.length){
+      let j=i+1;
+      while(j<sorted.length&&pts[sorted[j]]===pts[sorted[i]])j++;
+      out.push({start:g.start+i,nums:sorted.slice(i,j),stats:g.stats});
+      i=j;
+    }
+  });
+  return out;
+}
+function placeGroups(c){
+  const bracket=bracketOrder(c);
+  const arr=Object.values(standings(c)).sort(cmpStats);
+  if(!bracket){
+    const out=[];let curG=null;
+    arr.forEach((r,i)=>{
+      if(curG&&cmpGroup(curG.stats,r)===0){curG.nums.push(r.num);curG.stats=r;}
+      else{curG={start:i+1,nums:[r.num],stats:r};out.push(curG);}
+    });
+    return splitGroupsH2H(c,out);
+  }
+  const fixedNums=new Set(Object.values(bracket));
+  const remaining=arr.filter(r=>!fixedNums.has(r.num));
+  const out=[];
+  let ri=0,place=1;
+  const total=arr.length;
+  while(place<=total){
+    if(bracket[place]!==undefined){
+      const num=bracket[place];
+      const stat=arr.find(r=>r.num===num)||{num,pts:0,c3:0,c2:0,c1:0,c0:0,x:0};
+      out.push({start:place,nums:[num],stats:stat});
+      place++;
+    }else{
+      if(ri>=remaining.length){place++;continue;}
+      let g={start:place,nums:[remaining[ri].num],stats:remaining[ri]};
+      let j=ri+1;
+      while(j<remaining.length&&cmpGroup(g.stats,remaining[j])===0){g.nums.push(remaining[j].num);g.stats=remaining[j];j++;}
+      out.push(g);
+      place+=g.nums.length;
+      ri=j;
+    }
+  }
+  return splitGroupsH2H(c,out);
+}
+function placeLabel(c,num,groups){
+  const gs=groups||placeGroups(c);
+  for(const g of gs){
+    if(!g.nums.includes(num))continue;
+    const end=g.start+g.nums.length-1;
+    if(g.nums.length===1)return String(g.start);
+    if(c.overrides[num])return String(c.overrides[num]);
+    const taken=g.nums.map(n=>c.overrides[n]).filter(Boolean);
+    const free=[];for(let p=g.start;p<=end;p++)if(!taken.includes(p))free.push(p);
+    return free.length===1?String(free[0]):(free.length?free[0]+"\u2013"+free[free.length-1]:g.start+"\u2013"+end);
+  }
+  return "";
+}
+
+/* ================= UI ================= */
+const $=id=>document.getElementById(id);
+const UI={
+  screen(id){document.querySelectorAll(".screen").forEach(s=>s.classList.remove("on"));$(id).classList.add("on");
+    if(id==="riders")renderRiderLib();if(id==="options"){renderSaved();renderSettings();}if(id==="points")renderPoints();
+    if(id==="races")renderRaces();if(id==="lineup")renderLineup();if(id==="home"){S.current=null;persist();renderHome();}
+    UI.syncNavIcons();
+    /* Wej\u015bcie na ekran wy\u015bcig\u00f3w: przewi\u0144 do pierwszego niezatwierdzonego biegu. */
+    if(id==="races")requestAnimationFrame(scrollToCurrentHeat);
+  },
+  continueLast(){const id=S.settings.lastComp;if(id&&S.comps[id])UI.openComp(id);},
+  /* Nawigacja ikonowa (Klasyfikacja / Wy\u015bcigi) w nag\u0142\u00f3wkach obu ekran\u00f3w. */
+  navScreen(id){
+    if(!cur()){UI.toast("Brak otwartych zawod\u00f3w.");return;}
+    UI.screen(id);
+  },
+  syncNavIcons(){
+    const on=document.querySelector(".screen.on");
+    const sid=on?on.id:"";
+    document.querySelectorAll(".navpts").forEach(b=>b.classList.toggle("active",sid==="points"));
+    document.querySelectorAll(".navraces").forEach(b=>b.classList.toggle("active",sid==="races"));
+  },
+  toast(t){
+    const el=$("toast");const err=/^\s*\u274c/.test(String(t));
+    el.textContent=t;el.classList.toggle("err",err);el.style.display="block";
+    clearTimeout(UI._toastT);
+    UI._toastT=setTimeout(()=>{el.style.display="none";},err?4500:2200);
+  },
+  openModal(html){
+    const m=$("modal");
+    if(!$("overlay").classList.contains("on"))UI._prevFocus=document.activeElement;
+    m.innerHTML=html;
+    m.setAttribute("role","dialog");m.setAttribute("aria-modal","true");m.tabIndex=-1;
+    const h=m.querySelector("h3");
+    if(h){if(!h.id)h.id="modalTitle";m.setAttribute("aria-labelledby",h.id);}
+    $("overlay").classList.add("on");
+    /* Fokus: pole tekstowe, je\u015bli jest; w przeciwnym razie sam dialog. */
+    const inp=m.querySelector("input[type=text]");
+    try{(inp||m).focus({preventScroll:true});}catch(e){}
+  },
+  closeModal(){
+    if(UI._timeKeyHandler){document.removeEventListener("keydown",UI._timeKeyHandler);UI._timeKeyHandler=null;}
+    $("overlay").classList.remove("on");if($("races").classList.contains("on"))renderRaces();if($("lineup").classList.contains("on"))renderLineup();
+    const pf=UI._prevFocus;UI._prevFocus=null;
+    if(pf&&document.contains(pf)&&pf.focus){try{pf.focus({preventScroll:true});}catch(e){}}
+  },
+  confirm(msg,onYes,onNo){UI.openModal("<h3>Potwierdzenie</h3><p style='margin-bottom:14px;text-align:center;'>"+msg+"</p><button class='btn primary' id='cy'>Tak</button><button class='btn' id='cn'>Nie</button>");
+    $("cy").onclick=()=>{UI.closeModal();onYes&&onYes();};
+    $("cn").onclick=()=>{UI.closeModal();onNo?onNo():null;};},
+
+  addRider(num){
+    UI.openModal("<h3>Dodaj zawodnika</h3><input type='text' id='nr' placeholder='Imi\u0119 i Nazwisko' style='width:100%;margin-bottom:12px'><button class='btn primary' id='ok'>Dodaj</button><button class='btn' onclick='UI.closeModal()'>Anuluj</button>");
+    $("ok").onclick=()=>{const v=cleanText($("nr").value,100);if(!v)return;
+      mutate(()=>{
+        if(!S.riders.includes(v))S.riders.push(v);
+        const c=cur();
+        if(c){
+          /* Z okna wyboru numeru: nowy zawodnik trafia dok\u0142adnie pod wskazany numer. */
+          let target=(typeof num==="number"&&num>=1&&num<=18)?num:[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18].find(n=>!c.mapping[n]);
+          if(target){
+            Object.keys(c.mapping).forEach(k=>{if(+k!==target&&c.mapping[k]===v)delete c.mapping[k];});
+            c.mapping[target]=v;
+          }
+        }
+      });
+      renderRiderLib();
+      if($("lineup").classList.contains("on"))renderLineup();
+      UI.closeModal();scheduleRenders();};
+    $("nr").addEventListener("keydown",ev=>{if(ev.key==="Enter"){ev.preventDefault();$("ok").click();}});
+  },
+  editRider(i){
+    const old=S.riders[i];
+    UI.openModal("<h3>Edycja</h3><input type='text' id='nr' value='"+escq(old)+"' style='width:100%;margin-bottom:12px'><button class='btn primary' id='ok'>Zapisz</button><button class='btn danger' id='del'>Usu\u0144</button><button class='btn' onclick='UI.closeModal()'>Anuluj</button>");
+    /* Zmiana nazwiska nie mo\u017ce po cichu przepisywa\u0107 historii zapisanych zawod\u00f3w. */
+    const applyRename=(v,everywhere)=>{
+      const snap=JSON.stringify(S);
+      S.riders[i]=v;
+      if(everywhere)Object.values(S.comps).forEach(c=>{Object.keys(c.mapping).forEach(k=>{if(c.mapping[k]===old)c.mapping[k]=v;});});
+      if(!persistAll()){try{S=JSON.parse(snap);}catch(e){}return;}
+      renderRiderLib();UI.closeModal();
+    };
+    $("ok").onclick=()=>{
+      const v=cleanText($("nr").value,100);if(!v)return;
+      if(v===old){UI.closeModal();return;}
+      if(S.riders.includes(v)){UI.toast("\u274c Taki zawodnik ju\u017c istnieje w bazie.");return;}
+      const used=Object.values(S.comps).filter(c=>Object.values(c.mapping).includes(old)).length;
+      if(!used){applyRename(v,false);return;}
+      UI.openModal("<h3>Zmiana nazwiska</h3><p style='text-align:center;margin:0 0 12px'>\u201e"+escq(old)+"\u201d wyst\u0119puje w zapisanych zawodach ("+used+"). Zmieni\u0107 nazwisko tak\u017ce tam?</p>"+
+        "<button class='btn primary' id='rnAll'>Tak \u2014 w bazie i we wszystkich zawodach</button>"+
+        "<button class='btn' id='rnLib'>Tylko w bazie (zawody bez zmian)</button>"+
+        "<button class='btn' onclick='UI.closeModal()'>Anuluj</button>");
+      $("rnAll").onclick=()=>applyRename(v,true);
+      $("rnLib").onclick=()=>applyRename(v,false);
+    };
+    $("del").onclick=()=>{UI.closeModal();UI.confirm("Usun\u0105\u0107 zawodnika <b>"+escq(old)+"</b> z bazy?<br><small style='color:var(--text-muted)'>Nazwisko pozostanie w ju\u017c utworzonych zawodach \u2014 ich wyniki si\u0119 nie zmieni\u0105.</small>",()=>{
+      const snap=JSON.stringify(S);
+      S.riders.splice(i,1);
+      if(!persist()){try{S=JSON.parse(snap);}catch(e){}return;}
+      renderRiderLib();});};
+    $("nr").addEventListener("keydown",ev=>{if(ev.key==="Enter"){ev.preventDefault();$("ok").click();}});
+  },
+  startComp(){UI.screen("pick");},
+  newComp(fmt){
+    const c=newComp(fmt);S.comps[c.id]=c;S.current=c.id;c.launched=false;persist();
+    UI.screen("lineup");
+  },
+  cancelLineup(){UI.confirm("Porzuci\u0107 tworzenie zawod\u00f3w?",()=>{const id=S.current;delete S.comps[id];S.current=null;DB.removeComp(id);persist();UI.screen("home");});},
+  launch(){
+    const c=cur();if(!c)return;
+    if(!c.mapping[1]){UI.toast("Przypisz zawodnika nr 1.");return;}
+    const go=()=>{c.launched=true;S.settings.lastComp=c.id;persist();UI.screen("points");};
+    if(!c.name){UI.promptName(go);return;}
+    go();
+  },
+  promptName(cb){
+    const c=cur();if(!c)return;
+    UI.openModal("<h3>Nazwa zawod\u00f3w</h3><input type='text' id='compName' placeholder='np. Grand Prix Gorz\u00f3w' style='margin-bottom:12px'><button class='btn primary' id='nameOk'>Zapisz</button><button class='btn' id='nameSkip'>Domy\u015blna nazwa</button>");
+    const fin=(v)=>{c.name=cleanText(v,80)||("Zawody "+c.format+"-biegowe");persist();UI.closeModal();cb&&cb();};
+    $("nameOk").onclick=()=>{fin($("compName").value);};
+    $("nameSkip").onclick=()=>{fin("");};
+  },
+  renameComp(id){
+    const c=S.comps[id];if(!c)return;
+    UI.openModal("<h3>Zmie\u0144 nazw\u0119 zawod\u00f3w</h3><input type='text' id='compName2' value=\""+escq(c.name||"")+"\" style='margin-bottom:12px'><button class='btn primary' id='renOk'>Zapisz</button><button class='btn' onclick='UI.closeModal()'>Anuluj</button>");
+    $("renOk").onclick=()=>{
+      const v=cleanText($("compName2").value,80);
+      if(v)c.name=v;
+      DB.set(DB.compKey(id),c);renderSaved();
+      UI.closeModal();
+    };
+  },
+  leave(){
+    const c=cur();
+    let msg="Na pewno wr\u00f3ci\u0107 do ekranu g\u0142\u00f3wnego?<br><small style='color:var(--text-muted)'>Bie\u017c\u0105cy stan zawod\u00f3w zostanie automatycznie zapisany.</small>";
+    if(c){
+      const heats=compHeats(c).filter(h=>!h.extra);
+      const openCnt=heats.filter(h=>!h.confirmed).length;
+      const doneCnt=heats.filter(h=>h.confirmed).length;
+      if(doneCnt>0&&openCnt>0)
+        msg="<b style='color:#f59e0b'>\u26a0 Uwaga: zawody w toku \u2014 "+openCnt+" niezatwierdzonych bieg\u00f3w.</b><br><small style='color:var(--text-muted)'>Bie\u017c\u0105cy stan zostanie zapisany i mo\u017cna do nich wr\u00f3ci\u0107 z ekranu g\u0142\u00f3wnego.</small>";
+    }
+    UI.confirm(msg,()=>{UI.screen("home");});
+  },
+  exportData(){
+    persist();
+    const blob=new Blob([JSON.stringify(S,null,1)],{type:"application/json"});
+    const a=document.createElement("a");a.href=URL.createObjectURL(blob);
+    a.download="program-zuzel.json";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+  },
+  importData(inp){
+    const f=inp.files[0];if(!f)return;
+    if(f.size>IMPORT_LIMITS.bytes){UI.toast("\u274c Plik jest zbyt du\u017cy (limit 5 MB).");inp.value="";return;}
+    const rd=new FileReader();
+    rd.onload=()=>{
+      let d;
+      try{d=JSON.parse(rd.result);}catch(e){UI.toast("\u274c B\u0142\u0105d pliku \u2014 to nie jest JSON.");return;}
+      /* Pe\u0142na walidacja schematu przed nadpisaniem danych \u2014 chroni p\u0119tle renderuj\u0105ce przed uszkodzonymi obiektami. */
+      const err=validateData(d);
+      if(err){UI.toast("\u274c Nieprawid\u0142owa kopia: "+err);return;}
+      UI.confirm("Wczytanie kopii nadpisze WSZYSTKIE dane (zawodnicy + zawody). Kontynuowa\u0107?",()=>{
+        /* Sanityzacja tekst\u00f3w z pliku: znaki kontrolne i limity d\u0142ugo\u015bci \u2014 tak\u017ce po walidacji. */
+        d.riders=d.riders.map(r=>cleanText(r,100)).filter(Boolean);
+        Object.values(d.comps).forEach(c=>{
+          if(c.name)c.name=cleanText(c.name,80);
+          if(!c.overrides)c.overrides={};
+          Object.keys(c.mapping).forEach(k=>{c.mapping[k]=cleanText(c.mapping[k],100);});
+        });
+        /* Zapis transakcyjny: najpierw NOWE dane, dopiero potem usuni\u0119cie starych.
+           Przy b\u0142\u0119dzie (np. brak miejsca) stan sprzed importu jest w ca\u0142o\u015bci odtwarzany. */
+        const oldS=S;
+        const oldIds=Object.keys(oldS.comps||{});
+        const newIds=Object.keys(d.comps);
+        try{
+          newIds.forEach(id=>DB.set(DB.compKey(id),d.comps[id]));
+          oldIds.filter(id=>!d.comps[id]).forEach(id=>DB.removeComp(id));
+          S={riders:d.riders,comps:d.comps,current:null,settings:oldS.settings};
+          DB.set(DB.metaKey,{riders:S.riders,current:null,settings:S.settings});
+        }catch(e){
+          try{
+            newIds.filter(id=>!oldS.comps[id]).forEach(id=>DB.removeComp(id));
+            oldIds.forEach(id=>DB.set(DB.compKey(id),oldS.comps[id]));
+            DB.set(DB.metaKey,{riders:oldS.riders,current:oldS.current,settings:oldS.settings});
+          }catch(e2){}
+          S=oldS;
+          UI.toast("\u274c Import nieudany \u2014 dane sprzed importu zosta\u0142y zachowane.");
+          renderSaved();
+          return;
+        }
+        UI.toast("\u2714 Wczytano dane.");renderSaved();
+      });
+    };
+    rd.readAsText(f);inp.value="";
+  },
+  setRider(num,name){
+    const c=cur();if(!c)return;
+    if(!mutate(()=>{
+      if(name==="")delete c.mapping[num];else c.mapping[num]=name;
+      Object.keys(c.mapping).forEach(k=>{if(k!=num&&c.mapping[k]===name&&name!=="")delete c.mapping[k];});
+    }))return;
+    UI.closeModal();
+    if($("lineup").classList.contains("on"))renderLineup();
+    scheduleRenders();
+  },
+
+  /* Custom picker zamiast natywnego <select> \u2014 pe\u0142nowymiarowe, dotykowe przyciski. */
+  pickLineup(num){    const c=cur();if(!c)return;
+    let html="<h3>Nr "+num+" \u2014 wybierz zawodnika</h3>";
+    if(!S.riders.length)html+="<p style='text-align:center;color:var(--text-muted)'>Baza zawodnik\u00f3w jest pusta \u2014 dodaj pierwszego.</p>";
+    else html+=S.riders.map((r,i)=>"<button class='btn' style='text-transform:none' data-ridx='"+i+"'>"+escq(r)+"</button>").join("");
+    html+="<button class='btn danger' style='margin-top:10px' data-clear-num='"+num+"'>\u2014 Brak zawodnika \u2014</button>";
+    html+="<button class='btn secondary' onclick='UI.addRider("+num+")'>+ Nowy zawodnik\u2026</button>";
+    html+="<button class='btn' style='margin-top:10px' onclick='UI.closeModal()'>Anuluj</button>";
+    UI.openModal(html);
+    /* Nazwiska nigdy nie trafiaj\u0105 do inline JS (onclick) \u2014 pobierane bezpiecznie z S.riders przez indeks. */
+    $("modal").querySelectorAll("[data-ridx]").forEach(btn=>{
+      btn.onclick=()=>UI.setRider(num,S.riders[+btn.dataset.ridx]);
+    });
+    const clearBtn=$("modal").querySelector("[data-clear-num]");
+    if(clearBtn)clearBtn.onclick=()=>UI.clearRider(num);
+  },
+  clearRider(num){UI.setRider(num,"");},
+
+  /* ==== Ustawienia aplikacji (globalne, niezale\u017cne od zawod\u00f3w) ==== */
+  toggleAutoNext(){
+    S.settings.autoNext=!S.settings.autoNext;persist();renderSettings();
+  },
+  setFont(sz){
+    S.settings.font=sz;persist();UI.applyFont();renderSettings();
+  },
+  /* Sortowanie klasyfikacji: wg numer\u00f3w startowych albo wg zajmowanego miejsca. */
+  toggleSort(){
+    S.settings.sortByPlace=!S.settings.sortByPlace;persist();renderPoints();
+  },
+  applyFont(){
+    const map={S:"13px",M:"16px",L:"19px"};
+    document.documentElement.style.fontSize=map[S.settings.font]||"16px";
+  },
+
+  /* Prze\u0142\u0105cznik rozstrzygania remis\u00f3w bezpo\u015brednimi pojedynkami \u2014 suwak, bez potwierdzenia. */
+  toggleH2H(){
+    const c=cur();if(!c)return;
+    if(!mutate(()=>{c.h2h=!c.h2h;}))return;
+    renderLineup();renderPoints();scheduleRenders();
+  },
+
+  resolveTie(num){
+    const c=cur();if(!c)return;
+    const gs=placeGroups(c);
+    const g=gs.find(x=>x.nums.includes(num));
+    if(!g||g.nums.length<2)return;
+
+    const end=g.start+g.nums.length-1;
+    const currentPick=c.overrides[num];
+
+    let html="<h3>Rozstrzygni\u0119cie miejsca</h3>";
+    if(c.h2h){
+      const pts=h2hPoints(c,g.nums);
+      const sorted=[...g.nums].sort((a,b)=>pts[b]-pts[a]);
+      html+="<p style='text-align:center;color:var(--text-muted);font-size:0.78rem;margin:0 0 6px'>Bezpo\u015brednie pojedynki \u2014 punkty wirtualne:</p>";
+      html+="<div style='border:1px solid var(--border-color);border-radius:10px;margin:0 0 12px;overflow:hidden'>";
+      html+=sorted.map(n=>"<div style='display:flex;justify-content:space-between;padding:7px 12px;border-bottom:1px solid var(--border-color);font-size:0.85rem"+(n===num?";background:rgba(56,189,248,0.12)":"")+"'><span><span class='ridernum'>"+n+"</span>"+escq(c.mapping[n]||"?")+"</span><b>"+pts[n]+" pkt</b></div>").join("");
+      html+="</div>";
+    }
+    html+="<p style='text-align:center;'>Wybierz dok\u0142adne miejsce dla zawodnika nr <b>"+num+" ("+escq(c.mapping[num]||"?")+")</b>:</p>";
+    
+    for(let p=g.start;p<=end;p++){
+      html+="<button class='btn "+(currentPick===p?"primary":"")+"' onclick='UI.setTieOverride("+num+","+p+")'>Miejsce "+p+"</button>";
+    }
+    if(currentPick){
+      html+="<button class='btn danger' onclick='UI.clearTieOverride("+num+")'>Cofnij wyb\u00f3r (Przywr\u00f3\u0107 "+g.start+"\u2013"+end+")</button>";
+    }
+    html+="<button class='btn' style='margin-top:10px' onclick='UI.closeModal()'>Anuluj</button>";
+    UI.openModal(html);
+  },
+
+  setTieOverride(num,place){
+    const c=cur();if(!c)return;
+    const gs=placeGroups(c);
+    const g=gs.find(x=>x.nums.includes(num));
+    if(!g)return;
+
+    if(!mutate(()=>{
+      c.overrides[num]=place;
+      if(g.nums.length===2){
+        const otherNum=g.nums.find(n=>n!==num);
+        const otherPlace=(place===g.start)?(g.start+1):g.start;
+        c.overrides[otherNum]=otherPlace;
+      }
+    }))return;
+    UI.closeModal();renderPoints();
+  },
+
+  clearTieOverride(num){
+    const c=cur();if(!c)return;
+    const gs=placeGroups(c);
+    const g=gs.find(x=>x.nums.includes(num));
+    if(!mutate(()=>{
+      if(g)g.nums.forEach(n=>delete c.overrides[n]);
+    }))return;
+    UI.closeModal();renderPoints();
+  },
+
+  moveRider(heatN,slotIdx,dir){
+    const c=cur();if(!c)return;
+    const h=compHeats(c).find(x=>x.n===heatN);
+    const ok=mutate(()=>{
+      const fins=h.order.filter(i=>!h.entries[i].mark);
+      const marks=h.order.filter(i=>h.entries[i].mark);
+      const idx=fins.indexOf(slotIdx);
+      const newIdx=idx+dir;
+      if(idx<0||newIdx<0||newIdx>=fins.length)return;
+      [fins[idx],fins[newIdx]]=[fins[newIdx],fins[idx]];
+      h.order=[...fins,...marks];
+    });
+    if(!ok)return;
+    /* Celowana aktualizacja tylko tej karty biegu \u2014 bez przerysowania ca\u0142ej listy. */
+    updateHeatCard(h);
+  },
+
+  pickOpenRider(heatN,slotIdx){
+    const c=cur();if(!c)return;
+    const heats=compHeats(c),h=heats.find(x=>x.n===heatN);
+    const base=standings(c,20);const arr=Object.values(base).sort(cmpStats).map(r=>r.num);
+    const need20=heats.filter(x=>!x.extra&&x.n<=20).every(x=>x.confirmed);
+    
+    if(!need20&&(c.format>20 || h.extra)){UI.toast("Zatwierd\u017a najpierw biegi 1\u201320.");return;}
+
+    let pool=[];
+    if(h.extra){
+      pool=arr;
+    }else if(c.format===23){
+      if(heatN<=22) pool=arr.slice(2,10);
+      else {
+        const h21=heats.find(x=>x.n===21), h22=heats.find(x=>x.n===22);
+        if(!h21.confirmed||!h22.confirmed){UI.toast("Zatwierd\u017a najpierw biegi 21 i 22.");return;}
+        const w21=Number(Object.entries(heatResults(h21)).find(([,v])=>v.pts===3)?.[0]);
+        const w22=Number(Object.entries(heatResults(h22)).find(([,v])=>v.pts===3)?.[0]);
+        pool=[arr[0],arr[1],w21,w22].filter(Boolean);
+      }
+    }else if(c.format===22){
+      if(heatN===21) pool=arr.slice(2,6);
+      else if(heatN===22){
+        const h21=heats.find(x=>x.n===21);
+        if(!h21.confirmed){UI.toast("Zatwierd\u017a najpierw bieg 21.");return;}
+        const o=heatResults(h21);
+        const top2=Object.entries(o).filter(([,v])=>v.pts>=2).sort((a,b)=>b[1].pts-a[1].pts).map(e=>Number(e[0]));
+        pool=[arr[0],arr[1],...top2];
+      }
+    }
+
+    const takenInCurrent=h.entries.map(effRider).filter(r=>r!==null);
+    let opts=pool.filter(n=>!takenInCurrent.includes(n));
+
+    if(!h.extra && heatN===22){
+      const h21=heats.find(x=>x.n===21);
+      if(h21){
+        const takenIn21=h21.entries.map(effRider).filter(r=>r!==null);
+        opts=opts.filter(n=>!takenIn21.includes(n));
+      }
+    }
+
+    let html="<h3>Wyb\u00f3r zawodnika \u2014 bieg "+getHeatLabel(h)+"</h3>";
+    if(!opts.length) html+="<p style='text-align:center;color:var(--text-muted)'>Brak dost\u0119pnych zawodnik\u00f3w.</p>";
+    else html+=opts.map(n=>"<button class='btn' onclick='UI.setOpenRider("+heatN+","+slotIdx+","+n+")'>"+n+" \u2014 "+escq(c.mapping[n]||"?")+"</button>").join("");
+    html+="<button class='btn' style='margin-top:10px' onclick='UI.closeModal()'>Anuluj</button>";
+    UI.openModal(html);
+  },
+
+  setOpenRider(heatN,slotIdx,num){
+    const c=cur();const h=compHeats(c).find(x=>x.n===heatN);
+    if(!mutate(()=>{
+      h.entries[slotIdx].rider=num;h.entries[slotIdx].repl=null;h.entries[slotIdx].mark=null;
+    }))return;
+    UI.closeModal();renderRaces();
+  },
+  markerMenu(heatN,slotIdx){
+    const c=cur();if(!c)return;
+    const h=compHeats(c).find(x=>x.n===heatN);
+    const e=h.entries[slotIdx];
+    let html="<h3>Oznaczenie zawodnika</h3>";
+    html+=MARKS.map((m,mi)=>"<button class='btn small' style='margin:3px;width:auto' onclick='UI.setMarkIdx("+heatN+","+slotIdx+","+mi+")'>"+m+"</button>").join("");
+    if(e.mark)html+="<button class='btn danger' onclick='UI.setMark("+heatN+","+slotIdx+",null)'>Usu\u0144 oznaczenie</button>";
+    html+="<button class='btn' style='margin-top:10px' onclick='UI.closeModal()'>Anuluj</button>";
+    UI.openModal(html);
+  },
+  setMarkIdx(heatN,slotIdx,mi){UI.setMark(heatN,slotIdx,MARKS[mi]);},
+  setMark(heatN,slotIdx,mark){
+    const c=cur();const h=compHeats(c).find(x=>x.n===heatN);
+    const e=h.entries[slotIdx];
+    /* Zabezpieczenie: nie wolno oznacza\u0107 wpisu zast\u0119pstwa (zagnie\u017cd\u017cone zast\u0119pstwo psuje model). */
+    if(e.replOf!==undefined&&e.replOf!==null){UI.toast("Nie mo\u017cna oznaczy\u0107 zast\u0119pcy \u2014 usu\u0144 zast\u0119pstwo i oznacz ponownie.");return;}
+    if(!mutate(()=>{
+      removeRepl(h,slotIdx);
+      e.mark=mark;e.repl=null;
+      if(mark!==null){c.markSeq=(c.markSeq||0)+1;e.markSeq=c.markSeq;}
+      normalizeOrder(h);
+    }))return;
+    if(mark===null){UI.closeModal();scheduleRenders();return;}
+    renderRaces();
+
+    const pool=[17,18].filter(n=>c.mapping[n]&&!h.entries.some(x=>x.rider===n&&(!x.mark||x.replOf!==undefined&&x.replOf!==null)));
+    let html="<h3>Wyb\u00f3r zast\u0119pstwa</h3><p style='text-align:center'>Oznaczenie: <b>"+escq(mark)+"</b></p>";
+    if(pool.length)html+=pool.map(n=>"<button class='btn' onclick='UI.setRepl("+heatN+","+slotIdx+","+n+")'>Nr "+n+" ("+escq(c.mapping[n])+")</button>").join("");
+    html+="<button class='btn' onclick='UI.setRepl("+heatN+","+slotIdx+",null)'>Bez zast\u0119pstwa</button>";
+    UI.openModal(html);
+  },
+  setRepl(heatN,slotIdx,num){
+    const c=cur();const h=compHeats(c).find(x=>x.n===heatN);
+    if(!mutate(()=>{
+      removeRepl(h,slotIdx);
+      if(num!==null){
+        h.entries[slotIdx].repl=num;
+        h.entries.push({gate:h.entries[slotIdx].gate,rider:num,mark:null,repl:null,replOf:slotIdx});
+        const ni=h.entries.length-1;
+        h.order=[...h.order.filter(i=>!h.entries[i].mark),ni,...h.order.filter(i=>h.entries[i].mark)];
+      }else{h.entries[slotIdx].repl=null;}
+    }))return;
+    UI.closeModal();scheduleRenders();
+  },
+
+  confirmHeat(heatN){
+    const c=cur();const h=compHeats(c).find(x=>x.n===heatN);
+    const isBase=e=>e.replOf===undefined||e.replOf===null;
+    /* Kto faktycznie jedzie: podstawowi bez oznaczenia + zast\u0119pcy (wpisy zast\u0119pstwa).
+       Oznaczony zawodnik NIE jedzie \u2014 jego jazd\u0119 reprezentuje jedynie wpis zast\u0119pstwa.
+       Zast\u0119pstwo = dok\u0142adnie jedna jazda, nigdy dwie. */
+    const riders=[];
+    h.entries.forEach(e=>{
+      if(!isBase(e)){riders.push(e.rider);return;}
+      if(!e.mark)riders.push(e.rider);
+    });
+    if(h.entries.some(e=>isBase(e)&&e.rider===null)){UI.toast("Uzupe\u0142nij obsad\u0119 wy\u015bcigu.");return;}
+    if(riders.some(r=>r===null)){UI.toast("Uzupe\u0142nij obsad\u0119 wy\u015bcigu.");return;}
+    if(new Set(riders).size!==riders.length){UI.toast("Zawodnik nie mo\u017ce jecha\u0107 dwukrotnie.");return;}
+
+    if(!mutate(()=>{normalizeOrder(h);h.confirmed=true;}))return;
+    scheduleRenders();
+    /* Automatyczne przej\u015bcie do nast\u0119pnego (otwartego) biegu po zatwierdzeniu. */
+    if(S.settings.autoNext){
+      const heats=compHeats(c);
+      const next=heats.find(x=>!x.confirmed&&x.n>h.n&&!x.extra)||heats.find(x=>!x.confirmed&&!x.extra);
+      if(next){
+        const el=document.getElementById("heat-"+next.n);
+        if(el)setTimeout(()=>el.scrollIntoView({behavior:"smooth",block:"start"}),50);
+      }
+    }
+  },
+
+  editHeat(heatN){
+    const c=cur();const h=compHeats(c).find(x=>x.n===heatN);
+    h.confirmed=false;persist();renderRaces();renderPoints();
+  },
+
+  resetHeat(heatN){
+    const c=cur();if(!c)return;
+    const h=compHeats(c).find(x=>x.n===heatN);
+    UI.confirm("Zresetowa\u0107 bieg "+getHeatLabel(h)+" do stanu sprzed wy\u015bcigu?",()=>{
+      if(!mutate(()=>{
+        h.entries=h.entries.filter(e=>e.replOf===undefined||e.replOf===null);
+        h.entries.forEach(e=>{
+          if(h.n>20 || h.extra) e.rider=null;
+          e.mark=null;e.repl=null;delete e.markSeq;
+        });
+        h.order=h.entries.map((_,i)=>i);
+        h.confirmed=false;
+        delete h.time;
+      }))return;
+      scheduleRenders();
+    });
+  },
+
+  resetAllHeats(){
+    const c=cur();if(!c)return;
+    UI.confirm("Zresetowa\u0107 WSZYSTKIE wy\u015bcigi do stanu sprzed zawod\u00f3w? Wyniki, oznaczenia i biegi dodatkowe zostan\u0105 usuni\u0119te. Tej operacji nie mo\u017cna cofn\u0105\u0107.",()=>{
+      if(!mutate(()=>{
+        c.heats=c.heats.filter(h=>!h.extra);
+        c.heats.forEach(h=>{
+          h.entries=h.entries.filter(e=>e.replOf===undefined||e.replOf===null);
+          h.entries.forEach(e=>{
+            if(h.n>20) e.rider=null;
+            e.mark=null;e.repl=null;delete e.markSeq;
+          });
+          h.order=h.entries.map((_,i)=>i);
+          h.confirmed=false;
+          delete h.time;
+        });
+        c.overrides={};
+        delete c.markSeq;
+      }))return;
+      scheduleRenders();
+      UI.toast("Zresetowano wszystkie wy\u015bcigi.");
+    });
+  },
+
+  editHeatTime(heatN){
+    const c=cur();if(!c)return;
+    const h=compHeats(c).find(x=>x.n===heatN);
+    /* Stan roboczy wewn\u0105trz modu\u0142u UI (nie na window). Czas trzymany jako liczba ca\u0142kowita
+       milisekund \u2014 trzy ostatnie wpisane cyfry zawsze l\u0105duj\u0105 po przecinku (np. 64,254). */
+    UI._timeHeatN=heatN;
+    UI._timeMs=h.time?Math.round(parseFloat(h.time.replace(",","."))*1000):0;
+    let html="<h3>Czas biegu "+getHeatLabel(h)+"</h3>";
+    html+="<p style='text-align:center;color:var(--text-muted);font-size:0.75rem;margin:0 0 10px'>Wpisz cyfry \u2014 ostatnie trzy to milisekundy</p>";
+    html+="<div class='timedisplay' id='timeVal'>"+fmtHeatTime(UI._timeMs)+"</div>";
+    html+="<div class='numpad'>";
+    for(let d=1;d<=9;d++)html+="<button class='btn' onclick='UI.timeDigit("+d+")'>"+d+"</button>";
+    html+="<button class='btn secondary' onclick='UI.timeBackspace()'>\u232b</button>";
+    html+="<button class='btn' onclick='UI.timeDigit(0)'>0</button>";
+    html+="<button class='btn danger' onclick='UI.timeClear()'>C</button>";
+    html+="</div>";
+    html+="<button class='btn primary' style='margin-top:14px' onclick='UI.saveHeatTime()'>Zapisz</button>";
+    html+="<button class='btn' onclick='UI.closeModal()'>Anuluj</button>";
+    UI.openModal(html);
+    /* Klawiatura fizyczna dzia\u0142a r\u00f3wnolegle do numpada na ekranie \u2014 te same funkcje. */
+    UI._timeKeyHandler=ev=>{
+      if(ev.key>="0"&&ev.key<="9"){ev.preventDefault();UI.timeDigit(+ev.key);}
+      else if(ev.key==="Backspace"||ev.key==="Delete"){ev.preventDefault();UI.timeBackspace();}
+      else if(ev.key==="Enter"){ev.preventDefault();UI.saveHeatTime();}
+    };
+    document.addEventListener("keydown",UI._timeKeyHandler);
+  },
+  timeDigit(d){
+    const t=(UI._timeMs||0)*10+d;
+    if(t>99999)return; /* maks. 5 cyfr: 99,999 s \u2014 tyle wystarczy na realny czas biegu */
+    UI._timeMs=t;
+    const el=$("timeVal");if(el)el.textContent=fmtHeatTime(t);
+  },
+  timeBackspace(){
+    UI._timeMs=Math.floor((UI._timeMs||0)/10);
+    const el=$("timeVal");if(el)el.textContent=fmtHeatTime(UI._timeMs);
+  },
+  timeClear(){
+    UI._timeMs=0;
+    const el=$("timeVal");if(el)el.textContent=fmtHeatTime(0);
+  },
+  saveHeatTime(){
+    const c=cur();if(!c)return;
+    const h=compHeats(c).find(x=>x.n===UI._timeHeatN);
+    if(!h){UI.closeModal();return;}
+    const ms=UI._timeMs||0;
+    if(!mutate(()=>{
+      if(!ms)delete h.time;
+      else h.time=fmtHeatTime(ms);
+    }))return;
+    UI.closeModal();renderRaces();
+  },
+
+  promptExtraHeat(){
+    const c=cur();if(!c)return;
+    const heats=compHeats(c);
+    const need20=heats.filter(x=>!x.extra&&x.n<=20).every(x=>x.confirmed);
+    if(!need20){UI.toast("Zatwierd\u017a najpierw biegi 1\u201320.");return;}
+
+    let html="<h3>Wy\u015bcig dodatkowy</h3>";
+    html+="<p style='text-align:center;margin-bottom:12px;'>Wybierz liczb\u0119 zawodnik\u00f3w:</p>";
+    html+="<button class='btn primary' onclick='UI.addExtraHeat(2)'>2 zawodnik\u00f3w</button>";
+    html+="<button class='btn primary' onclick='UI.addExtraHeat(3)'>3 zawodnik\u00f3w</button>";
+    html+="<button class='btn primary' onclick='UI.addExtraHeat(4)'>4 zawodnik\u00f3w</button>";
+    html+="<button class='btn' style='margin-top:10px' onclick='UI.closeModal()'>Anuluj</button>";
+    UI.openModal(html);
+  },
+
+  addExtraHeat(countRiders){
+    const c=cur();if(!c)return;
+    const count=compHeats(c).filter(h=>h.extra).length+1;
+
+    if(!mutate(()=>{
+      const heats=compHeats(c);
+      const n=100+count;
+      const entries=[];
+      for(let g=0;g<countRiders;g++){
+        entries.push({gate:GATES[g],rider:null,mark:null,repl:null});
+      }
+      const order=[];
+      for(let i=countRiders-1;i>=0;i--)order.push(i);
+      heats.push({n,extra:true,confirmed:false,order,entries});
+    }))return;
+    UI.closeModal();scheduleRenders();
+    UI.toast("Dodano wy\u015bcig dodatkowy D"+count);
+  },
+
+  removeExtraHeat(heatN){
+    const c=cur();if(!c)return;
+    const idx=c.heats.findIndex(x=>x.n===heatN);
+    if(idx<0||!c.heats[idx].extra)return;
+    const lbl=getHeatLabel(c.heats[idx]);
+    UI.confirm("Usun\u0105\u0107 wy\u015bcig dodatkowy "+lbl+"? Wszystkie jego wyniki zostan\u0105 utracone.",()=>{
+      if(!mutate(()=>{
+        c.heats.splice(idx,1);
+        /* Ponumerowanie pozosta\u0142ych bieg\u00f3w dodatkowych: D1, D2, ... */
+        let i=0;
+        c.heats.forEach(h=>{if(h.extra){i++;h.n=100+i;}});
+      }))return;
+      scheduleRenders();
+      UI.toast("Usuni\u0119to wy\u015bcig "+lbl+".");
+    });
+  }
+};
+
+function renderRiderLib(){
+  const el=$("riderList");
+  if(!S.riders.length){el.innerHTML="<p style='color:var(--text-muted);text-align:center;'>Brak zawodnik\u00f3w w bazie.</p>";return;}
+  el.innerHTML=S.riders.map((r,i)=>"<div class='ri'><span>"+escq(r)+"</span><button class='btn small' onclick='UI.editRider("+i+")'>Edytuj</button></div>").join("");
+}
+
+function renderSaved(){
+  const el=$("savedList");const ids=Object.keys(S.comps||{});
+  if(!ids.length){el.innerHTML="<p style='color:var(--text-muted);text-align:center;'>Brak zapisanych zawod\u00f3w.</p>";return;}  el.innerHTML=ids.map(id=>{
+    const c=S.comps[id];
+    const title=c.name||("Zawody "+c.format+"-biegowe");
+    return "<div class='saved-item'>"+
+      "<div class='saved-info'>"+
+        "<span class='saved-title'>"+escq(title)+"</span>"+
+        "<span class='saved-meta'>"+c.format+"-biegowe</span>"+
+      "</div>"+
+      "<div class='saved-actions'>"+
+        "<button class='btn small primary' data-open=\""+escq(id)+"\">Otw\u00f3rz</button>"+
+        "<button class='btn small secondary' data-rename=\""+escq(id)+"\">Zmie\u0144 nazw\u0119</button>"+
+        "<button class='btn small danger' data-del=\""+escq(id)+"\">Usu\u0144</button>"+
+      "</div>"+
+    "</div>";
+  }).join("");
+  el.querySelectorAll("[data-open]").forEach(b=>b.onclick=()=>UI.openComp(b.dataset.open));
+  el.querySelectorAll("[data-rename]").forEach(b=>b.onclick=()=>UI.renameComp(b.dataset.rename));
+  el.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>UI.delComp(b.dataset.del));
+}
+UI.openComp=function(id){S.current=id;S.settings.lastComp=id;persist();UI.screen(S.comps[id].launched?"points":"lineup");};
+UI.delComp=function(id){
+  const c=S.comps[id];const nm=c?escq(c.name||("Zawody "+c.format+"-biegowe")):"";
+  UI.confirm("Usun\u0105\u0107 zawody <b>"+nm+"</b>?<br><small style='color:var(--text-muted)'>Tej operacji nie mo\u017cna cofn\u0105\u0107.</small>",()=>{
+    delete S.comps[id];DB.removeComp(id);if(S.current===id)S.current=null;
+    if(S.settings.lastComp===id)delete S.settings.lastComp;
+    persist();renderSaved();});
+};
+
+/* Ekran g\u0142\u00f3wny: przycisk \u201eKontynuuj" dla ostatnio otwartych zawod\u00f3w. */
+function renderHome(){
+  const b=$("continueBtn"),nb=$("newCompBtn");if(!b||!nb)return;
+  const id=S.settings.lastComp;const c=id&&S.comps[id];
+  if(!c){b.style.display="none";nb.classList.add("primary");return;}
+  const heats=compHeats(c);
+  const last=heats.filter(h=>h.confirmed&&!h.extra).reduce((m,h)=>Math.max(m,h.n),0);
+  const title=c.name||("Zawody "+c.format+"-biegowe");
+  const prog=c.launched?(last>0?("po wy\u015bcigu "+last+"/"+c.format):"przed startem"):"przypisywanie numer\u00f3w";
+  b.innerHTML="<span>\u25b6 Kontynuuj</span><small style='text-transform:none;font-weight:600;opacity:0.8'>"+escq(title)+" \u00b7 "+escq(prog)+"</small>";
+  b.style.display="flex";nb.classList.remove("primary");
+}
+/* Przewini\u0119cie ekranu wy\u015bcig\u00f3w do pierwszego otwartego biegu (albo do ko\u0144ca listy, gdy wszystkie zatwierdzone). */
+function scrollToCurrentHeat(){
+  const c=cur();if(!c||!$("races").classList.contains("on"))return;
+  const heats=compHeats(c);
+  const open=heats.find(h=>!h.extra&&!h.confirmed);
+  const target=open||heats.filter(h=>!h.extra).slice(-1)[0];
+  const el=target&&$("heat-"+target.n);
+  if(!el)return;
+  if(!open&&heats.every(h=>h.confirmed)){window.scrollTo(0,0);return;}
+  el.scrollIntoView({block:"start"});
+}
+
+/* Od\u015bwie\u017ca etykiety opcji aplikacji w USTAWIENIACH. */
+function renderSettings(){
+  const a=$("setAutoNext");
+  if(a){
+    a.textContent="PO ZATWIERDZENIU BIEGU: "+(S.settings.autoNext?"PRZEJD\u0179 DO NAST\u0118PNEGO":"ZOSTA\u0143 NA MIEJSCU");
+    a.classList.toggle("primary",!!S.settings.autoNext);
+  }
+  ["S","M","L"].forEach(sz=>{
+    const b=$("font"+sz);
+    if(b)b.classList.toggle("primary",S.settings.font===sz);
+  });
+}
+
+function renderLineup(){
+  const c=cur();if(!c){UI.screen("home");return;}
+  const sw=$("h2hSwitch");
+  if(sw){sw.classList.toggle("on",!!c.h2h);sw.setAttribute("aria-checked",c.h2h?"true":"false");}
+  let html="<table class='pts'><tr><th>Nr</th><th style='text-align:left'>Zawodnik</th></tr>";
+  [...Array(18)].map((_,i)=>i+1).forEach(n=>{
+    const name=c.mapping[n]||"";
+    html+="<tr><td class='num'>"+n+"</td><td style='text-align:left'>"+
+      "<button class='btn small' style='width:100%;text-transform:none;font-size:0.85rem' onclick='UI.pickLineup("+n+")'>"+
+      (name?escq(name):"\u2014 Wybierz \u2014")+"</button></td></tr>";
+  });
+  html+="</table>";
+  $("lineupList").innerHTML=html;
+}
+
+function renderPoints(){
+  const c=cur();if(!c){UI.screen("home");return;}
+  const heats=compHeats(c);
+  /* Stopie\u0144 zaawansowania zawod\u00f3w w nag\u0142\u00f3wku: ostatni zatwierdzony bieg zwyk\u0142y. */
+  const done=heats.filter(h=>h.confirmed&&!h.extra).length;
+  const last=heats.filter(h=>h.confirmed&&!h.extra).reduce((m,h)=>Math.max(m,h.n),0);
+  const total=c.format;
+  const t=$("ptsTitle");
+  if(t)t.innerHTML="KLASYFIKACJA<span class='ptssub'>"+(last>0?("po wy\u015bcigu "+last+"/"+total):(total+" bieg\u00f3w"))+"</span>";
+  const sb=$("sortPts");
+  if(sb)sb.classList.toggle("active",!!S.settings.sortByPlace);
+  heats.forEach(normalizeOrder);
+  const st=standings(c);
+  const groups=placeGroups(c);
+  const tieSet=new Set();groups.forEach(g=>{if(g.nums.length>1)g.nums.forEach(n=>tieSet.add(n));});
+  /* Kolejno\u015b\u0107 wierszy: numery startowe albo realna kolejno\u015b\u0107 w klasyfikacji. */
+  let order=[...Array(18)].map((_,i)=>i+1).filter(n=>c.mapping[n]);
+  if(S.settings.sortByPlace)order=groups.flatMap(g=>[...g.nums].sort((a,b)=>a-b));
+  
+  let html="<tr><th class='col-no'>Nr</th><th class='col-nm'>Zawodnik</th><th>Pkt</th><th>Msc</th>";
+  heats.forEach(h=>{
+    html+="<th>"+getHeatLabel(h)+"</th>";
+  });
+  html+="</tr>";
+
+  order.forEach(n=>{
+    const nm=String(c.mapping[n]||"\u2014");
+    const sp=nm.indexOf(" ");
+    const nmHtml=sp>0?("<span style='display:block'>"+escq(nm.slice(0,sp))+"</span><span style='display:block'>"+escq(nm.slice(sp+1))+"</span>"):escq(nm);
+    html+="<tr>";
+    html+="<td class='col-no'>"+n+"</td><td class='col-nm'>"+nmHtml+"</td>";
+    const s=st[n];
+    html+="<td><b>"+(s?s.pts:0)+"</b></td>";
+    
+    const plcTxt=placeLabel(c,n,groups);
+    html+="<td class='plc"+(tieSet.has(n)?" tie":"")+"' data-rider='"+n+"'"+(tieSet.has(n)?" role='button' tabindex='0' aria-label='Miejsce "+escq(plcTxt)+" \u2014 rozstrzygnij remis'":"")+">"+escq(plcTxt)+"</td>";
+    
+    heats.forEach(h=>{
+      const gi=h.entries.findIndex(e=>e.rider===n||e.repl===n);
+      let cell="<span class='cell' style='color:var(--text-muted)'>\u00b7</span>";
+      if(gi>=0){
+        const gate=h.entries[gi].gate;const cls="m"+(GATES.includes(gate)?gate:"A");
+        if(h.confirmed){
+          const r=heatResults(h)[n];
+          const txt=r?((r.mark!==null&&r.mark!==undefined)?r.mark:r.pts):"";
+          cell="<span class='cell "+cls+"'>"+escq(txt)+"</span>";
+        }else{
+          cell="<span class='cell "+cls+"'></span>";
+        }
+      }
+      html+="<td>"+cell+"</td>";
+    });
+    html+="</tr>";
+  });
+  $("ptsTable").innerHTML=html;
+  attachPlaceTap();
+}
+
+function attachPlaceTap(){
+  document.querySelectorAll("td.plc.tie").forEach(td=>{
+    td.title="Kliknij, aby rozstrzygn\u0105\u0107 remis";
+    td.addEventListener("click",()=>UI.resolveTie(+td.dataset.rider));
+  });
+}
+
+function escq(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+
+/* Sanityzacja tekstu od u\u017cytkownika: przyci\u0119cie, limit d\u0142ugo\u015bci, usuni\u0119cie znak\u00f3w kontrolnych. */
+function cleanText(v,max){
+  return String(v||"").replace(/[\u0000-\u001F\u007F\u200E\u200F\u202A-\u202E\u2066-\u2069]/g,"").trim().slice(0,max||100);
+}
+
+/* ============ Walidacja schematu importu ============ */
+const IMPORT_LIMITS={bytes:5*1024*1024,riders:500,comps:200,heats:200,entries:8};
+function validateData(d){
+  const isInt=v=>typeof v==="number"&&Number.isInteger(v);
+  const isObj=v=>v&&typeof v==="object"&&!Array.isArray(v);
+  const okNum=k=>/^([1-9]|1[0-8])$/.test(k);
+  if(!isObj(d))return "to nie obiekt danych";
+  if(!Array.isArray(d.riders))return "brak listy zawodnik\u00f3w";
+  if(d.riders.length>IMPORT_LIMITS.riders)return "zbyt wielu zawodnik\u00f3w";
+  if(!d.riders.every(r=>typeof r==="string"&&r.length<=100))return "b\u0142\u0119dna lista zawodnik\u00f3w";
+  if(!isObj(d.comps))return "brak obiektu zawod\u00f3w";
+  const ids=Object.keys(d.comps);
+  if(ids.length>IMPORT_LIMITS.comps)return "zbyt wiele zawod\u00f3w";
+  for(const id of ids){
+    if(!/^[A-Za-z0-9_-]{1,64}$/.test(id))return "zawody: niedozwolony identyfikator";
+    const c=d.comps[id];
+    if(!isObj(c))return "zawody "+id+": nie s\u0105 obiektem";
+    if(typeof c.id!=="string"||c.id!==id)return "zawody "+id+": niezgodne id";
+    if(!Array.isArray(c.heats))return "zawody "+id+": brak listy bieg\u00f3w";
+    if(c.heats.length>IMPORT_LIMITS.heats)return "zawody "+id+": zbyt wiele bieg\u00f3w";
+    if(c.format!==20&&c.format!==22&&c.format!==23)return "zawody "+id+": nieznany format";
+    if(c.name!==undefined&&c.name!==null&&(typeof c.name!=="string"||c.name.length>200))return "zawody "+id+": b\u0142\u0119dna nazwa";
+    if(!isObj(c.mapping))return "zawody "+id+": brak mapowania";
+    for(const k of Object.keys(c.mapping)){
+      if(!okNum(k))return "zawody "+id+": b\u0142\u0119dny numer w mapowaniu ("+k.slice(0,10)+")";
+      if(typeof c.mapping[k]!=="string"||c.mapping[k].length>100)return "zawody "+id+": b\u0142\u0119dne mapowanie nr "+k;
+    }
+    if(c.overrides!==undefined&&c.overrides!==null){
+      if(!isObj(c.overrides))return "zawody "+id+": b\u0142\u0119dne nadpisania remis\u00f3w";
+      for(const k of Object.keys(c.overrides)){
+        if(!okNum(k)||!isInt(c.overrides[k])||c.overrides[k]<1||c.overrides[k]>18)return "zawody "+id+": b\u0142\u0119dne nadpisanie remisu";
+      }
+    }
+    if(c.h2h!==undefined&&c.h2h!==null&&typeof c.h2h!=="boolean")return "zawody "+id+": b\u0142\u0119dna flaga pojedynk\u00f3w";
+    if(c.markSeq!==undefined&&!isInt(c.markSeq))return "zawody "+id+": b\u0142\u0119dny licznik oznacze\u0144";
+    for(const h of c.heats){
+      if(!isObj(h))return "zawody "+id+": bieg nie jest obiektem";
+      const n=h.n;
+      if(!isInt(n)||n<1||n>200||(n>60&&n<101))return "zawody "+id+": b\u0142\u0119dny numer biegu";
+      if(typeof h.extra!=="boolean"&&h.extra!==undefined)return "zawody "+id+": bieg "+n+": b\u0142\u0119dna flaga extra";
+      if(typeof h.confirmed!=="boolean"&&h.confirmed!==undefined)return "zawody "+id+": bieg "+n+": b\u0142\u0119dna flaga zatwierdzenia";
+      if(!Array.isArray(h.entries)||h.entries.length>IMPORT_LIMITS.entries)return "zawody "+id+": bieg "+n+": b\u0142\u0119dne wpisy";
+      if(!Array.isArray(h.order))return "zawody "+id+": bieg "+n+": brak kolejno\u015bci";
+      if(h.order.some(i=>!isInt(i)||i<0||i>=h.entries.length))return "zawody "+id+": bieg "+n+": b\u0142\u0119dna kolejno\u015b\u0107";
+      for(const e of h.entries){
+        if(!isObj(e))return "zawody "+id+": bieg "+n+": wpis nie jest obiektem";
+        if(!GATES.includes(e.gate))return "zawody "+id+": bieg "+n+": b\u0142\u0119dny tor";
+        if(e.rider!==null&&(!isInt(e.rider)||e.rider<1||e.rider>18))return "zawody "+id+": bieg "+n+": b\u0142\u0119dny numer zawodnika";
+        if(e.mark!==null&&(typeof e.mark!=="string"||e.mark.length>8))return "zawody "+id+": bieg "+n+": b\u0142\u0119dne oznaczenie";
+        if(e.repl!==null&&e.repl!==undefined&&(!isInt(e.repl)||e.repl<1||e.repl>18))return "zawody "+id+": bieg "+n+": b\u0142\u0119dny zast\u0119pca";
+        if(e.replOf!==null&&e.replOf!==undefined&&(!isInt(e.replOf)||e.replOf<0||e.replOf>=h.entries.length))return "zawody "+id+": bieg "+n+": b\u0142\u0119dne odwo\u0142anie zast\u0119pstwa";
+        if(e.markSeq!==undefined&&!isInt(e.markSeq))return "zawody "+id+": bieg "+n+": b\u0142\u0119dny numer oznaczenia";
+      }
+      if(h.time!==undefined&&h.time!==null&&(typeof h.time!=="string"||h.time.length>12))return "zawody "+id+": bieg "+n+": b\u0142\u0119dny czas";
+    }
+  }
+  return null;
+}
+
+function renderRaces(){
+  const c=cur();if(!c){UI.screen("home");return;}
+  const heats=compHeats(c);
+  heats.forEach(normalizeOrder);
+  const firstOpen=heats.find(h=>!h.extra&&!h.confirmed);
+  $("racesTitle").textContent="WY\u015aCIGI";
+  $("heatList").innerHTML=heats.map(h=>heatCardHtml(c,h,firstOpen)).join("");
+}
+/* Karta pojedynczego biegu \u2014 pozwala aktualizowa\u0107 tylko jeden bieg bez przerysowania ca\u0142ej listy. */
+function heatCardHtml(c,h,firstOpen){
+    let html="";
+    const active=(!h.confirmed&&(!firstOpen||h.n===firstOpen.n||h.extra));
+    const dim=!h.confirmed&&!active;
+    const heatLabel=getHeatLabel(h);
+    html+="<div id='heat-"+h.n+"' class='heat "+(h.confirmed?"done":"")+(active?" active":"")+(dim?" dim":"")+"'>";
+    html+="<div class='heathead'><span class='heatnum'>BIEG "+heatLabel+(h.time?"<span class='heattime'>"+escq(h.time)+"</span>":"")+"</span>";
+    html+="<div class='heatactions'>";
+    html+="<button class='iconbtn sm' title='Czas wy\u015bcigu' onclick='UI.editHeatTime("+h.n+")'>"+ICON_CLOCK+"</button>";
+    if(h.extra){
+      html+="<button class='iconbtn sm' title='Usu\u0144 wy\u015bcig dodatkowy' style='color:#fca5a5' onclick='UI.removeExtraHeat("+h.n+")'>"+ICON_X+"</button>";
+    }
+    if(h.confirmed){
+      html+="<button class='iconbtn sm' title='Edytuj' onclick='UI.editHeat("+h.n+")'>"+ICON_EDIT+"</button>";
+      html+="<button class='iconbtn sm' title='Reset biegu' onclick='UI.resetHeat("+h.n+")'>"+ICON_RESET+"</button>";
+    }
+    else if(active)html+="<button class='btn small primary' style='margin:0' onclick='UI.confirmHeat("+h.n+")'>\u2714 Zatwierd\u017a</button>";
+    else html+="<span style='color:var(--text-muted);font-size:0.8rem'>"+ICON_LOCK_SM+"Zablokowany</span>";
+    html+="</div></div><div class='hrows'>";
+    const rowOf=(e,r,extraCls,inner)=>"<div class='rcard "+(extraCls||"")+"' style='border-left:4px solid "+GATE_COLOR[e.gate]+"'><span class='dot' style='background:"+GATE_COLOR[e.gate]+"'></span>"+inner+"</div>";
+    if(h.confirmed){
+      const r=heatResults(h);let pos=0;
+      h.order.forEach(ei=>{
+        const e=h.entries[ei];
+        if(e.mark&&e.rider!==null&&e.rider!==undefined){
+          html+=rowOf(e,0,"ex locked","<span class='name'>"+escq(c.mapping[e.rider]||"?")+(e.repl?" <small>(zast. "+escq(c.mapping[e.repl]||"?")+")</small>":"")+"</span><span class='mk'>"+escq(e.mark)+"</span>");
+          return;
+        }
+        const fin=e.rider;
+        if(fin!==null&&fin!==undefined){
+          pos++;
+          const rr=r[fin];
+          html+=rowOf(e,0,"","<span class='name'>"+escq(c.mapping[fin]||"?")+"</span><span class='pos'>"+pos+". \u2014 "+fmtRes(rr)+"</span>");
+        }
+      });
+    }else{
+      let pos=0;
+      const finsCount=h.order.filter(i=>!h.entries[i].mark).length;
+      h.order.forEach(ei=>{
+        const e=h.entries[ei];const hasRepl=e.repl!==null&&e.repl!==undefined;
+        const col=GATE_COLOR[e.gate];
+        const r=hasRepl?e.repl:e.rider;
+        if(e.mark){
+          html+="<div class='rcard ex locked' style='border-left:4px solid "+col+"'><span class='dot' style='background:"+col+"'></span><span class='name'>"+escq(c.mapping[e.rider]||"?")+"<span class='mk'>"+escq(e.mark)+"</span>"+(hasRepl?" <small>(zast. "+escq(c.mapping[e.repl]||"?")+")</small>":"")+"</span></div>";
+        }else if(r===null||r===undefined){
+          html+="<div class='slotmark' role='button' tabindex='0' onclick='UI.pickOpenRider("+h.n+","+ei+")'>+ Wybierz zawodnika</div>";
+        }else{
+          pos++;
+          const isSub=(e.replOf!==undefined&&e.replOf!==null);
+          const upDis=(pos===1)?"disabled":"";
+          const downDis=(pos===finsCount)?"disabled":"";
+          const canReassign=(h.n>20||h.extra)&&!isSub;
+          const subNote=isSub?"<small style='color:var(--text-muted)'> (za "+escq(c.mapping[h.entries[e.replOf].rider]||"?")+")</small>":"";
+          const nameAttrs=canReassign?" style='cursor:pointer;text-decoration:underline dotted' title='Zmie\u0144 zawodnika' onclick='UI.pickOpenRider("+h.n+","+ei+")'":"";
+          html+="<div class='rcard' data-heat='"+h.n+"' data-slot='"+ei+"' data-pos='"+(pos-1)+"' style='border-left:4px solid "+col+"'>"+
+            "<span class='dot' style='background:"+col+"'></span>"+
+            "<span class='name'"+nameAttrs+">"+escq(c.mapping[r]||"?")+subNote+"</span>"+
+            "<span class='pos'>"+pos+".</span>"+
+            "<div class='rcardbtns'>"+
+              "<button class='cardbtn' "+upDis+" title='Przesu\u0144 w g\u00f3r\u0119' onclick='UI.moveRider("+h.n+","+ei+",-1)'>"+ICON_UP+"</button>"+
+              "<button class='cardbtn' "+downDis+" title='Przesu\u0144 w d\u00f3\u0142' onclick='UI.moveRider("+h.n+","+ei+",1)'>"+ICON_DOWN+"</button>"+
+              (!isSub?"<button class='cardbtn flag' title='Wykluczenie' onclick='UI.markerMenu("+h.n+","+ei+")'>"+ICON_FLAG+"</button>":"")+
+            "</div>"+
+          "</div>";
+        }
+      });
+    }
+    html+="</div></div>";
+  return html;
+}
+/* Rejestracja Service Workera \u2014 w\u0142\u0105cza pe\u0142n\u0105 instalowalno\u015b\u0107 (PWA) i prac\u0119 offline,
+   ale tylko gdy plik jest hostowany przez http/https razem z sw.js. Otwarty lokalnie
+   (file://) po prostu nic nie robi \u2014 b\u0142\u0105d jest wyciszony. */
+if("serviceWorker" in navigator){
+  window.addEventListener("load",()=>{
+    navigator.serviceWorker.register("./sw.js").catch(()=>{});
+  });
+}
+/* Dost\u0119pno\u015b\u0107: etykiety aria dla przycisk\u00f3w z samym title, Esc/Tab w oknach, Enter/Spacja na role="button"/"switch". */
+(function(){
+  const label=root=>{
+    if(!root||root.nodeType!==1)return;
+    const list=root.matches&&root.matches("button[title]:not([aria-label])")?[root]:[];
+    root.querySelectorAll&&root.querySelectorAll("button[title]:not([aria-label])").forEach(b=>list.push(b));
+    list.forEach(b=>b.setAttribute("aria-label",b.getAttribute("title")));
+  };
+  label(document.body);
+  new MutationObserver(ms=>ms.forEach(m=>m.addedNodes.forEach(label))).observe(document.body,{childList:true,subtree:true});
+  document.addEventListener("keydown",ev=>{
+    const ov=$("overlay");
+    if(ov&&ov.classList.contains("on")){
+      if(ev.key==="Escape"){ev.preventDefault();UI.closeModal();return;}
+      if(ev.key==="Tab"){
+        const f=[...$("modal").querySelectorAll("button:not([disabled]),input,[tabindex]:not([tabindex='-1'])")].filter(x=>x.offsetParent!==null);
+        if(!f.length){ev.preventDefault();return;}
+        const first=f[0],last=f[f.length-1],a=document.activeElement;
+        if(ev.shiftKey&&(a===first||a===$("modal"))){ev.preventDefault();last.focus();}
+        else if(!ev.shiftKey&&a===last){ev.preventDefault();first.focus();}
+        return;
+      }
+    }
+    if((ev.key==="Enter"||ev.key===" ")&&ev.target&&ev.target.matches&&ev.target.matches("[role='button'],[role='switch']")){
+      ev.preventDefault();ev.target.click();
+    }
+  });
+})();
+renderHome();
+/* Zastosowanie zapisanego rozmiaru czcionki przy starcie aplikacji. */
+UI.applyFont();
+/* Wype\u0142nienie ikon nawigacyjnych (Klasyfikacja = s\u0142upki, Wy\u015bcigi = flaga z szachownic\u0105). */
+(function(){
+  const BARS='<svg viewBox="0 0 24 24"><path d="M4 20V10h3.2v10H4zm6.4 0V4h3.2v16h-3.2zM16.8 20v-7H20v7h-3.2z"/></svg>';
+  const FLAG='<svg viewBox="0 0 24 24"><path d="M14.4 6L14 4H5v17h2v-7h5.6l.4 2h7V6z"/><rect x="8" y="6.5" width="3" height="3" fill="#0b0f19"/><rect x="12.5" y="6.5" width="3" height="3" fill="#f9fafb"/><rect x="17" y="6.5" width="3" height="3" fill="#0b0f19"/><rect x="8" y="10.5" width="3" height="3" fill="#f9fafb"/><rect x="12.5" y="10.5" width="3" height="3" fill="#0b0f19"/><rect x="17" y="10.5" width="3" height="3" fill="#f9fafb"/></svg>';
+  document.querySelectorAll(".navpts").forEach(b=>b.innerHTML=BARS);
+  document.querySelectorAll(".navraces").forEach(b=>b.innerHTML=FLAG);
+})();
+
+/* Aktualizacja tylko jednej karty biegu (np. po przesuni\u0119ciu zawodnika). */
+function updateHeatCard(h){
+  const c=cur();if(!c)return;
+  const el=$("heat-"+h.n);
+  if(!el){renderRaces();return;}
+  normalizeOrder(h);
+  const firstOpen=compHeats(c).find(x=>!x.extra&&!x.confirmed);
+  el.outerHTML=heatCardHtml(c,h,firstOpen);
+}
+</script>
+</body>
+</html>
