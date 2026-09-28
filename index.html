@@ -106,6 +106,8 @@ h3 { font-size: 0.85rem; color: var(--text-muted); text-align: center; letter-sp
   background: #4b5563;
 }
 .btn.danger { background: #311213; border-color: #7f1d1d; color: #fca5a5; }
+.btn.hint { flex-direction: column; gap: 2px; }
+.btn.hint small { text-transform: none; font-weight: 600; letter-spacing: 0; font-size: 0.72rem; opacity: 0.75; }
 .btn.small { width: auto; min-height: 44px; padding: 6px 12px; font-size: 0.75rem; margin: 2px; }
 
 /* Przycisk ikony w kwadratowej ramce */
@@ -457,9 +459,9 @@ table.pts td.plc:not(.tie) { cursor: default; }
 <section id="pick" class="screen">
   <div class="topbar"><button class="iconbtn" title="Wr&#243;&#263;" onclick="UI.screen('home')"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></button><h2>WYB&#211;R FORMATU</h2></div>
   <div class="card">
-    <button class="btn primary" onclick="UI.newComp(23)">Indywidualne &#8212; 23 wy&#347;cigi</button>
-    <button class="btn" onclick="UI.newComp(22)">Indywidualne &#8212; 22 wy&#347;cigi</button>
-    <button class="btn" onclick="UI.newComp(20)">Indywidualne &#8212; 20 wy&#347;cig&#243;w</button>
+    <button class="btn primary hint" onclick="UI.newComp(23)"><span>Indywidualne &#8212; 23 wy&#347;cigi</span><small>np. SGP</small></button>
+    <button class="btn hint" onclick="UI.newComp(22)"><span>Indywidualne &#8212; 22 wy&#347;cigi</span><small>np. SEC</small></button>
+    <button class="btn hint" onclick="UI.newComp(20)"><span>Indywidualne &#8212; 20 wy&#347;cig&#243;w</span><small>np. MIMP</small></button>
   </div>
 </section>
 
@@ -490,7 +492,7 @@ table.pts td.plc:not(.tie) { cursor: default; }
       <button class="iconbtn navpts active" title="Klasyfikacja" onclick="UI.navScreen('points')"></button>
       <button class="iconbtn navraces" title="Wy&#347;cigi" onclick="UI.navScreen('races')"></button>
       <button class="iconbtn" id="sortPts" title="Sortuj wg zajmowanego miejsca" onclick="UI.toggleSort()"><svg viewBox="0 0 24 24"><path d="M3 18h6v-2H3v2zm0-12v2h18V6H3zm0 7h12v-2H3v2z"/></svg></button>
-      <button class="iconbtn" title="Utw&#243;rz kopi&#281; bezpiecze&#324;stwa" onclick="UI.exportData()"><svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg></button>
+      <button class="iconbtn" id="tieBtn" title="Zasady remis&#243;w" onclick="UI.tieRules()"><svg viewBox="0 0 24 24"><path d="M6.99 11L3 15l3.99 4v-3H14v-2H6.99v-3zM21 9l-3.99-4v3H10v2h7.01v3L21 9z"/></svg></button>
     </div>
   </div>
 
@@ -510,7 +512,6 @@ table.pts td.plc:not(.tie) { cursor: default; }
       <button class="iconbtn navpts" title="Klasyfikacja" onclick="UI.navScreen('points')"></button>
       <button class="iconbtn navraces active" title="Wy&#347;cigi" onclick="UI.navScreen('races')"></button>
       <button class="iconbtn danger" title="Resetuj WSZYSTKIE wy&#347;cigi" onclick="UI.resetAllHeats()"><svg viewBox="0 0 24 24"><path d="M15 16h4v2h-4zm0-8h7v2h-7zm0 4h6v2h-6zM3 18c0 1.1.9 2 2 2h6c1.1 0 2-.9 2-2V8H3v10zM14 5h-3l-1-1H6L5 5H2v2h12z"/></svg></button>
-      <button class="iconbtn" title="Utw&#243;rz kopi&#281; bezpiecze&#324;stwa" onclick="UI.exportData()"><svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg></button>
     </div>
   </div>
 
@@ -1073,11 +1074,17 @@ const UI={
   },
 
   /* Prze\u0142\u0105cznik rozstrzygania remis\u00f3w bezpo\u015brednimi pojedynkami \u2014 suwak, bez potwierdzenia. */
-  toggleH2H(){
+  toggleH2H(fromModal){
     const c=cur();if(!c)return;
-    if(!mutate(()=>{c.h2h=!c.h2h;}))return;
-    renderLineup();renderPoints();scheduleRenders();
+    const reopen=()=>{if(fromModal===true)UI.tieRules();};
+    const apply=()=>{
+      if(mutate(()=>{c.h2h=!c.h2h;c.overrides={};})){renderLineup();renderPoints();scheduleRenders();}
+    };
+    if(c.overrides&&Object.keys(c.overrides).length){
+      UI.confirm("Zmiana zasady wyczy\u015bci r\u0119czne rozstrzygni\u0119cia remis\u00f3w w tych zawodach. Zmieni\u0107?",()=>{apply();reopen();},reopen);
+    }else apply();
   },
+
 
   resolveTie(num){
     const c=cur();if(!c)return;
@@ -1178,16 +1185,15 @@ const UI={
       else if(heatN===22){
         const h21=heats.find(x=>x.n===21);
         if(!h21.confirmed){UI.toast("Zatwierd\u017a najpierw bieg 21.");return;}
-        const o=heatResults(h21);
-        const top2=Object.entries(o).filter(([,v])=>v.pts>=2).sort((a,b)=>b[1].pts-a[1].pts).map(e=>Number(e[0]));
-        pool=[arr[0],arr[1],...top2];
+        const top2=(heatFinishOrder(h21)||[]).slice(0,2);
+        pool=[...new Set([arr[0],arr[1],...top2])].filter(n=>n!==undefined&&n!==null);
       }
     }
 
     const takenInCurrent=h.entries.map(effRider).filter(r=>r!==null);
     let opts=pool.filter(n=>!takenInCurrent.includes(n));
 
-    if(!h.extra && heatN===22){
+    if(!h.extra && c.format===23 && heatN===22){
       const h21=heats.find(x=>x.n===21);
       if(h21){
         const takenIn21=h21.entries.map(effRider).filter(r=>r!==null);
@@ -1433,6 +1439,24 @@ const UI={
   }
 };
 
+UI.tieRules=function(){
+  const c=cur();if(!c)return;
+  const lb="font-size:0.8rem;font-weight:800;color:var(--text-muted)";
+  UI.openModal("<h3>Remisy w klasyfikacji</h3>"+
+    "<p style='font-size:0.75rem;color:var(--text-muted);text-align:center;margin:0 0 8px;font-weight:700;letter-spacing:0.5px'>DECYDUJ\u0104 BEZPO\u015aREDNIE POJEDYNKI</p>"+
+    "<div style='display:flex;align-items:center;justify-content:center;gap:12px;margin:0 0 12px'>"+
+      "<span style='"+lb+"'>NIE</span>"+
+      "<div class='switch"+(c.h2h?" on":"")+"' id='h2hSwitchM' role='switch' tabindex='0' aria-checked='"+(c.h2h?"true":"false")+"' aria-label='Decyduj\u0105 bezpo\u015brednie pojedynki' onclick='UI.toggleH2H(true)'><div class='knob'></div></div>"+
+      "<span style='"+lb+"'>TAK</span>"+
+    "</div>"+
+    "<p style='font-size:0.78rem;color:var(--text-muted);text-align:center;margin:0 0 14px'>Gdy w\u0142\u0105czone, remisy w punktach rozstrzygaj\u0105 wyniki bieg\u00f3w, w kt\u00f3rych zremisowani zawodnicy jechali razem. Mo\u017cna to zmieni\u0107 w ka\u017cdej chwili \u2014 klasyfikacja przelicza si\u0119 od razu.</p>"+
+    "<button class='btn primary' onclick='UI.closeModal()'>Gotowe</button>");
+};
+UI.syncH2H=function(){
+  const c=cur();const on=!!(c&&c.h2h);
+  const b=$("tieBtn");if(b)b.classList.toggle("active",on);
+  const m=$("h2hSwitchM");if(m){m.classList.toggle("on",on);m.setAttribute("aria-checked",on?"true":"false");}
+};
 function renderRiderLib(){
   const el=$("riderList");
   if(!S.riders.length){el.innerHTML="<p style='color:var(--text-muted);text-align:center;'>Brak zawodnik\u00f3w w bazie.</p>";return;}
@@ -1475,6 +1499,7 @@ function renderHome(){
   const id=S.settings.lastComp;const c=id&&S.comps[id];
   if(!c){b.style.display="none";nb.classList.add("primary");return;}
   const heats=compHeats(c);
+  if(c.launched&&heats.length&&heats.every(h=>h.confirmed)){b.style.display="none";nb.classList.add("primary");return;}
   const last=heats.filter(h=>h.confirmed&&!h.extra).reduce((m,h)=>Math.max(m,h.n),0);
   const title=c.name||("Zawody "+c.format+"-biegowe");
   const prog=c.launched?(last>0?("po wy\u015bcigu "+last+"/"+c.format):"przed startem"):"przypisywanie numer\u00f3w";
@@ -1532,6 +1557,7 @@ function renderPoints(){
   if(t)t.innerHTML="KLASYFIKACJA<span class='ptssub'>"+(last>0?("po wy\u015bcigu "+last+"/"+total):(total+" bieg\u00f3w"))+"</span>";
   const sb=$("sortPts");
   if(sb)sb.classList.toggle("active",!!S.settings.sortByPlace);
+  UI.syncH2H();
   heats.forEach(normalizeOrder);
   const st=standings(c);
   const groups=placeGroups(c);
