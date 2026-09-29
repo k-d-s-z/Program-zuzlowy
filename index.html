@@ -432,26 +432,21 @@ table.pts td.plc:not(.tie) { cursor: default; }
   <div class="topbar"><button class="iconbtn" title="Wr&#243;&#263;" onclick="UI.screen('home')"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></button><h2>USTAWIENIA</h2></div>
   
   <div class="card">
-    <h3>ZAPISANE ZAWODY</h3>
-    <div id="savedList"></div>
-  </div>
-
-  <div class="card">
-    <h3>OPCJE APLIKACJI</h3>
-    <button class="btn" id="setAutoNext" onclick="UI.toggleAutoNext()"></button>
+    <h3>USTAWIENIA APLIKACJI</h3>
     <div style="display:flex;gap:6px;margin-top:4px">
       <span style="align-self:center;font-size:0.75rem;color:var(--text-muted);flex:1;font-weight:700">ROZMIAR CZCIONKI:</span>
       <button class="btn small" id="fontS" onclick="UI.setFont('S')">S</button>
       <button class="btn small" id="fontM" onclick="UI.setFont('M')">M</button>
       <button class="btn small" id="fontL" onclick="UI.setFont('L')">L</button>
     </div>
+    <button class="btn" style="margin-top:10px" onclick="UI.exportData()">Utw&#243;rz kopi&#281; bezpiecze&#324;stwa</button>
+    <button class="btn" onclick="document.getElementById('impFile').click()">Wczytaj kopi&#281; bezpiecze&#324;stwa</button>
+    <input type="file" id="impFile" accept=".json" style="display:none" onchange="UI.importData(this)">
   </div>
 
   <div class="card">
-    <h3>KOPIA BEZPIECZE&#323;STWA</h3>
-    <button class="btn" onclick="UI.exportData()">Utw&#243;rz kopi&#281; bezpiecze&#324;stwa</button>
-    <button class="btn" onclick="document.getElementById('impFile').click()">Wczytaj kopi&#281; bezpiecze&#324;stwa</button>
-    <input type="file" id="impFile" accept=".json" style="display:none" onchange="UI.importData(this)">
+    <h3>ZAPISANE ZAWODY</h3>
+    <div id="savedList"></div>
   </div>
 </section>
 
@@ -581,7 +576,7 @@ const DB={
       }
     });
     return {riders:Array.isArray(meta.riders)?meta.riders:[],comps,current:(meta.current&&comps[meta.current])?meta.current:null,
-      settings:Object.assign({autoNext:true,font:"M"},(meta.settings&&typeof meta.settings==="object")?meta.settings:{})};
+      settings:Object.assign({font:"M"},(meta.settings&&typeof meta.settings==="object")?meta.settings:{})};
   },
   removeComp(id){store.remove(this.compKey(id));}
 };
@@ -1043,7 +1038,11 @@ const UI={
   pickLineup(num){    const c=cur();if(!c)return;
     let html="<h3>Nr "+num+" \u2014 wybierz zawodnika</h3>";
     if(!S.riders.length)html+="<p style='text-align:center;color:var(--text-muted)'>Baza zawodnik\u00f3w jest pusta \u2014 dodaj pierwszego.</p>";
-    else html+=S.riders.map((r,i)=>"<button class='btn' style='text-transform:none' data-ridx='"+i+"'>"+escq(r)+"</button>").join("");
+    else{
+      html+="<input type='text' id='riderSearch' placeholder='Szukaj zawodnika\u2026' style='margin-bottom:10px'>";
+      html+="<div id='riderPickList'>"+S.riders.map((r,i)=>"<button class='btn' style='text-transform:none' data-ridx='"+i+"' data-name='"+escq(r.toLowerCase())+"'>"+escq(r)+"</button>").join("")+"</div>";
+      html+="<p id='riderPickEmpty' style='display:none;text-align:center;color:var(--text-muted);margin:8px 0'>Brak wynik\u00f3w.</p>";
+    }
     html+="<button class='btn danger' style='margin-top:10px' data-clear-num='"+num+"'>\u2014 Brak zawodnika \u2014</button>";
     html+="<button class='btn secondary' onclick='UI.addRider("+num+")'>+ Nowy zawodnik\u2026</button>";
     html+="<button class='btn' style='margin-top:10px' onclick='UI.closeModal()'>Anuluj</button>";
@@ -1054,13 +1053,25 @@ const UI={
     });
     const clearBtn=$("modal").querySelector("[data-clear-num]");
     if(clearBtn)clearBtn.onclick=()=>UI.clearRider(num);
+    /* Filtrowanie listy na bie\u017c\u0105co wg wpisanego tekstu (bez rozr\u00f3\u017cniania wielko\u015bci liter). */
+    const search=$("modal").querySelector("#riderSearch");
+    if(search){
+      search.addEventListener("input",()=>{
+        const q=search.value.trim().toLowerCase();
+        let visible=0;
+        $("modal").querySelectorAll("#riderPickList [data-ridx]").forEach(btn=>{
+          const match=!q||btn.dataset.name.includes(q);
+          btn.style.display=match?"":"none";
+          if(match)visible++;
+        });
+        const empty=$("modal").querySelector("#riderPickEmpty");
+        if(empty)empty.style.display=visible?"none":"block";
+      });
+    }
   },
   clearRider(num){UI.setRider(num,"");},
 
   /* ==== Ustawienia aplikacji (globalne, niezale\u017cne od zawod\u00f3w) ==== */
-  toggleAutoNext(){
-    S.settings.autoNext=!S.settings.autoNext;persist();renderSettings();
-  },
   setFont(sz){
     S.settings.font=sz;persist();UI.applyFont();renderSettings();
   },
@@ -1278,13 +1289,11 @@ const UI={
     if(!mutate(()=>{normalizeOrder(h);h.confirmed=true;}))return;
     scheduleRenders();
     /* Automatyczne przej\u015bcie do nast\u0119pnego (otwartego) biegu po zatwierdzeniu. */
-    if(S.settings.autoNext){
-      const heats=compHeats(c);
-      const next=heats.find(x=>!x.confirmed&&x.n>h.n&&!x.extra)||heats.find(x=>!x.confirmed&&!x.extra);
-      if(next){
-        const el=document.getElementById("heat-"+next.n);
-        if(el)setTimeout(()=>el.scrollIntoView({behavior:"smooth",block:"start"}),50);
-      }
+    const heats=compHeats(c);
+    const next=heats.find(x=>!x.confirmed&&x.n>h.n&&!x.extra)||heats.find(x=>!x.confirmed&&!x.extra);
+    if(next){
+      const el=document.getElementById("heat-"+next.n);
+      if(el)setTimeout(()=>el.scrollIntoView({behavior:"smooth",block:"start"}),50);
     }
   },
 
@@ -1520,11 +1529,6 @@ function scrollToCurrentHeat(){
 
 /* Od\u015bwie\u017ca etykiety opcji aplikacji w USTAWIENIACH. */
 function renderSettings(){
-  const a=$("setAutoNext");
-  if(a){
-    a.textContent="PO ZATWIERDZENIU BIEGU: "+(S.settings.autoNext?"PRZEJD\u0179 DO NAST\u0118PNEGO":"ZOSTA\u0143 NA MIEJSCU");
-    a.classList.toggle("primary",!!S.settings.autoNext);
-  }
   ["S","M","L"].forEach(sz=>{
     const b=$("font"+sz);
     if(b)b.classList.toggle("primary",S.settings.font===sz);
