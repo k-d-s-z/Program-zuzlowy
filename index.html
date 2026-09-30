@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 <!-- Polityka bezpiecze&#324;stwa tre&#347;ci: brak zewn&#281;trznych skrypt&#243;w, brak po&#322;&#261;cze&#324; sieciowych poza w&#322;asnym hostem,
-     obrazy tylko data:, czcionki tylko systemowe. Inline-JS dozwolony (handlery onclick). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; font-src 'none'; img-src data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'">
+     obrazy tylko data:, czcionki tylko systemowe. Skrypt inline dozwolony wyłącznie przez hash SHA-256 (brak inline handlerów), connect-src 'none'. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-sr+x9ts+QmEHfq7CD6uoPR+8dt+QqiwTarSZGLTEbyg='; style-src 'unsafe-inline'; font-src 'none'; img-src data:; connect-src 'none'; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'">
 <title>Program &#380;u&#380;lowy</title>
 
 <!-- Typografia: wy&#322;&#261;cznie czcionki systemowe (zero po&#322;&#261;cze&#324; sieciowych) -->
@@ -29,12 +29,27 @@
   --bg-main: #0b0f19;
   --bg-card: #111827;
   --bg-card-hover: #1f2937;
-  --border-color: #1f2937;
+  --border-color: var(--border-color);
   --accent-blue: #38bdf8;
   --text-main: #f9fafb;
   --text-muted: #9ca3af;
   --danger: #ef4444;
   --danger-bg: #450a0a;
+  color-scheme: dark;
+  --text-strong: #fff; --danger-fg: #fca5a5; --danger-btn-bg: #311213; --danger-btn-bd: #7f1d1d; --sticky-bg: #182232;
+  --warn: #fb923c; --amber: #fbbf24; --bar-bg: rgba(11,15,25,0.82);
+  --tint-danger: rgba(69,10,10,0.4); --tint-red-a: rgba(127,29,29,0.5); --tint-red-b: rgba(127,29,29,0.25); --tint-org-a: rgba(124,45,18,0.5); --tint-org-b: rgba(124,45,18,0.3);
+  --ov-03: rgba(255,255,255,0.03);
+  --ov-04: rgba(255,255,255,0.04);
+  --ov-05: rgba(255,255,255,0.05);
+  --ov-06: rgba(255,255,255,0.06);
+  --ov-08: rgba(255,255,255,0.08);
+  --ov-10: rgba(255,255,255,0.10);
+  --ov-12: rgba(255,255,255,0.12);
+  --ov-15: rgba(255,255,255,0.15);
+  --ov-20: rgba(255,255,255,0.20);
+  --ov-25: rgba(255,255,255,0.25);
+  --ov-35: rgba(255,255,255,0.35);
 }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 :root {
@@ -52,14 +67,19 @@ body {
   overscroll-behavior-y: contain;
 }
 html { overscroll-behavior-y: contain; }
+/* A11y: pomimo globalnego user-select:none tekst w formularzach, tabelach wyników
+   i treści tekstowej pozostaje normalnie zaznaczalny (kopiowanie wyników itd.). */
+/* A11y: widoczna etykieta pól formularzy (zamiast samego placeholdera). */
+.sr-label { display:block; font-size: 0.72rem; font-weight: 800; color: var(--text-muted); letter-spacing: 0.4px; text-transform: uppercase; margin-bottom: 6px; text-align:left; }
+input, textarea, select, table, .copyable, .lg-tname { user-select: text; -webkit-user-select: text; }
 button { font-family: inherit; cursor: pointer; }
 .screen { display: none; min-height: 100vh; padding: 12px 12px 80px; }
 .screen.on { display: block; }
 
 /* Nag&#322;&#243;wki i stylistyka */
 h1, h2, h3 { font-family: var(--font-head); margin: 0 0 12px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase; }
-h1 { font-size: 1.35rem; color: #fff; text-align: center; }
-h2 { font-size: 1.1rem; color: #fff; display: flex; align-items: center; gap: 8px; }
+h1 { font-size: 1.35rem; color: var(--text-strong); text-align: center; }
+h2 { font-size: 1.1rem; color: var(--text-strong); display: flex; align-items: center; gap: 8px; }
 h3 { font-size: 0.85rem; color: var(--text-muted); text-align: center; letter-spacing: 1px; }
 
 .wrap { max-width: 900px; margin: 0 auto; }
@@ -70,7 +90,7 @@ h3 { font-size: 0.85rem; color: var(--text-muted); text-align: center; letter-sp
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background: rgba(255,255,255,0.05);
+  background: var(--ov-05);
   color: var(--text-main);
   border: 1px solid var(--border-color);
   border-radius: 10px;
@@ -85,7 +105,7 @@ h3 { font-size: 0.85rem; color: var(--text-muted); text-align: center; letter-sp
   margin: 4px 0;
   transition: all 0.15s ease;
 }
-.btn:hover { background: rgba(255,255,255,0.1); }
+.btn:hover { background: var(--ov-10); }
 .btn:active { transform: scale(0.98); }
 
 .btn.primary {
@@ -105,17 +125,17 @@ h3 { font-size: 0.85rem; color: var(--text-muted); text-align: center; letter-sp
 .btn.secondary:hover {
   background: #4b5563;
 }
-.btn.danger { background: #311213; border-color: #7f1d1d; color: #fca5a5; }
+.btn.danger { background: var(--danger-btn-bg); border-color: var(--danger-btn-bd); color: var(--danger-fg); }
 .btn.hint { flex-direction: column; gap: 2px; }
 .btn.hint small { text-transform: none; font-weight: 600; letter-spacing: 0; font-size: 0.72rem; opacity: 0.75; }
 .btn.small { width: auto; min-height: 44px; padding: 6px 12px; font-size: 0.75rem; margin: 2px; }
 
 /* Przycisk ikony w kwadratowej ramce */
 .iconbtn {
-  background: rgba(255,255,255,0.03);
+  background: var(--ov-03);
   border: 1px solid var(--border-color);
   border-radius: 8px;
-  color: #fff;
+  color: var(--text-strong);
   width: 44px;
   height: 44px;
   display: inline-flex;
@@ -198,7 +218,7 @@ table.pts th, table.pts td {
 table.pts th { 
   position: sticky; 
   top: 0; 
-  background: #182232; 
+  background: var(--sticky-bg); 
   z-index: 10; 
   font-weight: 800; 
   color: var(--text-muted); 
@@ -217,7 +237,7 @@ table.pts th.col-nm, table.pts td.col-nm {
   text-overflow: ellipsis;
   border-right: 2px solid var(--border-color);
 }
-table.pts th.col-nm { z-index: 12; background: #182232; }
+table.pts th.col-nm { z-index: 12; background: var(--sticky-bg); }
 
 /* Osobna, przypi&#281;ta kolumna z numerem zawodnika (wy&#347;rodkowana) */
 table.pts th.col-no, table.pts td.col-no {
@@ -229,7 +249,7 @@ table.pts th.col-no, table.pts td.col-no {
   background: var(--bg-card);
   z-index: 11;
 }
-table.pts th.col-no { z-index: 12; background: #182232; }
+table.pts th.col-no { z-index: 12; background: var(--sticky-bg); }
 table.pts td.col-no { color: var(--accent-blue); font-weight: 800; font-family: var(--font-head); }
 table.pts { font-variant-numeric: tabular-nums; }
 table.pts th { font-family: var(--font-head); letter-spacing: 0.3px; }
@@ -237,7 +257,7 @@ table.pts td.plc, .cell, .heatnum, .heattime { font-family: var(--font-head); }
 table.pts th.col-nm, table.pts td.col-nm { left: 38px; }
 
 table.pts td.num { font-weight: 700; color: var(--accent-blue); }
-table.pts td.plc { font-weight: 800; color: #f59e0b; user-select: none; }
+table.pts td.plc { font-weight: 800; color: var(--amber); user-select: none; }
 
 .ridernum {
   font-family: var(--font-head);
@@ -255,19 +275,19 @@ table.pts td.plc { font-weight: 800; color: #f59e0b; user-select: none; }
 
 /* Wy&#347;cigi &#8212; glassmorphism */
 .heat {
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.12);
+  background: var(--ov-06);
+  border: 1px solid var(--ov-12);
   border-radius: 18px;
   padding: 16px;
   margin: 14px 0;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.08);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.35), inset 0 1px 0 var(--ov-08);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 }
 .heat.dim { opacity: 0.45; }
-.heat.active { border-color: rgba(255,255,255,0.35); box-shadow: 0 0 0 1px rgba(229,231,235,0.2), 0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.12); }
+.heat.active { border-color: var(--ov-35); box-shadow: 0 0 0 1px rgba(229,231,235,0.2), 0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 var(--ov-12); }
 .heathead { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; gap: 8px; }
-.heatnum { font-weight: 800; color: #fff; font-size: 1.1rem; }
+.heatnum { font-weight: 800; color: var(--text-strong); font-size: 1.1rem; }
 .heattime { margin-left: 8px; font-size: 0.85rem; color: var(--accent-blue); font-weight: 700; letter-spacing: 0.5px; }
 .heatactions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 
@@ -275,7 +295,7 @@ table.pts td.plc { font-weight: 800; color: #f59e0b; user-select: none; }
 .rcard {
   position: relative;
   background: rgba(0,0,0,0.35);
-  border: 1px solid rgba(255,255,255,0.12);
+  border: 1px solid var(--ov-12);
   border-radius: 12px;
   padding: 12px 12px 12px 44px;
   min-height: 56px;
@@ -283,31 +303,31 @@ table.pts td.plc { font-weight: 800; color: #f59e0b; user-select: none; }
   align-items: center;
   font-weight: 700;
   font-size: 1rem;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
+  box-shadow: inset 0 1px 0 var(--ov-06);
 }
 .rcard .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
-.rcard.ex { opacity: 0.85; font-size: 0.9rem; background: rgba(127,29,29,0.25); border-color: rgba(248,113,113,0.35); }
+.rcard.ex { opacity: 0.85; font-size: 0.9rem; background: var(--tint-red-b); border-color: rgba(248,113,113,0.35); }
 .rcard.locked { opacity: 0.75; }
-.rcard .dot { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; border-radius: 50%; box-shadow: 0 0 0 2px rgba(255,255,255,0.15); }
+.rcard .dot { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; border-radius: 50%; box-shadow: 0 0 0 2px var(--ov-15); }
 .rcardbtns { display: flex; gap: 6px; margin-left: 10px; flex-shrink: 0; }
 .cardbtn {
   width: 44px; height: 44px; padding: 0; flex-shrink: 0;
-  background: rgba(255,255,255,0.08);
-  border: 1px solid rgba(255,255,255,0.15);
+  background: var(--ov-08);
+  border: 1px solid var(--ov-15);
   border-radius: 12px;
-  color: #fff;
+  color: var(--text-strong);
   display: flex; align-items: center; justify-content: center;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
+  box-shadow: inset 0 1px 0 var(--ov-08);
 }
 .cardbtn svg { width: 20px; height: 20px; fill: currentColor; }
 .cardbtn:active { transform: scale(0.92); }
 .cardbtn:disabled { opacity: 0.25; pointer-events: none; }
-.cardbtn.flag { color: #fb923c; border-color: rgba(251,146,60,0.5); background: rgba(124,45,18,0.3); }
-.cardbtn.del { color: #fca5a5; border-color: rgba(248,113,113,0.5); background: rgba(69,10,10,0.35); }
-.rcard .mk { margin-left: 6px; color: #fb923c; font-weight: 800; }
-.rcard .pos { margin-left: 6px; font-weight: 800; color: #fff; font-size: 1rem; }
-.slotmark { border: 1px dashed rgba(255,255,255,0.25); border-radius: 12px; color: var(--text-muted); display: flex; align-items: center; justify-content: center; min-height: 56px; padding: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 600; background: rgba(255,255,255,0.03); }
-.slotmark:hover { background: rgba(255,255,255,0.1); }
+.cardbtn.flag { color: var(--warn); border-color: rgba(251,146,60,0.5); background: var(--tint-org-b); }
+.cardbtn.del { color: var(--danger-fg); border-color: rgba(248,113,113,0.5); background: var(--tint-danger); }
+.rcard .mk { margin-left: 6px; color: var(--warn); font-weight: 800; }
+.rcard .pos { margin-left: 6px; font-weight: 800; color: var(--text-strong); font-size: 1rem; }
+.slotmark { border: 1px dashed var(--ov-25); border-radius: 12px; color: var(--text-muted); display: flex; align-items: center; justify-content: center; min-height: 56px; padding: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 600; background: var(--ov-03); }
+.slotmark:hover { background: var(--ov-10); }
 
 /* Uporz&#261;dkowana lista zapisanych zawod&#243;w */
 .saved-item {
@@ -321,7 +341,7 @@ table.pts td.plc { font-weight: 800; color: #f59e0b; user-select: none; }
   gap: 10px;
 }
 .saved-info { display: flex; flex-direction: column; gap: 2px; }
-.saved-title { font-weight: 800; font-size: 0.9rem; color: #fff; }
+.saved-title { font-weight: 800; font-size: 0.9rem; color: var(--text-strong); }
 .saved-meta { font-size: 0.75rem; color: var(--text-muted); }
 .saved-actions { display: flex; flex-direction: column; gap: 6px; width: 100%; }
 .saved-actions .btn.small { width: 100%; margin: 0; padding: 8px 12px; }
@@ -330,7 +350,7 @@ table.pts td.plc { font-weight: 800; color: #f59e0b; user-select: none; }
 .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 100; padding: 16px; }
 .overlay.on { display: flex; }
 .modal { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 16px; padding: 20px; max-width: 400px; width: 100%; max-height: 85vh; overflow: auto; }
-.modal h3 { color: #fff; margin-bottom: 12px; }
+.modal h3 { color: var(--text-strong); margin-bottom: 12px; }
 .riderlist .ri { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--border-color); }
 .numpad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
 .numpad .btn { margin: 0; }
@@ -339,8 +359,8 @@ table.pts td.plc { font-weight: 800; color: #f59e0b; user-select: none; }
 .toast.err { background: #dc2626; color: #fff; }
 
 /* Przycisk destrukcyjny w nag&#322;&#243;wku (reset wszystkich wy&#347;cig&#243;w) */
-.iconbtn.danger { color: #fca5a5; border-color: rgba(248,113,113,0.55); background: rgba(69,10,10,0.4); }
-.iconbtn.danger:hover { background: rgba(127,29,29,0.5); }
+.iconbtn.danger { color: var(--danger-fg); border-color: rgba(248,113,113,0.55); background: var(--tint-danger); }
+.iconbtn.danger:hover { background: var(--tint-red-a); }
 
 /* Widoczny fokus dla obs&#322;ugi klawiatur&#261; */
 button:focus-visible, [role="button"]:focus-visible, [role="switch"]:focus-visible, .modal:focus-visible {
@@ -376,6 +396,90 @@ table.pts td.plc:not(.tie) { cursor: default; }
   transition: left 0.15s ease;
 }
 .switch.on .knob { left: 28px; }
+
+/* ===== MECZ LIGOWY (prefiks lg- — niezależny od stylów zawodów indywidualnych) ===== */
+#match { padding-bottom: 200px; }
+.lg-teamcard { position: relative; border-radius: 18px; margin: 14px 0; background: var(--ov-06); border: 1px solid var(--ov-12); overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,0.35), inset 0 1px 0 var(--ov-08); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+.heat.done { background: rgba(0,0,0,0.28); border-color: var(--ov-08); opacity: 0.72; }
+.lg-helmets { display: flex; flex-shrink: 0; }
+.lg-helmets i { width: 13px; height: 13px; border-radius: 50%; box-shadow: 0 0 0 2px var(--bg-card), 0 0 0 3px var(--ov-20); margin-left: -5px; }
+.lg-helmets i:first-child { margin-left: 0; }
+.lg-teamhead { display: flex; align-items: center; padding: 14px 16px; gap: 10px; }
+.lg-teamcard.home { box-shadow: 0 8px 32px rgba(0,0,0,0.35); border-color: var(--ov-12); }
+.lg-teamcard.away { box-shadow: 0 8px 32px rgba(0,0,0,0.35); border-color: var(--ov-12); }
+.lg-tname { font-size: 1.05rem; font-weight: 800; color: var(--text-strong); text-transform: uppercase; letter-spacing: 0.4px; }
+.lg-tscore { font-size: 1.6rem; font-weight: 800; font-family: var(--font-head); color: var(--accent-blue); flex-shrink: 0; margin-left: auto; }
+.tblwrap { border: 1px solid var(--border-color); border-radius: 10px; overflow-x: auto; }
+table.lg-rt { border-collapse: separate; border-spacing: 0; min-width: 100%; font-variant-numeric: tabular-nums; width: 100%; }
+table.lg-rt th, table.lg-rt td { padding: 8px 7px; text-align: center; white-space: nowrap; font-size: 0.92rem; border-bottom: 1px solid var(--border-color); }
+table.lg-rt th { color: var(--text-muted); font-weight: 800; background: var(--ov-03); }
+table.lg-rt td.lg-nm { text-align: left; font-weight: 700; min-width: 120px; }
+table.lg-rt td.lg-nm .lg-rname { display: inline-flex; flex-direction: column; vertical-align: middle; line-height: 1.12; margin-left: 4px; }
+table.lg-rt td.lg-nm .fn { font-size: 0.7rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.4px; }
+table.lg-rt td.lg-nm .ln { font-size: 1rem; font-weight: 800; color: var(--text-strong); }
+table.lg-rt td.lg-num { color: var(--accent-blue); font-weight: 800; }
+table.lg-rt td.lg-sum { font-weight: 800; color: var(--text-strong); background: var(--ov-04); }
+table.lg-rt td.lg-bon { font-weight: 800; color: var(--amber); background: var(--ov-04); }
+.lg-res0 { color: var(--text-muted); }
+
+.lg-setbar { display: flex; align-items: center; gap: 8px; background: var(--ov-04); border: 1px solid var(--border-color); border-radius: 12px; padding: 10px 12px; margin: 14px 0 10px; }
+.lg-setbar span { font-size: 0.72rem; font-weight: 800; color: var(--text-muted); letter-spacing: 0.5px; flex: 1; }
+.lg-setbar .btn { margin: 0; }
+
+.lg-heatscore { font-weight: 800; font-size: 1.7rem; font-family: var(--font-head); color: var(--accent-blue); min-width: 64px; text-align: center; flex-shrink: 0; }
+.lg-heatscore.empty { color: var(--text-muted); font-size: 1.2rem; }
+.lg-tag { font-size: 0.65rem; font-weight: 800; color: var(--warn); margin-left: 4px; }
+.cardbtn.flag.on { background: var(--tint-org-a); border-color: var(--warn); }
+.lg-heatscore { margin-left: auto; margin-right: 10px; }
+
+.lg-menu { background: rgba(0,0,0,0.4); border: 1px dashed var(--ov-25); border-radius: 10px; padding: 10px; margin-top: 8px; }
+.lg-menu .mrow { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 6px; }
+.lg-menu .btn.small { margin: 0; }
+.lg-menu .sublabel { font-size: 0.7rem; color: var(--text-muted); font-weight: 700; margin: 6px 0 4px; }
+.lg-hints { margin-top: 4px; }
+.lg-hints div { color: var(--text-muted); font-size: 0.72rem; margin-top: 2px; }
+.lg-candlist { display: flex; flex-direction: column; gap: 4px; }
+.lg-candbtn { width: 100%; text-align: left; background: var(--ov-05); border: 1px solid var(--border-color); border-radius: 8px; padding: 8px 10px; color: var(--text-strong); font-size: 0.82rem; font-weight: 600; }
+.lg-candbtn small { display: block; color: var(--text-muted); font-weight: 600; }
+
+/* Pasek wyniku meczu — zawsze przypięty na dole */
+.lg-scorebar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; background: var(--bar-bg); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-top: 1px solid var(--ov-12); padding: 8px 10px calc(8px + env(safe-area-inset-bottom,0px)); box-shadow: 0 -6px 14px -6px rgba(0,0,0,0.6); }
+.lg-scorebar-inner { max-width: 900px; margin: 0 auto; }
+.lg-sbrow { display: flex; gap: 5px; margin-bottom: 5px; }
+.lg-skladybtn { flex: 1; background: var(--ov-06); border: 1px solid var(--ov-15); border-radius: 10px; color: var(--text-strong); font-weight: 800; font-size: 0.7rem; letter-spacing: 0.5px; text-transform: uppercase; padding: 7px; min-height: 34px; }
+.lg-scorerow { display: flex; align-items: center; gap: 10px; padding: 8px 14px; border-radius: 14px; background: var(--ov-06); border: 1px solid var(--ov-12); }
+.lg-scorerow .snm { flex: 1; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.3px; color: var(--text-strong); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lg-scorerow .snm.away { text-align: right; }
+.lg-scorerow .ssc { font-size: 1.15rem; font-weight: 800; font-family: var(--font-head); color: var(--accent-blue); flex-shrink: 0; }
+.lg-sbicon { flex: 0 0 44px; background: var(--ov-06); border: 1px solid var(--ov-15); border-radius: 10px; color: var(--text-strong); min-height: 34px; padding: 0; display: flex; align-items: center; justify-content: center; }
+.lg-sbicon svg { width: 18px; height: 18px; fill: currentColor; }
+
+/* Ekran składów drużyny (lineup meczu ligowego) */
+.lg-lineuprow { display: flex; align-items: center; gap: 8px; padding: 6px 0; }
+.lg-lineuprow .no { font-family: var(--font-head); font-weight: 800; color: var(--accent-blue); width: 34px; text-align: center; flex-shrink: 0; }
+
+/* A11y: respektowanie preferencji prefers-reduced-motion — wyłącza animacje. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+/* Jasny motyw \u2014 automatycznie, gdy system ma ustawiony jasny tryb. */
+/* Tablety i ekrany szerokie. */
+@media (min-width: 700px) {
+  .screen { padding: 20px 24px 96px; }
+  .wrap, .lg-scorebar-inner { max-width: 760px; }
+  .modal { max-width: 460px; }
+  h1 { font-size: 1.6rem; }
+}
+@media (min-width: 1100px) {
+  .wrap, .lg-scorebar-inner { max-width: 960px; }
+  :root { font-size: 17px; }
+}
+@media (hover: hover) { .btn:hover, .iconbtn:hover { filter: brightness(1.06); } }
 </style>
 </head>
 <body>
@@ -411,37 +515,38 @@ table.pts td.plc:not(.tie) { cursor: default; }
     <div style="background:linear-gradient(180deg,#f8fafc 0%,#cbd5e1 55%,#94a3b8 100%);-webkit-background-clip:text;background-clip:text;color:transparent;font-weight:800;letter-spacing:2px;font-size:1.05rem;line-height:1.35;text-transform:uppercase;text-shadow:0 2px 6px rgba(0,0,0,0.5)">Program<br>&#380;u&#380;lowy</div>
   </div>
   <div class="card">
-    <button class="btn primary" id="continueBtn" style="display:none;flex-direction:column;gap:2px" onclick="UI.continueLast()"></button>
-    <button class="btn primary" id="newCompBtn" onclick="UI.startComp()">+ Nowe zawody</button>
-    <button class="btn" onclick="UI.screen('riders')">ZAWODNICY</button>
-    <button class="btn" onclick="UI.screen('options')">USTAWIENIA</button>
+    <button class="btn" id="continueBtn" style="display:none;flex-direction:column;gap:2px" data-onclick="UI.continueLast()"></button>
+    <button class="btn" id="newCompBtn" data-onclick="UI.startComp()">+ Nowe zawody</button>
+    <button class="btn" data-onclick="UI.screen('people')">ZAWODNICY I DRUŻYNY</button>
+    <button class="btn" data-onclick="UI.screen('options')">USTAWIENIA</button>
   </div>
 </section>
 
 <!-- ZAWODNICY -->
 <section id="riders" class="screen">
-  <div class="topbar"><button class="iconbtn" title="Wr&#243;&#263;" onclick="UI.screen('home')"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></button><h2>Baza zawodnik&#243;w</h2></div>
+  <div class="topbar"><button class="iconbtn" title="Wr&#243;&#263;" data-onclick="UI.screen('people')"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></button><h2 class="grow" id="ridersTitle">Zawodnicy</h2></div>
   <div class="card">
-    <button class="btn primary" onclick="UI.addRider()">+ DODAJ ZAWODNIKA</button>
+    <button class="btn primary" data-onclick="UI.addRosterRider()">+ DODAJ ZAWODNIKA</button>
+    <button class="btn" data-onclick="UI.assignRosterRider()">PRZYPISZ Z BAZY</button>
     <div id="riderList" class="riderlist"></div>
   </div>
 </section>
 
 <!-- USTAWIENIA -->
 <section id="options" class="screen">
-  <div class="topbar"><button class="iconbtn" title="Wr&#243;&#263;" onclick="UI.screen('home')"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></button><h2>USTAWIENIA</h2></div>
+  <div class="topbar"><button class="iconbtn" title="Wr&#243;&#263;" data-onclick="UI.screen('home')"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></button><h2>USTAWIENIA</h2></div>
   
   <div class="card">
     <h3>USTAWIENIA APLIKACJI</h3>
     <div style="display:flex;gap:6px;margin-top:4px">
       <span style="align-self:center;font-size:0.75rem;color:var(--text-muted);flex:1;font-weight:700">ROZMIAR CZCIONKI:</span>
-      <button class="btn small" id="fontS" onclick="UI.setFont('S')">S</button>
-      <button class="btn small" id="fontM" onclick="UI.setFont('M')">M</button>
-      <button class="btn small" id="fontL" onclick="UI.setFont('L')">L</button>
+      <button class="btn small" id="fontS" data-onclick="UI.setFont('S')">S</button>
+      <button class="btn small" id="fontM" data-onclick="UI.setFont('M')">M</button>
+      <button class="btn small" id="fontL" data-onclick="UI.setFont('L')">L</button>
     </div>
-    <button class="btn" style="margin-top:10px" onclick="UI.exportData()">Utw&#243;rz kopi&#281; bezpiecze&#324;stwa</button>
-    <button class="btn" onclick="document.getElementById('impFile').click()">Wczytaj kopi&#281; bezpiecze&#324;stwa</button>
-    <input type="file" id="impFile" accept=".json" style="display:none" onchange="UI.importData(this)">
+    <button class="btn" style="margin-top:10px" data-onclick="UI.exportData()">Utw&#243;rz kopi&#281; bezpiecze&#324;stwa</button>
+    <button class="btn" data-onclick="UI.pickImportFile()">Wczytaj kopi&#281; bezpiecze&#324;stwa</button>
+    <input type="file" id="impFile" accept=".json" style="display:none" data-onchange="UI.importData(this)">
   </div>
 
   <div class="card">
@@ -450,19 +555,20 @@ table.pts td.plc:not(.tie) { cursor: default; }
   </div>
 </section>
 
-<!-- WYB&#211;R FORMATU -->
+<!-- WYB&#211;R ZAWOD&#211;W -->
 <section id="pick" class="screen">
-  <div class="topbar"><button class="iconbtn" title="Wr&#243;&#263;" onclick="UI.screen('home')"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></button><h2>WYB&#211;R FORMATU</h2></div>
+  <div class="topbar"><button class="iconbtn" title="Wr&#243;&#263;" data-onclick="UI.screen('home')"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></button><h2>WYB&#211;R ZAWOD&#211;W</h2></div>
   <div class="card">
-    <button class="btn primary hint" onclick="UI.newComp(23)"><span>Indywidualne &#8212; 23 wy&#347;cigi</span><small>np. SGP</small></button>
-    <button class="btn hint" onclick="UI.newComp(22)"><span>Indywidualne &#8212; 22 wy&#347;cigi</span><small>np. SEC</small></button>
-    <button class="btn hint" onclick="UI.newComp(20)"><span>Indywidualne &#8212; 20 wy&#347;cig&#243;w</span><small>np. MIMP</small></button>
+    <button class="btn hint" data-onclick="UI.newComp(23)"><span>Indywidualne &#8212; 23 wy&#347;cigi</span><small>np. SGP</small></button>
+    <button class="btn hint" data-onclick="UI.newComp(22)"><span>Indywidualne &#8212; 22 wy&#347;cigi</span><small>np. SEC</small></button>
+    <button class="btn hint" data-onclick="UI.newComp(20)"><span>Indywidualne &#8212; 20 wy&#347;cig&#243;w</span><small>np. MIMP</small></button>
+    <button class="btn hint" style="margin-top:14px" data-onclick="UI.startLeague()"><span>Zawody ligowe</span><small>mecz drużynowy, 15 wyścigów</small></button>
   </div>
 </section>
 
 <!-- SK&#321;ADY PRZED STARTEM -->
 <section id="lineup" class="screen">
-  <div class="topbar"><button class="iconbtn" title="Wr&#243;&#263;" onclick="UI.cancelLineup()"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></button><h2 class="grow">PRZYPISZ NUMERY</h2></div>
+  <div class="topbar"><button class="iconbtn" title="Wr&#243;&#263;" data-onclick="UI.cancelLineup()"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></button><h2 class="grow">PRZYPISZ NUMERY</h2></div>
   <div class="card" style="padding:6px">
     <div id="lineupList"></div>
   </div>
@@ -470,24 +576,85 @@ table.pts td.plc:not(.tie) { cursor: default; }
     <p style="font-size:0.75rem;color:var(--text-muted);text-align:center;margin:0 0 8px;font-weight:700;letter-spacing:0.5px">DECYDUJ&#260; BEZPO&#346;REDNIE POJEDYNKI</p>
     <div style="display:flex;align-items:center;justify-content:center;gap:12px">
       <span style="font-size:0.8rem;font-weight:800;color:var(--text-muted)">NIE</span>
-      <div class="switch" id="h2hSwitch" role="switch" tabindex="0" aria-checked="false" aria-label="Decyduj&#261; bezpo&#347;rednie pojedynki" onclick="UI.toggleH2H()"><div class="knob"></div></div>
+      <div class="switch" id="h2hSwitch" role="switch" tabindex="0" aria-checked="false" aria-label="Decyduj&#261; bezpo&#347;rednie pojedynki" data-onclick="UI.toggleH2H()"><div class="knob"></div></div>
       <span style="font-size:0.8rem;font-weight:800;color:var(--text-muted)">TAK</span>
     </div>
     <p style="font-size:0.7rem;color:var(--text-muted);text-align:center;margin:8px 0 0">Gdy w&#322;&#261;czona, idealne remisy s&#261; rozstrzygane wynikami bezpo&#347;rednich pojedynk&#243;w mi&#281;dzy zremisowanymi zawodnikami.</p>
   </div>
-  <button class="btn primary" onclick="UI.launch()">URUCHOM ZAWODY</button>
+  <button class="btn primary" data-onclick="UI.launch()">URUCHOM ZAWODY</button>
+</section>
+
+<!-- ZAWODNICY I DRUŻYNY — hub -->
+<section id="people" class="screen">
+  <div class="topbar"><button class="iconbtn" title="Wróć" data-onclick="UI.screen('home')"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></button><h2>ZAWODNICY I DRUŻYNY</h2></div>
+  <div class="card">
+    <h3>INDYWIDUALNE</h3>
+    <button class="btn" data-onclick="UI.openRoster('SGP')">SGP</button>
+    <button class="btn" data-onclick="UI.openRoster('SEC')">SEC</button>
+    <button class="btn" data-onclick="UI.openRoster('IMP')">IMP</button>
+    <button class="btn" data-onclick="UI.openRoster('INNE')">INNE</button>
+  </div>
+  <div class="card">
+    <h3>LIGOWE</h3>
+    <button class="btn" data-onclick="UI.screen('teams')">DRUŻYNY</button>
+  </div>
+</section>
+
+<!-- DRUŻYNY — menedżer -->
+<section id="teams" class="screen">
+  <div class="topbar"><button class="iconbtn" title="Wróć" data-onclick="UI.screen('people')"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></button><h2>DRUŻYNY</h2></div>
+  <div class="card">
+    <button class="btn primary" data-onclick="UI.addTeam()">+ DODAJ DRUŻYNĘ</button>
+    <div id="teamList"></div>
+  </div>
+</section>
+
+<!-- SZCZEGÓŁY DRUŻYNY -->
+<section id="teamDetail" class="screen">
+  <div class="topbar"><button class="iconbtn" title="Wróć" data-onclick="UI.teamDetailBack()"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></button><h2 class="grow" id="teamDetailTitle">DRUŻYNA</h2></div>
+  <div class="card">
+    <button class="btn primary" data-onclick="UI.addTeamRider()">+ DODAJ ZAWODNIKA</button>
+    <button class="btn" data-onclick="UI.assignTeamRider()">PRZYPISZ Z BAZY</button>
+    <button class="btn" data-onclick="UI.editTeam(S.uiTeam)">EDYTUJ DRUŻYNĘ</button>
+    <div id="teamRiderList" class="riderlist"></div>
+  </div>
+</section>
+
+<!-- WYBÓR DRUŻYNY (gospodarze/goście) -->
+<section id="lgTeam" class="screen">
+  <div class="topbar"><button class="iconbtn" title="Wróć" data-onclick="UI.cancelLeague()"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></button><h2 class="grow" id="lgTeamTitle">WYBÓR DRUŻYNY</h2></div>
+  <div class="card">
+    <button class="btn primary" data-onclick="UI.addTeam(true)">+ NOWA DRUŻYNA</button>
+    <div id="lgTeamList"></div>
+  </div>
+</section>
+
+<!-- SKŁAD DRUŻYNY NA MECZ -->
+<section id="lgLineup" class="screen">
+  <div class="topbar"><button class="iconbtn" title="Wróć" data-onclick="UI.cancelLeague()"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></button><h2 class="grow" id="lgLineupTitle">SKŁAD</h2></div>
+  <div class="card" style="padding:8px">
+    <div id="lgLineupList"></div>
+  </div>
+  <button class="btn primary" data-onclick="UI.lgLineupNext()">DALEJ</button>
+</section>
+
+<!-- MECZ LIGOWY — jeden ekran: góra składy, dół wyścigi -->
+<section id="match" class="screen">
+  <div id="lgTeamsWrap"></div>
+  <div id="lgHeatsWrap"></div>
+  <div class="lg-scorebar" id="lgScorebar"></div>
 </section>
 
 <!-- ============ OKNO PUNKTACJA ============ -->
 <section id="points" class="screen">
   <div class="sticky-header">
     <div class="topbar">
-      <button class="iconbtn" title="Ekran g&#322;&#243;wny" onclick="UI.leave('points')"><svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></button>
+      <button class="iconbtn" title="Ekran g&#322;&#243;wny" data-onclick="UI.leave('points')"><svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></button>
       <h2 class="grow" id="ptsTitle" style="font-size:0.85rem;margin:0;text-align:center;display:block;min-width:0">KLASYFIKACJA</h2>
-      <button class="iconbtn navpts active" title="Klasyfikacja" onclick="UI.navScreen('points')"></button>
-      <button class="iconbtn navraces" title="Wy&#347;cigi" onclick="UI.navScreen('races')"></button>
-      <button class="iconbtn" id="sortPts" title="Sortuj wg zajmowanego miejsca" onclick="UI.toggleSort()"><svg viewBox="0 0 24 24"><path d="M3 18h6v-2H3v2zm0-12v2h18V6H3zm0 7h12v-2H3v2z"/></svg></button>
-      <button class="iconbtn" id="tieBtn" title="Zasady remis&#243;w" onclick="UI.tieRules()"><svg viewBox="0 0 24 24"><path d="M6.99 11L3 15l3.99 4v-3H14v-2H6.99v-3zM21 9l-3.99-4v3H10v2h7.01v3L21 9z"/></svg></button>
+      <button class="iconbtn navpts active" title="Klasyfikacja" data-onclick="UI.navScreen('points')"></button>
+      <button class="iconbtn navraces" title="Wy&#347;cigi" data-onclick="UI.navScreen('races')"></button>
+      <button class="iconbtn" id="sortPts" title="Sortuj wg zajmowanego miejsca" data-onclick="UI.toggleSort()"><svg viewBox="0 0 24 24"><path d="M3 18h6v-2H3v2zm0-12v2h18V6H3zm0 7h12v-2H3v2z"/></svg></button>
+      <button class="iconbtn" id="tieBtn" title="Zasady remis&#243;w" data-onclick="UI.tieRules()"><svg viewBox="0 0 24 24"><path d="M6.99 11L3 15l3.99 4v-3H14v-2H6.99v-3zM21 9l-3.99-4v3H10v2h7.01v3L21 9z"/></svg></button>
     </div>
   </div>
 
@@ -502,21 +669,21 @@ table.pts td.plc:not(.tie) { cursor: default; }
 <section id="races" class="screen">
   <div class="sticky-header">
     <div class="topbar">
-      <button class="iconbtn" title="Ekran g&#322;&#243;wny" onclick="UI.leave('races')"><svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></button>
+      <button class="iconbtn" title="Ekran g&#322;&#243;wny" data-onclick="UI.leave('races')"><svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></button>
       <h2 class="grow" id="racesTitle" style="font-size:0.85rem;margin:0;text-align:center;display:block;min-width:0">WY&#346;CIGI</h2>
-      <button class="iconbtn navpts" title="Klasyfikacja" onclick="UI.navScreen('points')"></button>
-      <button class="iconbtn navraces active" title="Wy&#347;cigi" onclick="UI.navScreen('races')"></button>
-      <button class="iconbtn danger" title="Resetuj WSZYSTKIE wy&#347;cigi" onclick="UI.resetAllHeats()"><svg viewBox="0 0 24 24"><path d="M15 16h4v2h-4zm0-8h7v2h-7zm0 4h6v2h-6zM3 18c0 1.1.9 2 2 2h6c1.1 0 2-.9 2-2V8H3v10zM14 5h-3l-1-1H6L5 5H2v2h12z"/></svg></button>
+      <button class="iconbtn navpts" title="Klasyfikacja" data-onclick="UI.navScreen('points')"></button>
+      <button class="iconbtn navraces active" title="Wy&#347;cigi" data-onclick="UI.navScreen('races')"></button>
+      <button class="iconbtn danger" title="Resetuj WSZYSTKIE wy&#347;cigi" data-onclick="UI.resetAllHeats()"><svg viewBox="0 0 24 24"><path d="M15 16h4v2h-4zm0-8h7v2h-7zm0 4h6v2h-6zM3 18c0 1.1.9 2 2 2h6c1.1 0 2-.9 2-2V8H3v10zM14 5h-3l-1-1H6L5 5H2v2h12z"/></svg></button>
     </div>
   </div>
 
   <div id="heatList"></div>
-  <button class="btn" style="margin-top:12px" onclick="UI.promptExtraHeat()">+ WY&#346;CIG DODATKOWY</button>
+  <button class="btn" style="margin-top:12px" data-onclick="UI.promptExtraHeat()">+ WY&#346;CIG DODATKOWY</button>
 </section>
 
 </div>
 
-<div class="overlay" id="overlay" onclick="if(event.target===this)UI.closeModal()"><div class="modal" id="modal"></div></div>
+<div class="overlay" id="overlay"><div class="modal" id="modal"></div></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
@@ -576,21 +743,38 @@ const DB={
       }
     });
     return {riders:Array.isArray(meta.riders)?meta.riders:[],comps,current:(meta.current&&comps[meta.current])?meta.current:null,
+      teams:Array.isArray(meta.teams)?meta.teams:[],
+      juniors:Array.isArray(meta.juniors)?meta.juniors:[],
+      rosters:(meta.rosters&&typeof meta.rosters==="object")?meta.rosters:{SGP:[],SEC:[],IMP:[],INNE:[]},
       settings:Object.assign({font:"M"},(meta.settings&&typeof meta.settings==="object")?meta.settings:{})};
   },
   removeComp(id){store.remove(this.compKey(id));}
 };
 let S=DB.loadAll();
 function persist(){
+  /* Atomowość na miarę localStorage: przed zapisem pamiętamy poprzednie wartości kluczy; jeśeli którykolwiek zapis rzuci, przywracamy STARY stan w storage — dzięki temu RAM i dysk nie rozjeżdżają się po połączonym zapisie. */
+  const meta={riders:S.riders,current:S.current,settings:S.settings,teams:S.teams,juniors:S.juniors,rosters:S.rosters};
+  const c=cur();
+  const cKey=c?DB.compKey(c.id):null;
+  const oldMeta=store.get(DB.metaKey);
+  const oldComp=cKey?store.get(cKey):null;
+  const oldCompExisted=cKey?store.get(cKey)!==null:false;
   try{
-    DB.set(DB.metaKey,{riders:S.riders,current:S.current,settings:S.settings});
-    const c=cur();if(c)DB.set(DB.compKey(c.id),c);
+    DB.set(DB.metaKey,meta);
+    if(c)DB.set(cKey,c);
     return true;
-  }catch(e){UI.toast("\u274c Zapis nieudany \u2014 brak miejsca w pami\u0119ci przegl\u0105darki.");return false;}
+  }catch(e){
+    try{
+      if(oldMeta!=null)store.set(DB.metaKey,oldMeta);else store.remove(DB.metaKey);
+      if(cKey){if(oldCompExisted)store.set(cKey,oldComp);else store.remove(cKey);}
+    }catch(e2){}
+    UI.toast("❌ Zapis nieudany — brak miejsca w pamięci przeglądarki.");
+    return false;
+  }
 }
 function persistAll(){
   try{
-    DB.set(DB.metaKey,{riders:S.riders,current:S.current,settings:S.settings});
+    DB.set(DB.metaKey,{riders:S.riders,current:S.current,settings:S.settings,teams:S.teams,juniors:S.juniors,rosters:S.rosters});
     Object.values(S.comps).forEach(c=>DB.set(DB.compKey(c.id),c));
     return true;
   }catch(e){UI.toast("\u274c Zapis nieudany \u2014 brak miejsca w pami\u0119ci przegl\u0105darki.");return false;}
@@ -832,12 +1016,38 @@ function placeLabel(c,num,groups){
 
 /* ================= UI ================= */
 const $=id=>document.getElementById(id);
+/* Przełącznik kategorii J/S w oknach „Dodaj zawodnika” — kategoria od razu
+   trafia do S.juniors, dzięki czemu nowego zawodnika można od razu przypisać
+   do drużyny (6-7 / 14-15 to miejsca juniorów) i do serii indywidualnych. */
+function lgCatToggleHtml(){
+  return "<div style='display:flex;gap:8px;margin-bottom:12px'>"+
+    "<button class='btn small primary' style='flex:1' id='catS'>Senior (S)</button>"+
+    "<button class='btn small secondary' style='flex:1' id='catJ'>Junior (J)</button></div>";
+}
+function lgBindCatToggle(){
+  let jr=false;
+  const paint=()=>{
+    $("catS").className="btn small "+(jr?"secondary":"primary");
+    $("catJ").className="btn small "+(jr?"primary":"secondary");
+  };
+  $("catS").onclick=()=>{jr=false;paint();};
+  $("catJ").onclick=()=>{jr=true;paint();};
+  return ()=>jr;
+}
+function lgSetJuniorFlag(name,jr){
+  if(!S.juniors)S.juniors=[];
+  if(jr){if(!S.juniors.includes(name))S.juniors.push(name);}
+  else S.juniors=S.juniors.filter(n=>n!==name);
+}
 const UI={
   screen(id){document.querySelectorAll(".screen").forEach(s=>s.classList.remove("on"));$(id).classList.add("on");
     if(id==="riders")renderRiderLib();if(id==="options"){renderSaved();renderSettings();}if(id==="points")renderPoints();
     if(id==="races")renderRaces();if(id==="lineup")renderLineup();if(id==="home"){S.current=null;persist();renderHome();}
+    if(id==="people"){S.uiSeries=null;}
+    if(id==="teams")renderTeams();if(id==="teamDetail")renderTeamDetail();
+    if(id==="lgTeam")renderLgTeamPick();if(id==="lgLineup")renderLgLineup();
+    if(id==="match")lgRender();
     UI.syncNavIcons();
-    /* Wej\u015bcie na ekran wy\u015bcig\u00f3w: przewi\u0144 do pierwszego niezatwierdzonego biegu. */
     if(id==="races")requestAnimationFrame(scrollToCurrentHeat);
   },
   continueLast(){const id=S.settings.lastComp;if(id&&S.comps[id])UI.openComp(id);},
@@ -869,10 +1079,15 @@ const UI={
     /* Fokus: pole tekstowe, je\u015bli jest; w przeciwnym razie sam dialog. */
     const inp=m.querySelector("input[type=text]");
     try{(inp||m).focus({preventScroll:true});}catch(e){}
+    /* A11y: tło staje się nieosiągalne dla klawiatury i czytników ekranu. */
+    const wrap=document.querySelector(".wrap");
+    if(wrap&&"inert" in wrap){wrap.inert=true;wrap.setAttribute("aria-hidden","true");}
   },
   closeModal(){
     if(UI._timeKeyHandler){document.removeEventListener("keydown",UI._timeKeyHandler);UI._timeKeyHandler=null;}
-    $("overlay").classList.remove("on");if($("races").classList.contains("on"))renderRaces();if($("lineup").classList.contains("on"))renderLineup();
+    $("overlay").classList.remove("on");
+    const wrap=document.querySelector(".wrap");
+    if(wrap&&"inert" in wrap){wrap.inert=false;wrap.removeAttribute("aria-hidden");}if($("races").classList.contains("on"))renderRaces();if($("lineup").classList.contains("on"))renderLineup();
     const pf=UI._prevFocus;UI._prevFocus=null;
     if(pf&&document.contains(pf)&&pf.focus){try{pf.focus({preventScroll:true});}catch(e){}}
   },
@@ -881,10 +1096,12 @@ const UI={
     $("cn").onclick=()=>{UI.closeModal();onNo?onNo():null;};},
 
   addRider(num){
-    UI.openModal("<h3>Dodaj zawodnika</h3><input type='text' id='nr' placeholder='Imi\u0119 i Nazwisko' style='width:100%;margin-bottom:12px'><button class='btn primary' id='ok'>Dodaj</button><button class='btn' onclick='UI.closeModal()'>Anuluj</button>");
+    UI.openModal("<h3>Dodaj zawodnika</h3><label for='nr' class='sr-label'>Imię i nazwisko</label><input type='text' id='nr' placeholder='Imi\u0119 i Nazwisko' style='width:100%;margin-bottom:12px'>" + lgCatToggleHtml() + "<button class='btn primary' id='ok'>Dodaj</button><button class='btn' data-onclick='UI.closeModal()'>Anuluj</button>");
+    const isJr=lgBindCatToggle();
     $("ok").onclick=()=>{const v=cleanText($("nr").value,100);if(!v)return;
       mutate(()=>{
         if(!S.riders.includes(v))S.riders.push(v);
+        lgSetJuniorFlag(v,isJr());
         const c=cur();
         if(c){
           /* Z okna wyboru numeru: nowy zawodnik trafia dok\u0142adnie pod wskazany numer. */
@@ -902,12 +1119,20 @@ const UI={
   },
   editRider(i){
     const old=S.riders[i];
-    UI.openModal("<h3>Edycja</h3><input type='text' id='nr' value='"+escq(old)+"' style='width:100%;margin-bottom:12px'><button class='btn primary' id='ok'>Zapisz</button><button class='btn danger' id='del'>Usu\u0144</button><button class='btn' onclick='UI.closeModal()'>Anuluj</button>");
+    UI.openModal("<h3>Edycja</h3><input type='text' id='nr' value='"+escq(old)+"' style='width:100%;margin-bottom:12px'><button class='btn primary' id='ok'>Zapisz</button><button class='btn danger' id='del'>Usu\u0144</button><button class='btn' data-onclick='UI.closeModal()'>Anuluj</button>");
     /* Zmiana nazwiska nie mo\u017ce po cichu przepisywa\u0107 historii zapisanych zawod\u00f3w. */
     const applyRename=(v,everywhere)=>{
       const snap=JSON.stringify(S);
       S.riders[i]=v;
-      if(everywhere)Object.values(S.comps).forEach(c=>{Object.keys(c.mapping).forEach(k=>{if(c.mapping[k]===old)c.mapping[k]=v;});});
+      Object.keys(S.rosters).forEach(k=>{S.rosters[k]=S.rosters[k].map(n=>n===old?v:n);});
+      if(S.juniors)S.juniors=S.juniors.map(n=>n===old?v:n);
+      S.teams.forEach(t=>{t.riders=t.riders.map(n=>n===old?v:n);});
+      if(everywhere)Object.values(S.comps).forEach(c=>{
+        Object.keys(c.mapping).forEach(k=>{if(c.mapping[k]===old)c.mapping[k]=v;});
+        if(c.league){
+          [c.home,c.away].forEach(side=>{Object.keys(side.lineup).forEach(k=>{if(side.lineup[k]===old)side.lineup[k]=v;});});
+        }
+      });
       if(!persistAll()){try{S=JSON.parse(snap);}catch(e){}return;}
       renderRiderLib();UI.closeModal();
     };
@@ -920,7 +1145,7 @@ const UI={
       UI.openModal("<h3>Zmiana nazwiska</h3><p style='text-align:center;margin:0 0 12px'>\u201e"+escq(old)+"\u201d wyst\u0119puje w zapisanych zawodach ("+used+"). Zmieni\u0107 nazwisko tak\u017ce tam?</p>"+
         "<button class='btn primary' id='rnAll'>Tak \u2014 w bazie i we wszystkich zawodach</button>"+
         "<button class='btn' id='rnLib'>Tylko w bazie (zawody bez zmian)</button>"+
-        "<button class='btn' onclick='UI.closeModal()'>Anuluj</button>");
+        "<button class='btn' data-onclick='UI.closeModal()'>Anuluj</button>");
       $("rnAll").onclick=()=>applyRename(v,true);
       $("rnLib").onclick=()=>applyRename(v,false);
     };
@@ -953,7 +1178,7 @@ const UI={
   },
   renameComp(id){
     const c=S.comps[id];if(!c)return;
-    UI.openModal("<h3>Zmie\u0144 nazw\u0119 zawod\u00f3w</h3><input type='text' id='compName2' value=\""+escq(c.name||"")+"\" style='margin-bottom:12px'><button class='btn primary' id='renOk'>Zapisz</button><button class='btn' onclick='UI.closeModal()'>Anuluj</button>");
+    UI.openModal("<h3>Zmie\u0144 nazw\u0119 zawod\u00f3w</h3><input type='text' id='compName2' value=\""+escq(c.name||"")+"\" style='margin-bottom:12px'><button class='btn primary' id='renOk'>Zapisz</button><button class='btn' data-onclick='UI.closeModal()'>Anuluj</button>");
     $("renOk").onclick=()=>{
       const v=cleanText($("compName2").value,80);
       if(v)c.name=v;
@@ -969,7 +1194,7 @@ const UI={
       const openCnt=heats.filter(h=>!h.confirmed).length;
       const doneCnt=heats.filter(h=>h.confirmed).length;
       if(doneCnt>0&&openCnt>0)
-        msg="<b style='color:#f59e0b'>\u26a0 Uwaga: zawody w toku \u2014 "+openCnt+" niezatwierdzonych bieg\u00f3w.</b><br><small style='color:var(--text-muted)'>Bie\u017c\u0105cy stan zostanie zapisany i mo\u017cna do nich wr\u00f3ci\u0107 z ekranu g\u0142\u00f3wnego.</small>";
+        msg="<b style='color:var(--amber)'>\u26a0 Uwaga: zawody w toku \u2014 "+openCnt+" niezatwierdzonych bieg\u00f3w.</b><br><small style='color:var(--text-muted)'>Bie\u017c\u0105cy stan zostanie zapisany i mo\u017cna do nich wr\u00f3ci\u0107 z ekranu g\u0142\u00f3wnego.</small>";
     }
     UI.confirm(msg,()=>{UI.screen("home");});
   },
@@ -992,6 +1217,10 @@ const UI={
       UI.confirm("Wczytanie kopii nadpisze WSZYSTKIE dane (zawodnicy + zawody). Kontynuowa\u0107?",()=>{
         /* Sanityzacja tekst\u00f3w z pliku: znaki kontrolne i limity d\u0142ugo\u015bci \u2014 tak\u017ce po walidacji. */
         d.riders=d.riders.map(r=>cleanText(r,100)).filter(Boolean);
+        d.teams=(Array.isArray(d.teams)?d.teams:[]).map(t=>({...t,name:cleanText(t.name,100)||"Dru\u017cyna",riders:t.riders.map(r=>cleanText(r,100)).filter(Boolean)}));
+        d.juniors=(Array.isArray(d.juniors)?d.juniors:[]).map(r=>cleanText(r,100)).filter(Boolean);
+        if(d.rosters&&typeof d.rosters==="object"){const ro={};Object.keys(d.rosters).forEach(k=>{const kk=cleanText(k,10);if(!kk||kk==="__proto__"||kk==="constructor"||kk==="prototype")return;ro[kk]=d.rosters[k].map(r=>cleanText(r,100)).filter(Boolean);});d.rosters=ro;}
+        Object.values(d.comps).forEach(c=>{["home","away"].forEach(k=>{if(c&&c[k]&&typeof c[k].name==="string")c[k].name=cleanText(c[k].name,100);});});
         Object.values(d.comps).forEach(c=>{
           if(c.name)c.name=cleanText(c.name,80);
           if(!c.overrides)c.overrides={};
@@ -1005,13 +1234,16 @@ const UI={
         try{
           newIds.forEach(id=>DB.set(DB.compKey(id),d.comps[id]));
           oldIds.filter(id=>!d.comps[id]).forEach(id=>DB.removeComp(id));
-          S={riders:d.riders,comps:d.comps,current:null,settings:oldS.settings};
-          DB.set(DB.metaKey,{riders:S.riders,current:null,settings:S.settings});
+          S={riders:d.riders,comps:d.comps,current:null,settings:oldS.settings,
+             teams:Array.isArray(d.teams)?d.teams:[],
+             juniors:Array.isArray(d.juniors)?d.juniors:[],
+             rosters:(d.rosters&&typeof d.rosters==="object")?d.rosters:{SGP:[],SEC:[],IMP:[],INNE:[]}};
+          DB.set(DB.metaKey,{riders:S.riders,current:null,settings:S.settings,teams:S.teams,juniors:S.juniors,rosters:S.rosters});
         }catch(e){
           try{
             newIds.filter(id=>!oldS.comps[id]).forEach(id=>DB.removeComp(id));
             oldIds.forEach(id=>DB.set(DB.compKey(id),oldS.comps[id]));
-            DB.set(DB.metaKey,{riders:oldS.riders,current:oldS.current,settings:oldS.settings});
+            DB.set(DB.metaKey,{riders:oldS.riders,current:oldS.current,settings:oldS.settings,teams:oldS.teams,juniors:oldS.juniors,rosters:oldS.rosters});
           }catch(e2){}
           S=oldS;
           UI.toast("\u274c Import nieudany \u2014 dane sprzed importu zosta\u0142y zachowane.");
@@ -1039,13 +1271,13 @@ const UI={
     let html="<h3>Nr "+num+" \u2014 wybierz zawodnika</h3>";
     if(!S.riders.length)html+="<p style='text-align:center;color:var(--text-muted)'>Baza zawodnik\u00f3w jest pusta \u2014 dodaj pierwszego.</p>";
     else{
-      html+="<input type='text' id='riderSearch' placeholder='Szukaj zawodnika\u2026' style='margin-bottom:10px'>";
+      html+="<label for='riderSearch' class='sr-label'>Szukaj zawodnika</label><input type='text' id='riderSearch' placeholder='Szukaj zawodnika\u2026' style='margin-bottom:10px'>";
       html+="<div id='riderPickList'>"+S.riders.map((r,i)=>"<button class='btn' style='text-transform:none' data-ridx='"+i+"' data-name='"+escq(r.toLowerCase())+"'>"+escq(r)+"</button>").join("")+"</div>";
       html+="<p id='riderPickEmpty' style='display:none;text-align:center;color:var(--text-muted);margin:8px 0'>Brak wynik\u00f3w.</p>";
     }
     html+="<button class='btn danger' style='margin-top:10px' data-clear-num='"+num+"'>\u2014 Brak zawodnika \u2014</button>";
-    html+="<button class='btn secondary' onclick='UI.addRider("+num+")'>+ Nowy zawodnik\u2026</button>";
-    html+="<button class='btn' style='margin-top:10px' onclick='UI.closeModal()'>Anuluj</button>";
+    html+="<button class='btn secondary' data-onclick='UI.addRider("+num+")'>+ Nowy zawodnik\u2026</button>";
+    html+="<button class='btn' style='margin-top:10px' data-onclick='UI.closeModal()'>Anuluj</button>";
     UI.openModal(html);
     /* Nazwiska nigdy nie trafiaj\u0105 do inline JS (onclick) \u2014 pobierane bezpiecznie z S.riders przez indeks. */
     $("modal").querySelectorAll("[data-ridx]").forEach(btn=>{
@@ -1118,12 +1350,12 @@ const UI={
     html+="<p style='text-align:center;'>Wybierz dok\u0142adne miejsce dla zawodnika nr <b>"+num+" ("+escq(c.mapping[num]||"?")+")</b>:</p>";
     
     for(let p=g.start;p<=end;p++){
-      html+="<button class='btn "+(currentPick===p?"primary":"")+"' onclick='UI.setTieOverride("+num+","+p+")'>Miejsce "+p+"</button>";
+      html+="<button class='btn "+(currentPick===p?"primary":"")+"' data-onclick='UI.setTieOverride("+num+","+p+")'>Miejsce "+p+"</button>";
     }
     if(currentPick){
-      html+="<button class='btn danger' onclick='UI.clearTieOverride("+num+")'>Cofnij wyb\u00f3r (Przywr\u00f3\u0107 "+g.start+"\u2013"+end+")</button>";
+      html+="<button class='btn danger' data-onclick='UI.clearTieOverride("+num+")'>Cofnij wyb\u00f3r (Przywr\u00f3\u0107 "+g.start+"\u2013"+end+")</button>";
     }
-    html+="<button class='btn' style='margin-top:10px' onclick='UI.closeModal()'>Anuluj</button>";
+    html+="<button class='btn' style='margin-top:10px' data-onclick='UI.closeModal()'>Anuluj</button>";
     UI.openModal(html);
   },
 
@@ -1214,8 +1446,8 @@ const UI={
 
     let html="<h3>Wyb\u00f3r zawodnika \u2014 bieg "+getHeatLabel(h)+"</h3>";
     if(!opts.length) html+="<p style='text-align:center;color:var(--text-muted)'>Brak dost\u0119pnych zawodnik\u00f3w.</p>";
-    else html+=opts.map(n=>"<button class='btn' onclick='UI.setOpenRider("+heatN+","+slotIdx+","+n+")'>"+n+" \u2014 "+escq(c.mapping[n]||"?")+"</button>").join("");
-    html+="<button class='btn' style='margin-top:10px' onclick='UI.closeModal()'>Anuluj</button>";
+    else html+=opts.map(n=>"<button class='btn' data-onclick='UI.setOpenRider("+heatN+","+slotIdx+","+n+")'>"+n+" \u2014 "+escq(c.mapping[n]||"?")+"</button>").join("");
+    html+="<button class='btn' style='margin-top:10px' data-onclick='UI.closeModal()'>Anuluj</button>";
     UI.openModal(html);
   },
 
@@ -1231,9 +1463,9 @@ const UI={
     const h=compHeats(c).find(x=>x.n===heatN);
     const e=h.entries[slotIdx];
     let html="<h3>Oznaczenie zawodnika</h3>";
-    html+=MARKS.map((m,mi)=>"<button class='btn small' style='margin:3px;width:auto' onclick='UI.setMarkIdx("+heatN+","+slotIdx+","+mi+")'>"+m+"</button>").join("");
-    if(e.mark)html+="<button class='btn danger' onclick='UI.setMark("+heatN+","+slotIdx+",null)'>Usu\u0144 oznaczenie</button>";
-    html+="<button class='btn' style='margin-top:10px' onclick='UI.closeModal()'>Anuluj</button>";
+    html+=MARKS.map((m,mi)=>"<button class='btn small' style='margin:3px;width:auto' data-onclick='UI.setMarkIdx("+heatN+","+slotIdx+","+mi+")'>"+m+"</button>").join("");
+    if(e.mark)html+="<button class='btn danger' data-onclick='UI.setMark("+heatN+","+slotIdx+",null)'>Usu\u0144 oznaczenie</button>";
+    html+="<button class='btn' style='margin-top:10px' data-onclick='UI.closeModal()'>Anuluj</button>";
     UI.openModal(html);
   },
   setMarkIdx(heatN,slotIdx,mi){UI.setMark(heatN,slotIdx,MARKS[mi]);},
@@ -1253,8 +1485,8 @@ const UI={
 
     const pool=[17,18].filter(n=>c.mapping[n]&&!h.entries.some(x=>x.rider===n&&(!x.mark||x.replOf!==undefined&&x.replOf!==null)));
     let html="<h3>Wyb\u00f3r zast\u0119pstwa</h3><p style='text-align:center'>Oznaczenie: <b>"+escq(mark)+"</b></p>";
-    if(pool.length)html+=pool.map(n=>"<button class='btn' onclick='UI.setRepl("+heatN+","+slotIdx+","+n+")'>Nr "+n+" ("+escq(c.mapping[n])+")</button>").join("");
-    html+="<button class='btn' onclick='UI.setRepl("+heatN+","+slotIdx+",null)'>Bez zast\u0119pstwa</button>";
+    if(pool.length)html+=pool.map(n=>"<button class='btn' data-onclick='UI.setRepl("+heatN+","+slotIdx+","+n+")'>Nr "+n+" ("+escq(c.mapping[n])+")</button>").join("");
+    html+="<button class='btn' data-onclick='UI.setRepl("+heatN+","+slotIdx+",null)'>Bez zast\u0119pstwa</button>";
     UI.openModal(html);
   },
   setRepl(heatN,slotIdx,num){
@@ -1354,13 +1586,13 @@ const UI={
     html+="<p style='text-align:center;color:var(--text-muted);font-size:0.75rem;margin:0 0 10px'>Wpisz cyfry \u2014 ostatnie trzy to milisekundy</p>";
     html+="<div class='timedisplay' id='timeVal'>"+fmtHeatTime(UI._timeMs)+"</div>";
     html+="<div class='numpad'>";
-    for(let d=1;d<=9;d++)html+="<button class='btn' onclick='UI.timeDigit("+d+")'>"+d+"</button>";
-    html+="<button class='btn secondary' onclick='UI.timeBackspace()'>\u232b</button>";
-    html+="<button class='btn' onclick='UI.timeDigit(0)'>0</button>";
-    html+="<button class='btn danger' onclick='UI.timeClear()'>C</button>";
+    for(let d=1;d<=9;d++)html+="<button class='btn' data-onclick='UI.timeDigit("+d+")'>"+d+"</button>";
+    html+="<button class='btn secondary' data-onclick='UI.timeBackspace()'>\u232b</button>";
+    html+="<button class='btn' data-onclick='UI.timeDigit(0)'>0</button>";
+    html+="<button class='btn danger' data-onclick='UI.timeClear()'>C</button>";
     html+="</div>";
-    html+="<button class='btn primary' style='margin-top:14px' onclick='UI.saveHeatTime()'>Zapisz</button>";
-    html+="<button class='btn' onclick='UI.closeModal()'>Anuluj</button>";
+    html+="<button class='btn primary' style='margin-top:14px' data-onclick='UI.saveHeatTime()'>Zapisz</button>";
+    html+="<button class='btn' data-onclick='UI.closeModal()'>Anuluj</button>";
     UI.openModal(html);
     /* Klawiatura fizyczna dzia\u0142a r\u00f3wnolegle do numpada na ekranie \u2014 te same funkcje. */
     UI._timeKeyHandler=ev=>{
@@ -1404,10 +1636,10 @@ const UI={
 
     let html="<h3>Wy\u015bcig dodatkowy</h3>";
     html+="<p style='text-align:center;margin-bottom:12px;'>Wybierz liczb\u0119 zawodnik\u00f3w:</p>";
-    html+="<button class='btn primary' onclick='UI.addExtraHeat(2)'>2 zawodnik\u00f3w</button>";
-    html+="<button class='btn primary' onclick='UI.addExtraHeat(3)'>3 zawodnik\u00f3w</button>";
-    html+="<button class='btn primary' onclick='UI.addExtraHeat(4)'>4 zawodnik\u00f3w</button>";
-    html+="<button class='btn' style='margin-top:10px' onclick='UI.closeModal()'>Anuluj</button>";
+    html+="<button class='btn primary' data-onclick='UI.addExtraHeat(2)'>2 zawodnik\u00f3w</button>";
+    html+="<button class='btn primary' data-onclick='UI.addExtraHeat(3)'>3 zawodnik\u00f3w</button>";
+    html+="<button class='btn primary' data-onclick='UI.addExtraHeat(4)'>4 zawodnik\u00f3w</button>";
+    html+="<button class='btn' style='margin-top:10px' data-onclick='UI.closeModal()'>Anuluj</button>";
     UI.openModal(html);
   },
 
@@ -1455,11 +1687,11 @@ UI.tieRules=function(){
     "<p style='font-size:0.75rem;color:var(--text-muted);text-align:center;margin:0 0 8px;font-weight:700;letter-spacing:0.5px'>DECYDUJ\u0104 BEZPO\u015aREDNIE POJEDYNKI</p>"+
     "<div style='display:flex;align-items:center;justify-content:center;gap:12px;margin:0 0 12px'>"+
       "<span style='"+lb+"'>NIE</span>"+
-      "<div class='switch"+(c.h2h?" on":"")+"' id='h2hSwitchM' role='switch' tabindex='0' aria-checked='"+(c.h2h?"true":"false")+"' aria-label='Decyduj\u0105 bezpo\u015brednie pojedynki' onclick='UI.toggleH2H(true)'><div class='knob'></div></div>"+
+      "<div class='switch"+(c.h2h?" on":"")+"' id='h2hSwitchM' role='switch' tabindex='0' aria-checked='"+(c.h2h?"true":"false")+"' aria-label='Decyduj\u0105 bezpo\u015brednie pojedynki' data-onclick='UI.toggleH2H(true)'><div class='knob'></div></div>"+
       "<span style='"+lb+"'>TAK</span>"+
     "</div>"+
     "<p style='font-size:0.78rem;color:var(--text-muted);text-align:center;margin:0 0 14px'>Gdy w\u0142\u0105czone, remisy w punktach rozstrzygaj\u0105 wyniki bieg\u00f3w, w kt\u00f3rych zremisowani zawodnicy jechali razem. Mo\u017cna to zmieni\u0107 w ka\u017cdej chwili \u2014 klasyfikacja przelicza si\u0119 od razu.</p>"+
-    "<button class='btn primary' onclick='UI.closeModal()'>Gotowe</button>");
+    "<button class='btn primary' data-onclick='UI.closeModal()'>Gotowe</button>");
 };
 UI.syncH2H=function(){
   const c=cur();const on=!!(c&&c.h2h);
@@ -1468,19 +1700,30 @@ UI.syncH2H=function(){
 };
 function renderRiderLib(){
   const el=$("riderList");
-  if(!S.riders.length){el.innerHTML="<p style='color:var(--text-muted);text-align:center;'>Brak zawodnik\u00f3w w bazie.</p>";return;}
-  el.innerHTML=S.riders.map((r,i)=>"<div class='ri'><span>"+escq(r)+"</span><button class='btn small' onclick='UI.editRider("+i+")'>Edytuj</button></div>").join("");
+  const series=S.uiSeries;
+  $("ridersTitle").textContent=series?("Zawodnicy \u2014 "+series):"Zawodnicy";
+  const list=series?(S.rosters[series]||[]):S.riders;
+  if(!list.length){el.innerHTML="<p style='color:var(--text-muted);text-align:center;'>Brak zawodnik\u00f3w na li\u015bcie.</p>";return;}
+  el.innerHTML=list.map(name=>{
+    const gi=S.riders.indexOf(name);
+    const club=teamOfRider(name);
+    return "<div class='ri'><span>"+escq(name)+(club?" <small style='color:var(--text-muted)'>("+escq(club)+")</small>":"")+"</span><span><button class='btn small' data-edit-rider='"+gi+"'>Edytuj</button>"+(series?"<button class='btn small danger' data-rr-name='"+escq(name)+"'>X</button>":"")+"</span></div>";
+  }).join("");
+  /* Nazwisko trafia do data-atrybutu (bezpieczny kontekst HTML) \u2014 nigdy do inline JS. */
+  el.querySelectorAll("[data-edit-rider]").forEach(b=>b.onclick=()=>UI.editRider(+b.dataset.editRider));
+  el.querySelectorAll("[data-rr-name]").forEach(b=>b.onclick=()=>UI.removeRosterRider(b.dataset.rrName));
 }
 
 function renderSaved(){
   const el=$("savedList");const ids=Object.keys(S.comps||{});
   if(!ids.length){el.innerHTML="<p style='color:var(--text-muted);text-align:center;'>Brak zapisanych zawod\u00f3w.</p>";return;}  el.innerHTML=ids.map(id=>{
     const c=S.comps[id];
-    const title=c.name||("Zawody "+c.format+"-biegowe");
+    const title=c.league?((c.home&&c.home.name)+" \u2013 "+(c.away&&c.away.name)):(c.name||("Zawody "+c.format+"-biegowe"));
+    const meta=c.league?"Mecz ligowy \u00b7 15 wy\u015bcig\u00f3w":(c.format+"-biegowe");
     return "<div class='saved-item'>"+
       "<div class='saved-info'>"+
         "<span class='saved-title'>"+escq(title)+"</span>"+
-        "<span class='saved-meta'>"+c.format+"-biegowe</span>"+
+        "<span class='saved-meta'>"+meta+"</span>"+
       "</div>"+
       "<div class='saved-actions'>"+
         "<button class='btn small primary' data-open=\""+escq(id)+"\">Otw\u00f3rz</button>"+
@@ -1493,13 +1736,19 @@ function renderSaved(){
   el.querySelectorAll("[data-rename]").forEach(b=>b.onclick=()=>UI.renameComp(b.dataset.rename));
   el.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>UI.delComp(b.dataset.del));
 }
-UI.openComp=function(id){S.current=id;S.settings.lastComp=id;persist();UI.screen(S.comps[id].launched?"points":"lineup");};
+UI.openComp=function(id){S.current=id;S.settings.lastComp=id;persist();
+  const c=S.comps[id];
+  UI.screen(c.league?"match":(c.launched?"points":"lineup"));};
 UI.delComp=function(id){
   const c=S.comps[id];const nm=c?escq(c.name||("Zawody "+c.format+"-biegowe")):"";
-  UI.confirm("Usun\u0105\u0107 zawody <b>"+nm+"</b>?<br><small style='color:var(--text-muted)'>Tej operacji nie mo\u017cna cofn\u0105\u0107.</small>",()=>{
-    delete S.comps[id];DB.removeComp(id);if(S.current===id)S.current=null;
-    if(S.settings.lastComp===id)delete S.settings.lastComp;
-    persist();renderSaved();});
+  UI.confirm("Usunąć zawody <b>"+nm+"</b>?<br><small style='color:var(--text-muted)'>Tej operacji nie można cofnąć.</small>",()=>{
+    /* Transakcyjnie: mutate() cofnie zarówno stan w RAM, jak i (dzięki rollbackowi
+       w persist) zapis w storage — przy błędzie nic nie zostaje usunięte. */
+    if(!mutate(()=>{
+      delete S.comps[id];DB.removeComp(id);if(S.current===id)S.current=null;
+      if(S.settings.lastComp===id)delete S.settings.lastComp;
+    }))return;
+    renderSaved();});
 };
 
 /* Ekran g\u0142\u00f3wny: przycisk \u201eKontynuuj" dla ostatnio otwartych zawod\u00f3w. */
@@ -1507,11 +1756,19 @@ function renderHome(){
   const b=$("continueBtn"),nb=$("newCompBtn");if(!b||!nb)return;
   const id=S.settings.lastComp;const c=id&&S.comps[id];
   if(!c){b.style.display="none";nb.classList.add("primary");return;}
-  const heats=compHeats(c);
-  if(c.launched&&heats.length&&heats.every(h=>h.confirmed)){b.style.display="none";nb.classList.add("primary");return;}
-  const last=heats.filter(h=>h.confirmed&&!h.extra).reduce((m,h)=>Math.max(m,h.n),0);
-  const title=c.name||("Zawody "+c.format+"-biegowe");
-  const prog=c.launched?(last>0?("po wy\u015bcigu "+last+"/"+c.format):"przed startem"):"przypisywanie numer\u00f3w";
+  let heats,title,prog;
+  if(c.league){
+    heats=c.match?c.match.heats:[];
+    title=(c.home&&c.home.name)+" \u2013 "+(c.away&&c.away.name);
+    const last=heats.filter(h=>h.confirmed).reduce((m,h)=>Math.max(m,h.n),0);
+    prog=last>0?("po wy\u015bcigu "+last+"/15"):"przed startem";
+  }else{
+    heats=compHeats(c);
+    if(c.launched&&heats.length&&heats.every(h=>h.confirmed)){b.style.display="none";nb.classList.add("primary");return;}
+    const last=heats.filter(h=>h.confirmed&&!h.extra).reduce((m,h)=>Math.max(m,h.n),0);
+    title=c.name||("Zawody "+c.format+"-biegowe");
+    prog=c.launched?(last>0?("po wy\u015bcigu "+last+"/"+c.format):"przed startem"):"przypisywanie numer\u00f3w";
+  }
   b.innerHTML="<span>\u25b6 Kontynuuj</span><small style='text-transform:none;font-weight:600;opacity:0.8'>"+escq(title)+" \u00b7 "+escq(prog)+"</small>";
   b.style.display="flex";nb.classList.remove("primary");
 }
@@ -1543,7 +1800,7 @@ function renderLineup(){
   [...Array(18)].map((_,i)=>i+1).forEach(n=>{
     const name=c.mapping[n]||"";
     html+="<tr><td class='num'>"+n+"</td><td style='text-align:left'>"+
-      "<button class='btn small' style='width:100%;text-transform:none;font-size:0.85rem' onclick='UI.pickLineup("+n+")'>"+
+      "<button class='btn small' style='width:100%;text-transform:none;font-size:0.85rem' data-onclick='UI.pickLineup("+n+")'>"+
       (name?escq(name):"\u2014 Wybierz \u2014")+"</button></td></tr>";
   });
   html+="</table>";
@@ -1634,6 +1891,28 @@ function validateData(d){
   if(d.riders.length>IMPORT_LIMITS.riders)return "zbyt wielu zawodnik\u00f3w";
   if(!d.riders.every(r=>typeof r==="string"&&r.length<=100))return "b\u0142\u0119dna lista zawodnik\u00f3w";
   if(!isObj(d.comps))return "brak obiektu zawod\u00f3w";
+  if(d.teams!==undefined&&d.teams!==null){
+    if(!Array.isArray(d.teams))return "b\u0142\u0119dna lista dru\u017cyn";
+    if(d.teams.length>200)return "zbyt wiele dru\u017cyn";
+    for(const t of d.teams){
+      if(!isObj(t))return "dru\u017cyna nie jest obiektem";
+      if(typeof t.name!=="string"||t.name.length>100)return "b\u0142\u0119dna nazwa dru\u017cyny";
+      if(!Array.isArray(t.riders)||t.riders.length>100)return "b\u0142\u0119dna lista zawodnik\u00f3w dru\u017cyny";
+      if(!t.riders.every(r=>typeof r==="string"&&r.length<=100))return "b\u0142\u0119dni zawodnicy dru\u017cyny";
+    }
+  }
+  if(d.juniors!==undefined&&d.juniors!==null){
+    if(!Array.isArray(d.juniors))return "b\u0142\u0119dna lista m\u0142odzie\u017cowc\u00f3w";
+    if(d.juniors.length>500)return "zbyt wielu m\u0142odzie\u017cowc\u00f3w";
+    if(!d.juniors.every(r=>typeof r==="string"&&r.length<=100))return "b\u0142\u0119dni m\u0142odzie\u017cowcy";
+  }
+  if(d.rosters!==undefined&&d.rosters!==null){
+    if(!isObj(d.rosters))return "b\u0142\u0119dne sk\u0142ady serii";
+    for(const k of Object.keys(d.rosters)){
+      if(!Array.isArray(d.rosters[k])||d.rosters[k].length>500)return "b\u0142\u0119dny sk\u0142ad serii "+k.slice(0,10);
+      if(!d.rosters[k].every(r=>typeof r==="string"&&r.length<=100))return "b\u0142\u0119dny zawodnik w serii "+k.slice(0,10);
+    }
+  }
   const ids=Object.keys(d.comps);
   if(ids.length>IMPORT_LIMITS.comps)return "zbyt wiele zawod\u00f3w";
   for(const id of ids){
@@ -1641,9 +1920,36 @@ function validateData(d){
     const c=d.comps[id];
     if(!isObj(c))return "zawody "+id+": nie s\u0105 obiektem";
     if(typeof c.id!=="string"||c.id!==id)return "zawody "+id+": niezgodne id";
-    if(!Array.isArray(c.heats))return "zawody "+id+": brak listy bieg\u00f3w";
-    if(c.heats.length>IMPORT_LIMITS.heats)return "zawody "+id+": zbyt wiele bieg\u00f3w";
-    if(c.format!==20&&c.format!==22&&c.format!==23)return "zawody "+id+": nieznany format";
+    if(c.league!==true&&!Array.isArray(c.heats))return "zawody "+id+": brak listy bieg\u00f3w";
+    if(c.league!==true&&c.heats.length>IMPORT_LIMITS.heats)return "zawody "+id+": zbyt wiele bieg\u00f3w";
+    if(c.format!==20&&c.format!==22&&c.format!==23&&c.format!=="liga")return "zawody "+id+": nieznany format";
+    if(c.league===true){
+      /* Mecz ligowy \u2014 lekka walidacja w\u0142asnego schematu; standardowe biegi nie obowi\u0105zuj\u0105. */
+      if(!isObj(c.home)||!isObj(c.away))return "zawody "+id+": brak dru\u017cyn meczu";
+      for(const side of [c.home,c.away]){
+        if(typeof side.name!=="string"||side.name.length>100)return "zawody "+id+": b\u0142\u0119dna nazwa dru\u017cyny";
+        if(!isObj(side.lineup))return "zawody "+id+": brak sk\u0142adu dru\u017cyny";
+        for(const k of Object.keys(side.lineup)){
+          const v=side.lineup[k];
+          if(!/^([1-9]|1[0-6])$/.test(k))return "zawody "+id+": b\u0142\u0119dny numer w sk\u0142adzie";
+          if(v!==null&&(typeof v!=="string"||v.length>100))return "zawody "+id+": b\u0142\u0119dny zawodnik w sk\u0142adzie";
+        }
+      }
+      if(!isObj(c.match)||!Array.isArray(c.match.heats))return "zawody "+id+": brak bieg\u00f3w meczu";
+      if(c.match.heats.length>60)return "zawody "+id+": zbyt wiele bieg\u00f3w meczu";
+      for(const h of c.match.heats){
+        if(!isObj(h)||!isInt(h.n)||h.n<1||h.n>60)return "zawody "+id+": b\u0142\u0119dny bieg meczu";
+        if(!Array.isArray(h.slots)||h.slots.length>8)return "zawody "+id+": bieg "+h.n+": b\u0142\u0119dne pola";
+        for(const s of h.slots){
+          if(!isObj(s)||(s.num!==null&&(!isInt(s.num)||s.num<1||s.num>16)))return "zawody "+id+": bieg "+h.n+": b\u0142\u0119dny zawodnik";
+          if(s.subType!==null&&s.subType!==undefined&&(typeof s.subType!=="string"||!["RT","ZZ"].includes(s.subType)))return "zawody "+id+": bieg "+h.n+": b\u0142\u0119dny typ zmiany";
+          if(s.excl!==null&&s.excl!==undefined&&(typeof s.excl!=="string"||s.excl.length>8))return "zawody "+id+": bieg "+h.n+": b\u0142\u0119dne oznaczenie";
+        }
+        if(!Array.isArray(h.order)||h.order.length!==h.slots.length||new Set(h.order).size!==h.slots.length||h.order.some(i=>!isInt(i)||i<0||i>=h.slots.length))return "zawody "+id+": bieg "+h.n+": \u0142\u0119dna kolejno\u015b\u0107";
+        if(h.time!==undefined&&h.time!==null&&(typeof h.time!=="string"||h.time.length>12))return "zawody "+id+": bieg "+h.n+": b\u0142\u0119dny czas";
+      }
+      continue;
+    }
     if(c.name!==undefined&&c.name!==null&&(typeof c.name!=="string"||c.name.length>200))return "zawody "+id+": b\u0142\u0119dna nazwa";
     if(!isObj(c.mapping))return "zawody "+id+": brak mapowania";
     for(const k of Object.keys(c.mapping)){
@@ -1699,15 +2005,15 @@ function heatCardHtml(c,h,firstOpen){
     html+="<div id='heat-"+h.n+"' class='heat "+(h.confirmed?"done":"")+(active?" active":"")+(dim?" dim":"")+"'>";
     html+="<div class='heathead'><span class='heatnum'>BIEG "+heatLabel+(h.time?"<span class='heattime'>"+escq(h.time)+"</span>":"")+"</span>";
     html+="<div class='heatactions'>";
-    html+="<button class='iconbtn sm' title='Czas wy\u015bcigu' onclick='UI.editHeatTime("+h.n+")'>"+ICON_CLOCK+"</button>";
+    html+="<button class='iconbtn sm' title='Czas wy\u015bcigu' data-onclick='UI.editHeatTime("+h.n+")'>"+ICON_CLOCK+"</button>";
     if(h.extra){
-      html+="<button class='iconbtn sm' title='Usu\u0144 wy\u015bcig dodatkowy' style='color:#fca5a5' onclick='UI.removeExtraHeat("+h.n+")'>"+ICON_X+"</button>";
+      html+="<button class='iconbtn sm' title='Usu\u0144 wy\u015bcig dodatkowy' style='color:var(--danger-fg)' data-onclick='UI.removeExtraHeat("+h.n+")'>"+ICON_X+"</button>";
     }
     if(h.confirmed){
-      html+="<button class='iconbtn sm' title='Edytuj' onclick='UI.editHeat("+h.n+")'>"+ICON_EDIT+"</button>";
-      html+="<button class='iconbtn sm' title='Reset biegu' onclick='UI.resetHeat("+h.n+")'>"+ICON_RESET+"</button>";
+      html+="<button class='iconbtn sm' title='Edytuj' data-onclick='UI.editHeat("+h.n+")'>"+ICON_EDIT+"</button>";
+      html+="<button class='iconbtn sm' title='Reset biegu' data-onclick='UI.resetHeat("+h.n+")'>"+ICON_RESET+"</button>";
     }
-    else if(active)html+="<button class='btn small primary' style='margin:0' onclick='UI.confirmHeat("+h.n+")'>\u2714 Zatwierd\u017a</button>";
+    else if(active)html+="<button class='btn small primary' style='margin:0' data-onclick='UI.confirmHeat("+h.n+")'>\u2714 Zatwierd\u017a</button>";
     else html+="<span style='color:var(--text-muted);font-size:0.8rem'>"+ICON_LOCK_SM+"Zablokowany</span>";
     html+="</div></div><div class='hrows'>";
     const rowOf=(e,r,extraCls,inner)=>"<div class='rcard "+(extraCls||"")+"' style='border-left:4px solid "+GATE_COLOR[e.gate]+"'><span class='dot' style='background:"+GATE_COLOR[e.gate]+"'></span>"+inner+"</div>";
@@ -1736,7 +2042,7 @@ function heatCardHtml(c,h,firstOpen){
         if(e.mark){
           html+="<div class='rcard ex locked' style='border-left:4px solid "+col+"'><span class='dot' style='background:"+col+"'></span><span class='name'>"+escq(c.mapping[e.rider]||"?")+"<span class='mk'>"+escq(e.mark)+"</span>"+(hasRepl?" <small>(zast. "+escq(c.mapping[e.repl]||"?")+")</small>":"")+"</span></div>";
         }else if(r===null||r===undefined){
-          html+="<div class='slotmark' role='button' tabindex='0' onclick='UI.pickOpenRider("+h.n+","+ei+")'>+ Wybierz zawodnika</div>";
+          html+="<div class='slotmark' role='button' tabindex='0' data-onclick='UI.pickOpenRider("+h.n+","+ei+")'>+ Wybierz zawodnika</div>";
         }else{
           pos++;
           const isSub=(e.replOf!==undefined&&e.replOf!==null);
@@ -1744,15 +2050,15 @@ function heatCardHtml(c,h,firstOpen){
           const downDis=(pos===finsCount)?"disabled":"";
           const canReassign=(h.n>20||h.extra)&&!isSub;
           const subNote=isSub?"<small style='color:var(--text-muted)'> (za "+escq(c.mapping[h.entries[e.replOf].rider]||"?")+")</small>":"";
-          const nameAttrs=canReassign?" style='cursor:pointer;text-decoration:underline dotted' title='Zmie\u0144 zawodnika' onclick='UI.pickOpenRider("+h.n+","+ei+")'":"";
+          const nameAttrs=canReassign?" style='cursor:pointer;text-decoration:underline dotted' title='Zmie\u0144 zawodnika' data-onclick='UI.pickOpenRider("+h.n+","+ei+")'":"";
           html+="<div class='rcard' data-heat='"+h.n+"' data-slot='"+ei+"' data-pos='"+(pos-1)+"' style='border-left:4px solid "+col+"'>"+
             "<span class='dot' style='background:"+col+"'></span>"+
             "<span class='name'"+nameAttrs+">"+escq(c.mapping[r]||"?")+subNote+"</span>"+
             "<span class='pos'>"+pos+".</span>"+
             "<div class='rcardbtns'>"+
-              "<button class='cardbtn' "+upDis+" title='Przesu\u0144 w g\u00f3r\u0119' onclick='UI.moveRider("+h.n+","+ei+",-1)'>"+ICON_UP+"</button>"+
-              "<button class='cardbtn' "+downDis+" title='Przesu\u0144 w d\u00f3\u0142' onclick='UI.moveRider("+h.n+","+ei+",1)'>"+ICON_DOWN+"</button>"+
-              (!isSub?"<button class='cardbtn flag' title='Wykluczenie' onclick='UI.markerMenu("+h.n+","+ei+")'>"+ICON_FLAG+"</button>":"")+
+              "<button class='cardbtn' "+upDis+" title='Przesu\u0144 w g\u00f3r\u0119' data-onclick='UI.moveRider("+h.n+","+ei+",-1)'>"+ICON_UP+"</button>"+
+              "<button class='cardbtn' "+downDis+" title='Przesu\u0144 w d\u00f3\u0142' data-onclick='UI.moveRider("+h.n+","+ei+",1)'>"+ICON_DOWN+"</button>"+
+              (!isSub?"<button class='cardbtn flag' title='Wykluczenie' data-onclick='UI.markerMenu("+h.n+","+ei+")'>"+ICON_FLAG+"</button>":"")+
             "</div>"+
           "</div>";
         }
@@ -1761,6 +2067,40 @@ function heatCardHtml(c,h,firstOpen){
     html+="</div></div>";
   return html;
 }
+/* Delegowana obs\u0142uga zdarze\u0144 \u2014 zast\u0119puje atrybuty onclick/onchange, dzi\u0119ki czemu CSP nie potrzebuje 'unsafe-inline' w script-src.
+   Bez eval: dozwolone s\u0105 wy\u0142\u0105cznie wywo\u0142ania UI.metoda(literaly) na w\u0142asnych metodach obiektu UI. */
+(function(){
+  const CALL=/^UI\.([A-Za-z_]\w*)\((.*)\)$/;
+  function arg(t,el){
+    t=t.trim();
+    if(t==="this")return el;
+    if(t==="this.value")return el.value;
+    if(t==="S.uiTeam")return S.uiTeam;
+    if(t==="null")return null;
+    if(t==="true")return true;
+    if(t==="false")return false;
+    if(/^-?\d+(\.\d+)?$/.test(t))return +t;
+    const m=t.match(/^'([^']*)'$/)||t.match(/^"([^"]*)"$/);
+    if(m)return m[1];
+    throw new Error("Niedozwolony argument");
+  }
+  function run(code,el){
+    const m=CALL.exec(code.trim());if(!m)return;
+    const fn=Object.prototype.hasOwnProperty.call(UI,m[1])?UI[m[1]]:null;
+    if(typeof fn!=="function")return;
+    const raw=m[2].trim();
+    fn.apply(UI,raw===""?[]:raw.split(",").map(x=>arg(x,el)));
+  }
+  UI.pickImportFile=function(){document.getElementById("impFile").click();};
+  ["click","change"].forEach(type=>document.addEventListener(type,ev=>{
+    const attr="data-on"+type;
+    for(let el=ev.target;el&&el.nodeType===1;el=el.parentElement){
+      const code=el.getAttribute(attr);
+      if(code){try{run(code,el);}catch(e){}}
+    }
+  }));
+  document.getElementById("overlay").addEventListener("click",ev=>{if(ev.target===ev.currentTarget)UI.closeModal();});
+})();
 /* Rejestracja Service Workera \u2014 w\u0142\u0105cza pe\u0142n\u0105 instalowalno\u015b\u0107 (PWA) i prac\u0119 offline,
    ale tylko gdy plik jest hostowany przez http/https razem z sw.js. Otwarty lokalnie
    (file://) po prostu nic nie robi \u2014 b\u0142\u0105d jest wyciszony. */
@@ -1797,6 +2137,1041 @@ if("serviceWorker" in navigator){
     }
   });
 })();
+/* ===================== DRUŻYNY I MECZE LIGOWE ===================== */
+/* Model danych: jedna wspólna baza zawodników (S.riders) + przypisanie do klubu
+   jako członkostwo w drużynie (S.teams). Składy serii indywidualnych (S.rosters)
+   to podzbiory tej samej bazy — edycja nazwiska działa wszędzie. */
+function teamOfRider(name){
+  const t=S.teams.find(t=>t.riders.includes(name));
+  return t?t.name:null;
+}
+UI.openRoster=function(series){S.uiSeries=series;UI.screen("riders");};
+UI.addRosterRider=function(){
+  const series=S.uiSeries;
+  UI.openModal("<h3>Dodaj zawodnika</h3><input type='text' id='nr' placeholder='Imię i Nazwisko' style='width:100%;margin-bottom:12px'>" + lgCatToggleHtml() + "<button class='btn primary' id='ok'>Dodaj</button><button class='btn' data-onclick='UI.closeModal()'>Anuluj</button>");
+  const isJr=lgBindCatToggle();
+  $("ok").onclick=()=>{
+    const v=cleanText($("nr").value,100);if(!v)return;
+    if(!mutate(()=>{
+      if(!S.riders.includes(v))S.riders.push(v);
+      lgSetJuniorFlag(v,isJr());
+      if(series&&!S.rosters[series].includes(v))S.rosters[series].push(v);
+    }))return;
+    UI.closeModal();renderRiderLib();
+  };
+  $("nr").addEventListener("keydown",ev=>{if(ev.key==="Enter"){ev.preventDefault();$("ok").click();}});
+};
+UI.removeRosterRider=function(name){
+  const series=S.uiSeries;if(!series)return;
+  mutate(()=>{S.rosters[series]=S.rosters[series].filter(n=>n!==name);});
+  renderRiderLib();
+};
+UI.assignRosterRider=function(){
+  const series=S.uiSeries;
+  if(!series){UI.toast("Najpierw wybierz serię (np. SGP, SEC).");return;}
+  const pool=S.riders.filter(n=>!(S.rosters[series]||[]).includes(n));
+  if(!pool.length){UI.toast("Wszyscy zawodnicy bazy są już na tej liście.");return;}
+  UI.openModal("<h3>Przypisz z bazy</h3>"+pool.map(n=>"<button class='btn' style='text-transform:none' data-a='"+escq(n)+"'>"+escq(n)+"</button>").join("")+"<button class='btn' style='margin-top:10px' data-onclick='UI.closeModal()'>Anuluj</button>");
+  $("modal").querySelectorAll("[data-a]").forEach(b=>b.onclick=()=>{
+    const nm=b.dataset.a;
+    if(!mutate(()=>{if(!S.rosters[series].includes(nm))S.rosters[series].push(nm);}))return;
+    UI.closeModal();renderRiderLib();
+  });
+};
+UI.addTeam=function(fromLeague){
+  UI.openModal("<h3>Dodaj drużynę</h3><p style='text-align:center;font-size:0.78rem;color:var(--text-muted);margin:0 0 10px'>Do nowej drużyny automatycznie trafia <b>Zawodnik zastępowany</b> (ZZ).</p><label for='tn' class='sr-label'>Nazwa drużyny</label><input type='text' id='tn' placeholder='Nazwa drużyny' style='width:100%;margin-bottom:12px'><button class='btn primary' id='ok'>Dodaj</button><button class='btn' data-onclick='UI.closeModal()'>Anuluj</button>");
+  $("ok").onclick=()=>{
+    const v=cleanText($("tn").value,100);if(!v)return;
+    if(S.teams.some(t=>t.name===v)){UI.toast("❌ Taka drużyna już istnieje.");return;}
+    if(!mutate(()=>{S.teams.push({name:v,riders:[LG_ZZ_NAME]});}))return;
+    UI.closeModal();
+    if(fromLeague){S.uiTeam=S.teams.length-1;LgFromLeague=true;UI.screen("teamDetail");}
+    else renderTeams();
+  };
+  $("tn").addEventListener("keydown",ev=>{if(ev.key==="Enter"){ev.preventDefault();$("ok").click();}});
+};
+UI.teamDetailBack=function(){
+  if(LgFromLeague&&LgW){LgFromLeague=false;UI.screen("lgTeam");}
+  else UI.screen("teams");
+};
+UI.editTeam=function(idx){
+  const old=S.teams[idx].name;
+  UI.openModal("<h3>Edycja drużyny</h3><input type='text' id='tn' value='"+escq(old)+"' style='width:100%;margin-bottom:12px'><button class='btn primary' id='ok'>Zapisz</button><button class='btn danger' id='del'>Usuń</button><button class='btn' data-onclick='UI.closeModal()'>Anuluj</button>");
+  const refresh=()=>{
+    if(LgFromLeague&&LgW){LgFromLeague=false;UI.screen("lgTeam");}
+    else if($("teamDetail").classList.contains("on"))renderTeamDetail();
+    else renderTeams();
+  };
+  $("ok").onclick=()=>{
+    const v=cleanText($("tn").value,100);if(!v)return;
+    if(v!==old&&S.teams.some(t=>t.name===v)){UI.toast("❌ Taka drużyna już istnieje.");return;}
+    mutate(()=>{S.teams[idx].name=v;});
+    UI.closeModal();refresh();
+  };
+  $("del").onclick=()=>{
+    UI.closeModal();
+    UI.confirm("Usunąć drużynę <b>"+escq(old)+"</b>?<br><small style='color:var(--text-muted)'>Zawodnicy zostaną w bazie; zapisane mecze się nie zmienią.</small>",()=>{
+      mutate(()=>{S.teams.splice(idx,1);});refresh();
+    });
+  };
+  $("tn").addEventListener("keydown",ev=>{if(ev.key==="Enter"){ev.preventDefault();$("ok").click();}});
+};
+UI.openTeam=function(idx){S.uiTeam=idx;UI.screen("teamDetail");};
+function renderTeams(){
+  const el=$("teamList");
+  if(!S.teams.length){el.innerHTML="<p style='color:var(--text-muted);text-align:center;'>Brak drużyn — dodaj pierwszą.</p>";return;}
+  el.innerHTML=S.teams.map((t,i)=>"<div class='ri'><span>"+escq(t.name)+" <small style='color:var(--text-muted)'>("+t.riders.length+")</small></span><span><button class='btn small' data-open='"+i+"'>Zawodnicy</button><button class='btn small' data-edit='"+i+"'>Edytuj</button></span></div>").join("");
+  el.querySelectorAll("[data-open]").forEach(b=>b.onclick=()=>UI.openTeam(+b.dataset.open));
+  el.querySelectorAll("[data-edit]").forEach(b=>b.onclick=()=>UI.editTeam(+b.dataset.edit));
+}
+function renderTeamDetail(){
+  const t=S.teams[S.uiTeam];if(!t){UI.screen("teams");return;}
+  $("teamDetailTitle").textContent=t.name.toUpperCase();
+  const el=$("teamRiderList");
+  if(!t.riders.length){el.innerHTML="<p style='color:var(--text-muted);text-align:center;'>Brak zawodników w drużynie.</p>";return;}
+  el.innerHTML="<div style='font-size:0.72rem;color:var(--text-muted);text-align:right;margin:0 0 6px;font-weight:700'>S — senior · J — junior</div>"+t.riders.map(name=>{
+    if(name===LG_ZZ_NAME)return "<div class='ri'><span>"+escq(name)+" <span class='mk'>ZZ</span></span></div>";
+    const isJr=!!(S.juniors||[]).includes(name);
+    return "<div class='ri'><span>"+escq(name)+"</span><span>"+
+      "<button class='btn small "+(isJr?"secondary":"primary")+"' data-cat-s='"+escq(name)+"'>S</button>"+
+      "<button class='btn small "+(isJr?"primary":"secondary")+"' data-cat-j='"+escq(name)+"'>J</button> "+
+      "<button class='btn small danger' data-rm='"+escq(name)+"'>Usuń</button></span></div>";
+  }).join("");
+  const setCat=(nm,jr)=>mutate(()=>{if(!S.juniors)S.juniors=[];S.juniors=jr?S.juniors.concat(nm):S.juniors.filter(n=>n!==nm);});
+  el.querySelectorAll("[data-cat-s]").forEach(b=>b.onclick=()=>{if(S.juniors.includes(b.dataset.catS)){setCat(b.dataset.catS,false);renderTeamDetail();}});
+  el.querySelectorAll("[data-cat-j]").forEach(b=>b.onclick=()=>{if(!S.juniors.includes(b.dataset.catJ)){setCat(b.dataset.catJ,true);renderTeamDetail();}});
+  el.querySelectorAll("[data-rm]").forEach(b=>b.onclick=()=>{
+    const nm=b.dataset.rm;
+    mutate(()=>{t.riders=t.riders.filter(n=>n!==nm);});
+    renderTeamDetail();
+  });
+}
+UI.addTeamRider=function(){
+  const t=S.teams[S.uiTeam];if(!t)return;
+  UI.openModal("<h3>Dodaj zawodnika</h3><p style='text-align:center;font-size:0.78rem;color:var(--text-muted);margin:0 0 10px'>Drużyna: <b>"+escq(t.name)+"</b> — zawodnik trafi też do wspólnej bazy. Kategorię ustaw przyciskami poniżej: S (senior) lub J (junior).</p>"+
+    "<label for='tnr' class='sr-label'>Imię i nazwisko</label><input type='text' id='tnr' placeholder='Imię i Nazwisko' style='width:100%;margin-bottom:12px'>"+lgCatToggleHtml()+
+    "<button class='btn primary' id='ok'>Dodaj</button><button class='btn' data-onclick='UI.closeModal()'>Anuluj</button>");
+  const isJr=lgBindCatToggle();
+  $("ok").onclick=()=>{
+    const v=cleanText($("tnr").value,100);if(!v)return;
+    if(!mutate(()=>{
+      if(!S.riders.includes(v))S.riders.push(v);
+      lgSetJuniorFlag(v,isJr());
+      if(!t.riders.includes(v))t.riders.push(v);
+    }))return;
+    UI.closeModal();renderTeamDetail();
+  };
+  $("tnr").addEventListener("keydown",ev=>{if(ev.key==="Enter"){ev.preventDefault();$("ok").click();}});
+};
+UI.assignTeamRider=function(){
+  const t=S.teams[S.uiTeam];if(!t)return;
+  const pool=S.riders.filter(n=>!t.riders.includes(n));
+  if(!pool.length){UI.toast("Wszyscy zawodnicy bazy są już w tej drużynie.");return;}
+  UI.openModal("<h3>Przypisz z bazy</h3>"+pool.map(n=>"<button class='btn' style='text-transform:none' data-a='"+escq(n)+"'>"+escq(n)+"</button>").join("")+"<button class='btn' style='margin-top:10px' data-onclick='UI.closeModal()'>Anuluj</button>");
+  $("modal").querySelectorAll("[data-a]").forEach(b=>b.onclick=()=>{
+    const nm=b.dataset.a;
+    if(!mutate(()=>{if(!t.riders.includes(nm))t.riders.push(nm);}))return;
+    UI.closeModal();renderTeamDetail();
+  });
+};
+
+/* ===== Kreator meczu ligowego ===== */
+let LgW=null; /* kreator: {side:'home'|'away', home:{...}, away:{...}} */
+let LgFromLeague=false; /* edycja drużyny otwarta z kreatora meczu — powrót do wyboru drużyn */
+let LgLineupStep=null;
+UI.startLeague=function(){LgW={side:"home",home:null,away:null};LgLineupStep=null;UI.screen("lgTeam");};
+UI.cancelLeague=function(){UI.confirm("Porzucić tworzenie meczu?",()=>{LgW=null;LgLineupStep=null;UI.screen("home");});};
+function renderLgTeamPick(){
+  if(!LgW){UI.screen("home");return;}
+  const isHome=LgW.side==="home";
+  $("lgTeamTitle").textContent=(isHome?"GOSPODARZE":"GOŚCIE")+" — WYBÓR DRUŻYNY";
+  const el=$("lgTeamList");
+  if(!S.teams.length){el.innerHTML="<p style='color:var(--text-muted);text-align:center;'>Brak drużyn — dodaj pierwszą.</p>";return;}
+  el.innerHTML=S.teams.map((t,i)=>"<div style='display:flex;gap:6px;margin-bottom:6px'>"+
+    "<button class='btn' style='flex:1;text-transform:none' data-pick='"+i+"'>"+escq(t.name)+" <small style='opacity:0.7'>("+t.riders.length+")</small></button>"+
+    "<button class='btn small' style='align-self:center' data-tedit='"+i+"'>Edytuj</button></div>").join("");
+  el.querySelectorAll("[data-pick]").forEach(b=>b.onclick=()=>UI.lgPickTeam(+b.dataset.pick));
+  el.querySelectorAll("[data-tedit]").forEach(b=>b.onclick=()=>{LgFromLeague=true;S.uiTeam=+b.dataset.tedit;UI.screen("teamDetail");});
+}
+UI.lgPickTeam=function(idx){
+  const t=S.teams[idx];if(!t||!LgW)return;
+  /* Starsze drużyny mogą nie mieć „Zawodnika zastępowanego” — dodajemy go automatycznie. */
+  if(!t.riders.includes(LG_ZZ_NAME))mutate(()=>{t.riders.push(LG_ZZ_NAME);});
+  const nums=LgW.side==="home"?[9,10,11,12,13,14,15,16]:[1,2,3,4,5,6,7,8];
+  const lineup={};nums.forEach(n=>lineup[n]=null); /* skład startuje pusty — „Brak zawodnika” */
+  LgW[LgW.side]={name:t.name,lineup,teamIdx:idx};
+  if(LgW.side==="home"){LgW.side="away";renderLgTeamPick();}
+  else UI.screen("lgLineup");
+};
+function renderLgLineup(){
+  if(!LgW||!LgW.home){UI.screen("home");return;}
+  if(!LgLineupStep)LgLineupStep="home";
+  if(LgLineupStep==="away"&&!LgW.away)LgLineupStep="home";
+  const side=LgW[LgLineupStep];
+  const nums=LgLineupStep==="home"?[9,10,11,12,13,14,15,16]:[1,2,3,4,5,6,7,8];
+  $("lgLineupTitle").textContent=(LgLineupStep==="home"?"GOSPODARZE":"GOŚCIE")+": "+side.name.toUpperCase();
+  const team=S.teams[side.teamIdx];
+  const all=team?team.riders:[];
+  let html="";
+  nums.forEach(n=>{
+    const cur=side.lineup[n];
+    const juniorOnly=(LgLineupStep==="home"&&(n===14||n===15))||(LgLineupStep==="away"&&(n===6||n===7));
+    /* Wybrani zawodnicy znikają z list; 6-7 / 14-15 — tylko juniorzy. */
+    const pool=all.filter(name=>{
+      if(name===cur)return true;
+      if(Object.values(side.lineup).includes(name))return false;
+      if(juniorOnly&&!(S.juniors||[]).includes(name))return false;
+      return true;
+    });
+    html+="<div class='lg-lineuprow'><span class='no'>"+n+"</span>"+
+      "<select style='flex:1' "+(cur?"disabled":"")+" data-onchange='UI.lgSetLineup("+n+",this.value)'>"+
+      "<option value='-1'>Brak zawodnika</option>"+
+      pool.map(name=>"<option value='"+all.indexOf(name)+"'"+(cur===name?" selected":"")+">"+escq(name)+"</option>").join("")+
+      "</select>"+
+      (cur?"<button class='btn small danger' title='Zdejmij zawodnika z pozycji "+n+"' data-onclick='UI.lgClearLineup("+n+")'>X</button>":"")+
+      "</div>";
+  });
+  html+="<div class='lg-hints' style='margin-top:8px'>"+
+    "<div>Jeżeli drużyna będzie korzystać z zastępstwa zawodnika (ZZ), umieść w składzie „Zawodnik zastępowany” na wybranym numerze.</div>"+
+    "<div>Numery 6–7 / 14–15 mogą zajmować wyłącznie juniorzy.</div></div>";
+  $("lgLineupList").innerHTML=html;
+}
+UI.lgSetLineup=function(num,val){
+  const side=LgW[LgLineupStep];if(!side)return;
+  const team=S.teams[side.teamIdx];
+  if(val==="-1"||!team){side.lineup[num]=null;renderLgLineup();return;}
+  const name=team.riders[+val];
+  /* Każdy zawodnik (także Zawodnik zastępowany) tylko raz w składzie. */
+  const dup=Object.keys(side.lineup).some(k=>+k!==num&&side.lineup[k]===name);
+  if(dup){UI.toast("❌ Ten zawodnik jest już w składzie pod innym numerem.");renderLgLineup();return;}
+  /* 6-7 (goście) i 14-15 (gospodarze) — wyłącznie juniorzy. */
+  const juniorOnly=(LgLineupStep==="home"&&(num===14||num===15))||(LgLineupStep==="away"&&(num===6||num===7));
+  if(juniorOnly&&!(S.juniors||[]).includes(name)){UI.toast("❌ Pod numer "+num+" można wpisać wyłącznie juniora.");renderLgLineup();return;}
+  side.lineup[num]=name;
+  renderLgLineup();
+};
+UI.lgClearLineup=function(num){
+  const side=LgW&&LgW[LgLineupStep];if(!side)return;
+  side.lineup[num]=null;
+  renderLgLineup();
+};
+UI.lgLineupNext=function(){
+  if(LgLineupStep==="home"){
+    if(!LgW.home.lineup[9]){UI.toast("Przypisz zawodnika nr 9.");return;}
+    LgLineupStep="away";
+    if(!LgW.away)UI.screen("lgTeam");else UI.screen("lgLineup");
+    return;
+  }
+  if(!LgW.away.lineup[1]){UI.toast("Przypisz zawodnika nr 1.");return;}
+  /* Walidacja: 6-7 / 14-15 tylko juniorzy (jeśli obsadzone). */
+  const badJr=[["home",14],["home",15],["away",6],["away",7]].find(([tk,n])=>{
+    const nm=LgW[tk].lineup[n];
+    return nm&&!(S.juniors||[]).includes(nm);
+  });
+  if(badJr){UI.toast("❌ Nr "+badJr[1]+" ("+(badJr[0]==="home"?"gospodarze":"goście")+") — wyłącznie junior.");LgLineupStep=badJr[0];UI.screen("lgLineup");return;}
+  const c=newLeagueComp(LgW);
+  if(!mutate(()=>{
+    S.comps[c.id]=c;S.current=c.id;S.settings.lastComp=c.id;
+  }))return;
+  LgW=null;LgLineupStep=null;
+  UI.screen("match");
+};
+
+/* Zestawy startowe meczu ligowego (numery: goście 1-8, gospodarze 9-16). Kolejność
+   w wierszu = pole startowe; kaski: C czerwony i N niebieski = gospodarze, B biały i Ż żółty = goście. */
+const LG_SET1=[
+[[1,"Ż"],[9,"C"],[3,"B"],[11,"N"]],
+[[15,"C"],[6,"B"],[14,"N"],[7,"Ż"]],
+[[5,"Ż"],[12,"N"],[2,"B"],[13,"C"]],
+[[14,"N"],[4,"Ż"],[10,"C"],[6,"B"]],
+[[11,"C"],[3,"B"],[12,"N"],[4,"Ż"]],
+[[13,"C"],[2,"B"],[15,"N"],[1,"Ż"]],
+[[7,"B"],[10,"N"],[5,"Ż"],[9,"C"]],
+[[3,"B"],[13,"C"],[4,"Ż"],[14,"N"]],
+[[9,"C"],[1,"Ż"],[10,"N"],[2,"B"]],
+[[6,"B"],[11,"C"],[5,"Ż"],[12,"N"]],
+[[12,"N"],[4,"B"],[9,"C"],[1,"Ż"]],
+[[2,"Ż"],[15,"N"],[7,"B"],[11,"C"]],
+[[10,"N"],[5,"Ż"],[13,"C"],[3,"B"]],
+[["Ż"],["C"],["B"],["N"]],
+[["C"],["Ż"],["N"],["B"]]
+];
+const LG_SET2=[
+[[9,"C"],[1,"Ż"],[11,"N"],[3,"B"]],
+[[6,"B"],[15,"C"],[7,"Ż"],[14,"N"]],
+[[12,"N"],[5,"Ż"],[13,"C"],[2,"B"]],
+[[4,"Ż"],[14,"N"],[6,"B"],[10,"C"]],
+[[3,"B"],[11,"C"],[4,"Ż"],[12,"N"]],
+[[2,"B"],[13,"C"],[1,"Ż"],[15,"N"]],
+[[10,"N"],[7,"B"],[9,"C"],[5,"Ż"]],
+[[13,"C"],[3,"B"],[14,"N"],[4,"Ż"]],
+[[1,"Ż"],[9,"C"],[2,"B"],[10,"N"]],
+[[11,"C"],[6,"B"],[12,"N"],[5,"Ż"]],
+[[4,"B"],[12,"N"],[1,"Ż"],[9,"C"]],
+[[15,"N"],[2,"Ż"],[11,"C"],[7,"B"]],
+[[5,"Ż"],[10,"N"],[3,"B"],[13,"C"]],
+[["C"],["Ż"],["N"],["B"]],
+[["Ż"],["C"],["B"],["N"]]
+];
+const LG_SETS={1:LG_SET1,2:LG_SET2};
+const LG_EXCL_CODES=["W","D","T","U","W2","U/-","-"];
+const LG_RZ_CODES=["T","W2","U/-","-"];
+/* „Zawodnik zastępowany” — ficzer ZZ: stoi w składzie, sam nie jeździ; przed każdym
+   jego biegiem (1–13) pojawia się okienko wyboru, kto pojedzie jako ZZ. */
+const LG_ZZ_NAME="Zawodnik zastępowany";
+
+/* Zawodnicy dodani w drużinach zasilają wspólną bazę (S.riders) — są dzięki temu
+   od razu widoczni w „Przypisz z bazy” serii indywidualnych (SGP, SEC...). */
+(function(){
+  let added=false;
+  (S.teams||[]).forEach(t=>(t.riders||[]).forEach(n=>{
+    if(n!==LG_ZZ_NAME&&!S.riders.includes(n)){S.riders.push(n);added=true;}
+  }));
+  if(added)persist();
+})();
+
+function lgSlotFromSrc(s){const isNum=typeof s[0]==="number";return {num:isNum?s[0]:null,helmet:isNum?s[1]:s[0],excl:null,subType:null,origNum:isNum?s[0]:null};}
+function newLeagueComp(w){
+  const m={set1_13:1,set14_15:1,heats:[]};
+  const a=LG_SETS[m.set1_13],b=LG_SETS[m.set14_15];
+  for(let i=0;i<15;i++){
+    const src=i<13?a[i]:b[i];
+    m.heats.push({n:i+1,slots:src.map(lgSlotFromSrc),
+      order:[0,1,2,3],confirmed:false,score:null,menuOpen:null,subListFor:null,time:null});
+  }
+  return {id:(typeof crypto!=="undefined"&&crypto.randomUUID)?crypto.randomUUID():("c"+Date.now()),
+    date:new Date().toLocaleDateString("pl-PL"),format:"liga",league:true,launched:true,
+    name:w.home.name+" – "+w.away.name,
+    home:{name:w.home.name,lineup:Object.assign({},w.home.lineup)},
+    away:{name:w.away.name,lineup:Object.assign({},w.away.lineup)},
+    match:m,mapping:{},overrides:{}};
+}
+
+/* ===== Silnik meczu ligowego ===== */
+function lgm(){const c=cur();return c&&c.league?c.match:null;}
+function lgFirstOpenIdx(m){for(let i=0;i<m.heats.length;i++)if(!m.heats[i].confirmed)return i;return -1;}
+function lgHeatEditable(heatIdx){const m=lgm();return !!m&&heatIdx===lgFirstOpenIdx(m);}
+function lgTeamUsed(m,teamKey,type){const u=m[type==="RT"?"rtUsed":"zzUsed"];return !!(u&&u[teamKey]);}
+function lgSideOfNum(num){return num<=8?"away":"home";}
+function lgRiderName(num){
+  const c=cur();
+  const side=lgSideOfNum(num)==="home"?c.home:c.away;
+  return side.lineup[num]||("Brak zawodnika");
+}
+function lgLineup(teamKey){
+  const c=cur();
+  return teamKey==="home"?c.home:c.away;
+}
+function lgTeamOfHelmet(h){return (h==="C"||h==="N")?"home":"away";}
+function lgDotClass(h){return {C:"lg-dC",N:"lg-dN",B:"lg-dB","Ż":"lg-dZ"}[h];}
+function lgFinishers(h){
+  return h.order.filter(i=>{const s=h.slots[i];return !s.excl&&s.num!=null;});
+}
+/* Punktacja: 3-2-1-0 wg kolejności mety. Bonus (apostrof) tylko przy 5:1/1:5 (2. miejsce)
+   i przy 3:3 — wyłącznie gdy bieg ukończyły wszystkie 4 osoby (3. miejsce). */
+function lgComputeScore(h){
+  const fins=lgFinishers(h);
+  const present=fins.map(i=>h.slots[i]);
+  let home=0,away=0;
+  const pts=present.map((_,i)=>Math.max(3-i,0));
+  present.forEach((slot,i)=>{
+    if(lgTeamOfHelmet(slot.helmet)==="home")home+=pts[i];else away+=pts[i];
+  });
+  let bonusSlot=null;
+  if((home===5&&away===1)||(home===1&&away===5))bonusSlot=fins[1];
+  else if(home===3&&away===3&&fins.length===4)bonusSlot=fins[2];
+  return {home,away,bonusSlot};
+}
+function lgCumulative(m,beforeHeatIdx){
+  let home=0,away=0;
+  for(let i=0;i<beforeHeatIdx;i++){
+    const h=m.heats[i];
+    if(h.confirmed&&h.score){home+=h.score.home;away+=h.score.away;}
+  }
+  return {home,away};
+}
+/* Limity startów liczone od nowa ze stanu biegów: 5 bazowo, +1 za RT, +1 za ZZ (max 7). */
+function lgUsage(m){
+  const us={};
+  const rec=n=>{if(!us[n])us[n]={starts:0,usedRT:false,usedZZ:false};return us[n];};
+  m.heats.forEach(h=>{
+    h.slots.forEach(s=>{
+      if(s.num==null)return;
+      if(s.subType==="RT")rec(s.num).usedRT=true;
+      if(s.subType==="ZZ")rec(s.num).usedZZ=true;
+    });
+    if(h.confirmed)lgFinishers(h).forEach(i=>rec(h.slots[i].num).starts++);
+  });
+  return us;
+}
+function lgRiderTotals(teamKey,upto){
+  /* upto — liczba biegów branych pod uwagę (nominacje 14/15 liczą punkty z bieg\u00f3w 1-13) */
+  const m=lgm();if(!m)return{};
+  const side=lgLineup(teamKey);
+  const totals={};
+  Object.keys(side.lineup).forEach(n=>totals[+n]={pts:0,bon:0,cells:[]});
+  m.heats.forEach(h=>{
+    if(h.n>(upto||15))return;
+    if(!h.confirmed||!h.score)return;
+    lgFinishers(h).forEach((slotIdx,pos)=>{
+      const slot=h.slots[slotIdx];
+      if(slot.num==null)return;
+      if(lgTeamOfHelmet(slot.helmet)!==teamKey)return;
+      const pts=Math.max(3-pos,0);
+      if(!totals[slot.num])totals[slot.num]={pts:0,bon:0,cells:[]};
+      totals[slot.num].pts+=pts;
+      const isBonus=h.score.bonusSlot===slotIdx;
+      if(isBonus)totals[slot.num].bon+=1;
+      totals[slot.num].cells.push({heat:h.n,pts,bonus:isBonus});
+    });
+    h.slots.forEach(slot=>{
+      if(!slot.excl||slot.num==null)return;
+      if(lgTeamOfHelmet(slot.helmet)!==teamKey)return;
+      if(!totals[slot.num])totals[slot.num]={pts:0,bon:0,cells:[]};
+      totals[slot.num].cells.push({heat:h.n,excl:slot.excl});
+    });
+  });
+  Object.values(totals).forEach(t=>t.cells.sort((a,b)=>a.heat-b.heat));
+  return totals;
+}
+/* Zast\u0119pstwa (ca\u0142y mecz, biegi 1-15): RZ \u2014 rezerwa zwyk\u0142a: za pozycje
+   seniorskie 1-5 / 9-13 mog\u0105 wjecha\u0107 rezerwowi 6-7 / 14-15; rezerwowy
+   m\u0142odzie\u017cowy 8 / 16 \u2014 wy\u0142\u0105cznie za pozycje juniorskie 6-7 / 14-15 i tylko,
+   gdy 8/16 to junior. Junior wystawiony na pozycji seniorskiej jest traktowany
+   jak senior (r\u00f3wnie\u017c w RT: nie ogranicza zast\u0119puj\u0105cego do junior\u00f3w).
+   RT \u2014 rezerwa taktyczna (ka\u017cdy z 1-16, tylko przy stracie 6+ pkt, raz na mecz
+   dru\u017cyny, ka\u017cdy zawodnik tylko raz jako RT). ZZ obs\u0142uguje \u201eZawodnik zast\u0119powany\u201d
+   (zob. ni\u017cej) \u2014 z menu wyklucze\u0144 opcja ZZ znikn\u0119\u0142a. */function lgIsJunior(num,teamKey){
+  const side=lgLineup(teamKey);
+  const name=side&&side.lineup[num];
+  return !!(name&&S.juniors&&S.juniors.includes(name));
+}
+function lgEligible(teamKey,exclNum,type,heatIdx){
+  const m=lgm();if(!m)return[];
+  const side=lgLineup(teamKey);
+  const nums=Object.keys(side.lineup).map(Number);
+  const reserves=teamKey==="home"?[14,15,16]:[6,7,8];
+  const us=lgUsage(m);
+  const isMain=teamKey==="home"?(exclNum>=9&&exclNum<=13):(exclNum>=1&&exclNum<=5);
+  const isRes=teamKey==="home"?(exclNum===14||exclNum===15):(exclNum===6||exclNum===7);
+  const jrNum=teamKey==="home"?16:8;
+  let cands=[];
+  if(type==="RZ"){
+    /* Pozycyjnie: 8/16 (rezerwowy junior) zast\u0119puje tylko pozycje juniorskie \u2014
+       junior na pozycji seniorskiej jest senior, wi\u0119c 8/16 nie wjedzie za niego. */
+    if(isMain)cands=reserves.filter(n=>n!==jrNum);
+    else if(isRes&&lgIsJunior(jrNum,teamKey))cands=[jrNum];
+  }else if(type==="RT"){
+    /* RT za juniora (6-7 / 14-15) — wyłącznie junior z rezerw (6-8 / 14-16). */
+    if(isRes)cands=reserves.filter(n=>n!==exclNum&&lgIsJunior(n,teamKey));
+    else cands=nums.filter(n=>n!==exclNum);
+  }
+  const inHeat=new Set(m.heats[heatIdx].slots.map(s=>s.num));
+  return cands.filter(n=>{
+    if(side.lineup[n]==null)return false; /* miejsce nieobsadzone — nie ma kto jechać */
+    if(side.lineup[n]===LG_ZZ_NAME)return false; /* Zawodnik zastępowany nikogo nie zastępuje */
+    if(inHeat.has(n))return false;
+    const rec=us[n]||{starts:0,usedRT:false,usedZZ:false};
+    const limit=5+(rec.usedRT?1:0)+(rec.usedZZ?1:0);
+    if(rec.starts>=limit)return false;
+    if(type==="RT"&&rec.usedRT)return false;
+    return true;
+  });
+}
+function lgRtAllowed(teamKey,heatIdx){
+  const m=lgm();if(!m)return false;
+  const c=lgCumulative(m,heatIdx);
+  const diff=teamKey==="home"?(c.away-c.home):(c.home-c.away);
+  return diff>=6;
+}
+/* ===== „Zawodnik zastępowany” (ZZ) =====
+   Stoi w składzie na wybranym numerze, ale sam nie jeździ. Gdy najbliższy (aktywny)
+   bieg 1–13 jest rozgrywany z jego udziałem, automatycznie pojawia się okienko:
+   trzeba wybrać, kto pojedzie jako ZZ. Każdy zawodnik może pojechać jako ZZ tylko
+   raz w meczu. W biegach nominowanych (14–15) nie można go wybrać. */
+let lgZZAsked={}; /* klucz heatIdx_slotIdx — okienko pokazane, nie powtarzamy */
+function lgIsZZRider(num,teamKey){
+  const side=lgLineup(teamKey);
+  return !!(side&&side.lineup[num]===LG_ZZ_NAME);
+}
+function lgZZCandidates(teamKey,heatIdx){
+  const m=lgm();if(!m)return[];
+  const side=lgLineup(teamKey);
+  const nums=Object.keys(side.lineup).map(Number);
+  const inHeat=new Set(m.heats[heatIdx].slots.filter(s=>s.num!=null).map(s=>s.num));
+  const us=lgUsage(m);
+  return nums.filter(n=>{
+    if(side.lineup[n]==null||side.lineup[n]===LG_ZZ_NAME)return false;
+    if(inHeat.has(n))return false;
+    const rec=us[n]||{starts:0,usedRT:false,usedZZ:false};
+    if(rec.usedZZ)return false; /* każdy zawodnik tylko raz jako ZZ */
+    const limit=5+(rec.usedRT?1:0)+1; /* pojechanie jako ZZ daje +1 do limitu startów */
+    if(rec.starts>=limit)return false;
+    return true;
+  });
+}
+function lgMaybePromptZZ(){
+  const m=lgm();if(!m)return;
+  const hi=lgFirstOpenIdx(m);if(hi<0)return;
+  const h=m.heats[hi];if(h.confirmed||h.n>13)return;
+  for(let slotIdx=0;slotIdx<h.slots.length;slotIdx++){
+    const slot=h.slots[slotIdx];
+    if(slot.num==null||slot.excl||slot.subType)continue;
+    const teamKey=lgTeamOfHelmet(slot.helmet);
+    if(!lgIsZZRider(slot.num,teamKey))continue;
+    const key=hi+"_"+slotIdx;
+    if(lgZZAsked[key])continue;
+    lgZZAsked[key]=true;
+    const cands=lgZZCandidates(teamKey,hi);
+    if(cands.length)UI.lgPromptZZ(hi,slotIdx,teamKey,cands);
+    return; /* jedno okienko naraz — kolejny slot ZZ dostanie prompt po obs\u0142u\u017ceniu tego */
+  }
+}
+UI.lgPromptZZ=function(heatIdx,slotIdx,teamKey,cands){
+  const m=lgm();const h=m.heats[heatIdx];const us=lgUsage(m);
+  let html="<h3>Zastępstwo — ZZ</h3><p style='text-align:center;font-size:0.78rem;color:var(--text-muted);margin:0 0 10px'>Bieg "+h.n+": <b>Zawodnik zastępowany</b> (nr "+h.slots[slotIdx].num+") — wybierz, kto pojedzie jako ZZ.</p>";
+  cands.forEach(n=>{
+    const rec=us[n]||{starts:0,usedRT:false,usedZZ:false};
+    const left=5+(rec.usedRT?1:0)+1-rec.starts;
+    html+="<button class='btn' style='text-transform:none' data-zz='"+n+"'>"+escq(lgRiderName(n))+" <small style='opacity:0.7'>(pozostałe starty: "+left+")</small></button>";
+  });
+  html+="<button class='btn' data-onclick='UI.closeModal()'>Anuluj</button>";
+  UI.openModal(html);
+  $("modal").querySelectorAll("[data-zz]").forEach(b=>b.onclick=()=>UI.lgPickZZ(heatIdx,slotIdx,teamKey,+b.dataset.zz));
+};
+UI.lgPickZZ=function(heatIdx,slotIdx,teamKey,n){
+  const m=lgm();if(!m)return;
+  const h=m.heats[heatIdx];
+  if(!mutate(()=>{h.slots[slotIdx].num=n;h.slots[slotIdx].subType="ZZ";lgReorder(h);}))return;
+  UI.closeModal();lgRender();
+};
+/* Biegi nominowane 14/15: do 14 nie można wybrać dwóch najlepszych (bonusy się nie liczą). */
+/* Biegi nominowane 14/15: przy ustalaniu sk\u0142ad\u00f3w NIE uwzgl\u0119dniamy rezerw 6-8/14-16
+   (one mog\u0105 w nich wyst\u0105pi\u0107 wg normalnych zasad rezerw). Bieg 15: je\u017adzi najlepszy
+   zawodnik podstawowego sk\u0142adu (1-5 / 9-13) plus jeden dowolnie wybrany; pozostali
+   \u2014 w biegu 14. Zawodnik nie mo\u017ce wyst\u0105pi\u0107 w obu biegach nominowanych. */
+function lgNomMainNums(teamKey){
+  const side=lgLineup(teamKey);
+  const nums=Object.keys(side.lineup).map(Number)
+    .filter(n=>side.lineup[n]!=null&&side.lineup[n]!==LG_ZZ_NAME);
+  return teamKey==="home"?nums.filter(n=>n>=9&&n<=13):nums.filter(n=>n>=1&&n<=5);
+}
+function lgNomTopGroup(teamKey){
+  /* Czo\u0142\u00f3wka do biegu 15: dwaj najlepsi zawodnicy pozycji seniorskich (punkty bez
+     bonus\u00f3w). Remisy: wszyscy zawodnicy z poziomu 1. i 2. miejsca trafiaj\u0105 do puli \u2014
+     kt\u00f3rzy dwaj jad\u0105 w 15, decyduje trener. */
+  const totals=lgRiderTotals(teamKey,13);
+  const sorted=lgNomMainNums(teamKey).slice()
+    .sort((x,y)=>((totals[y]||{}).pts||0)-((totals[x]||{}).pts||0));
+  if(!sorted.length)return [];
+  const v0=(totals[sorted[0]]||{}).pts||0;
+  const v1=sorted.length>1?((totals[sorted[1]]||{}).pts||0):v0;
+  return sorted.filter(n=>{const p=(totals[n]||{}).pts||0;return p===v0||p===v1;});
+}
+function lgEligibleNominated(teamKey,heatIdx){
+  /* Biegi nominowane 14/15: przy ustalaniu sk\u0142ad\u00f3w brani s\u0105 pod uwag\u0119 wy\u0142\u0105cznie
+     zawodnicy pozycji seniorskich 1-5 / 9-13 \u2014 junior wystawiony na pozycji seniorskiej
+     liczy si\u0119 jak senior. Rezerwi 6-8 / 14-16 nie s\u0105 brani pod uwag\u0119 przy ustalaniu
+     sk\u0142ad\u00f3w, ale mog\u0105 w nich wyst\u0105pi\u0107 jako rezerwy wg zwyk\u0142ych zasad. Bieg 15 \u2014
+     tylko czo\u0142\u00f3wka punktacyjna (lgNomTopGroup). */
+  const m=lgm();if(!m)return[];
+  const us=lgUsage(m);
+  const h=m.heats[heatIdx];
+  const inHeat=new Set(h.slots.filter(s=>s.num!=null).map(s=>s.num));
+  const other=m.heats[h.n===14?heatIdx+1:heatIdx-1];
+  const inOther=new Set(other&&other.slots.filter(s=>s.num!=null).map(s=>s.num));
+  let cands=lgNomMainNums(teamKey);
+  if(h.n===15){const grp=new Set(lgNomTopGroup(teamKey));cands=cands.filter(n=>grp.has(n));}
+  return cands.filter(n=>{
+    if(inHeat.has(n))return false;
+    if(inOther.has(n))return false;
+    const rec=us[n]||{starts:0,usedRT:false,usedZZ:false};
+    return rec.starts<5+(rec.usedRT?1:0)+(rec.usedZZ?1:0);
+  });
+}
+/* ===== Panel nominacji: po biegu 13 trenerzy OBU dru\u017cyn wybieraj\u0105 \u2014 od razu,
+   w jednym miejscu \u2014 sk\u0142ady na biegi 14 i 15 (najpierw 15, potem 14). Decyzje
+   zapisujemy dopiero po zako\u0144czeniu ca\u0142ego panelu. ===== */
+let lgNomAsked={}; /* klucz: id zawod\u00f3w \u2014 panel pokazujemy raz na mecz */
+let LgNom=null;
+function lgMaybeNominate(){
+  const m=lgm();if(!m)return;
+  const c=cur();if(!c)return;
+  if(lgNomAsked[c.id])return;
+  const hi=lgFirstOpenIdx(m);if(hi<0)return;
+  if(m.heats[hi].n!==14)return;
+  if(m.heats[hi].slots.some(s=>s.num!=null)||m.heats[hi+1].slots.some(s=>s.num!=null))return;
+  lgNomAsked[c.id]=true;
+  UI.lgNominatePanel();
+}
+UI.lgNominatePanel=function(){
+  const m=lgm();if(!m)return;
+  LgNom={steps:[["home",15],["home",14],["away",15],["away",14]],i:0,picks:[],sel:[]};
+  UI.lgNominateShow();
+};
+UI.lgNominateShow=function(){
+  const m=lgm();if(!m||!LgNom)return;
+  const st=LgNom.steps[LgNom.i];
+  const tk=st[0],n=st[1];
+  let cands=lgEligibleNominated(tk,n-1);
+  if(n===14){
+    const ch=LgNom.picks.filter(p=>p.tk===tk&&p.n===15).map(p=>p.riders).flat();
+    cands=cands.filter(x=>!ch.includes(x));
+  }
+  LgNom.tk=tk;LgNom.n=n;LgNom.cands=cands;LgNom.need=Math.min(2,cands.length);
+  let html="<h3>Nominacja \u2014 bieg "+n+"</h3>"+
+    "<p style='text-align:center;font-size:0.78rem;color:var(--text-muted);margin:0 0 10px'>"+
+    escq(lgLineup(tk).name)+" \u2014 wybierz "+LgNom.need+" zawodnik\u00f3w."+
+    (n===15?" W biegu 15 jad\u0105 dwaj najlepsi punktowo (remisy rozstrzyga trener).":
+     " Pozostali zawodnicy z pozycji 1\u20135 / 9\u201313 \u2014 do biegu 14.")+"</p>";
+  cands.forEach(x=>{
+    const on=LgNom.sel.includes(x);
+    html+="<button class='btn "+(on?"primary":"secondary")+"' style='text-transform:none' data-onclick='UI.lgNominateToggle("+x+")'>"+x+" \u2014 "+escq(lgRiderName(x))+"</button>";
+  });
+  html+="<div style='display:flex;gap:8px;justify-content:center;margin-top:12px'>"+
+    (LgNom.sel.length===LgNom.need
+      ?"<button class='btn primary' data-onclick='UI.lgNominateNext()'>Dalej &#10132;</button>"
+      :"<button class='btn' disabled style='opacity:0.4'>Dalej &#10132;</button>")+
+    "<button class='btn' data-onclick='UI.lgNominateCancel()'>Anuluj</button></div>";
+  UI.openModal(html);
+};
+UI.lgNominateToggle=function(x){
+  if(!LgNom)return;
+  if(LgNom.sel.includes(x))LgNom.sel=LgNom.sel.filter(v=>v!==x);
+  else if(LgNom.sel.length<LgNom.need)LgNom.sel=[...LgNom.sel,x];
+  UI.lgNominateShow();
+};
+UI.lgNominateNext=function(){
+  const m=lgm();if(!m||!LgNom)return;
+  if(LgNom.sel.length!==LgNom.need)return;
+  LgNom.picks.push({tk:LgNom.tk,n:LgNom.n,riders:LgNom.sel.slice()});
+  LgNom.sel=[];
+  LgNom.i++;
+  if(LgNom.i>=LgNom.steps.length){
+    /* wszystkie cztery decyzje zapad\u0142y \u2014 zapisujemy jednym zapisem stanu */
+    const picks=LgNom.picks;LgNom=null;
+    if(!mutate(()=>{
+      picks.forEach(p=>{
+        const h=m.heats[p.n-1];
+        const idxs=h.slots.map((s,i)=>i).filter(i=>lgTeamOfHelmet(h.slots[i].helmet)===p.tk&&h.slots[i].num==null);
+        p.riders.forEach((r,j)=>{if(idxs[j]!=null)h.slots[idxs[j]].num=r;});
+        lgReorder(h);
+      });
+    }))return;
+    UI.closeModal();lgRender();return;
+  }
+  UI.lgNominateShow();
+};
+UI.lgNominateCancel=function(){LgNom=null;UI.closeModal();lgRender();};
+
+/* ===== Interakcje meczu ===== */
+let lgExclSeq=0;
+function lgReorder(h){
+  /* Dop\u00f3ki w biegu nominowanym s\u0105 nieobsadzone pola \u2014 zachowujemy uk\u0142ad p\u00f3l startowych;
+     przestawianie (meta/wykluczenia) zaczyna dzia\u0142a\u0107 dopiero po obsadzeniu ca\u0142ego biegu. */
+  if(h.slots.some(s=>s.num==null))return;
+  const fins=h.order.filter(i=>{const s=h.slots[i];return !s.excl&&s.num!=null;});
+  const excluded=h.slots.map((s,i)=>i).filter(i=>h.slots[i].excl&&h.slots[i].num!=null)
+    .sort((a,b)=>(h.slots[b].exclSeq||0)-(h.slots[a].exclSeq||0));
+  const pending=h.slots.map((s,i)=>i).filter(i=>h.slots[i].num==null);
+  h.order=[...fins,...excluded,...pending];
+}
+UI.lgMoveSlot=function(heatIdx,slotIdx,dir){
+  const h=lgm().heats[heatIdx];if(h.confirmed||!lgHeatEditable(heatIdx))return;
+  const fins=lgFinishers(h);
+  const rest=h.order.filter(i=>!fins.includes(i));
+  const idx=fins.indexOf(slotIdx),nidx=idx+dir;
+  if(idx<0||nidx<0||nidx>=fins.length)return;
+  [fins[idx],fins[nidx]]=[fins[nidx],fins[idx]];
+  if(!mutate(()=>{h.order=[...fins,...rest];}))return;
+  lgRenderHeatOnly(heatIdx);
+};
+UI.lgConfirmHeat=function(heatIdx){
+  const m=lgm();const h=m.heats[heatIdx];
+  const fo=lgFirstOpenIdx(m);
+  if(fo!==heatIdx&&fo>=0){UI.toast("Najpierw zatwierdź bieg "+m.heats[fo].n+".");return;}
+  if(h.slots.some(s=>s.num==null)){UI.toast("Wybierz zawodników do biegu nominowanego.");return;}
+  if(h.n===14||h.n===15){
+    const mains={home:new Set(lgNomMainNums("home")),away:new Set(lgNomMainNums("away"))};
+    const grp={home:new Set(lgNomTopGroup("home")),away:new Set(lgNomTopGroup("away"))};
+    for(const s of h.slots){
+      if(s.num==null||s.subType)continue; /* rezerwy (RZ/RT/ZZ) wg zwykłych zasad */
+      const tk=lgTeamOfHelmet(s.helmet);
+      if(!mains[tk].has(s.num)){
+        UI.toast("Bieg "+h.n+": w nominowanych jadą tylko zawodnicy z pozycji 1–5 / 9–13.");
+        return;
+      }
+      if(h.n===15&&!grp[tk].has(s.num)){
+        UI.toast("Bieg 15: mogą startować tylko najlepsi punktowo zawodnicy drużyny (remisy rozstrzyga trener).");
+        return;
+      }
+    }
+  }
+  if(!mutate(()=>{h.score=lgComputeScore(h);h.confirmed=true;h.menuOpen=null;h.subListFor=null;}))return;
+  lgRender();
+};
+UI.lgEditHeat=function(heatIdx){
+  const h=lgm().heats[heatIdx];
+  if(!mutate(()=>{h.confirmed=false;h.score=null;}))return;
+  lgRender();
+};
+UI.lgResetHeat=function(heatIdx){
+  const h=lgm().heats[heatIdx];
+  UI.confirm("Zresetować bieg "+h.n+" do stanu sprzed wyścigu?",()=>{
+    if(!mutate(()=>{
+      h.slots.forEach(s=>{s.num=s.origNum;s.excl=null;s.subType=null;delete s.exclSeq;});
+      h.order=[0,1,2,3];h.confirmed=false;h.score=null;h.menuOpen=null;h.subListFor=null;h.time=null;
+      Object.keys(lgZZAsked).forEach(k=>{if(k.split("_")[0]===String(heatIdx))delete lgZZAsked[k];});
+    }))return;
+    lgRender();
+  });
+};
+UI.lgToggleMenu=function(heatIdx,slotIdx){
+  if(!lgHeatEditable(heatIdx))return;
+  const h=lgm().heats[heatIdx];
+  h.menuOpen=h.menuOpen===slotIdx?null:slotIdx;
+  if(h.menuOpen!==null)h.subListFor=null;
+  lgRenderHeatOnly(heatIdx);
+};
+UI.lgSetExcl=function(heatIdx,slotIdx,code){
+  if(!lgHeatEditable(heatIdx))return;
+  const h=lgm().heats[heatIdx];
+  const s=h.slots[slotIdx];
+  const wasSet=s.excl===code;
+  if(!mutate(()=>{
+    s.excl=wasSet?null:code;
+    if(!wasSet)s.exclSeq=++lgExclSeq;
+    lgReorder(h);
+    /* Menu ZOSTAJE otwarte — po kodach -, T, U/-, W2 dodatkowo pytamy o rezerwę. */
+    h.subListFor=null;
+  }))return;
+  lgRenderHeatOnly(heatIdx);
+  if(!wasSet&&LG_RZ_CODES.includes(code))UI.lgReservePrompt(heatIdx,slotIdx);
+};
+UI.lgOpenSubList=function(heatIdx,slotIdx,type){
+  if(!lgHeatEditable(heatIdx))return;
+  const h=lgm().heats[heatIdx];
+  if(!mutate(()=>{h.subListFor={slot:slotIdx,type};}))return;
+  lgRenderHeatOnly(heatIdx);
+};
+UI.lgPickSub=function(heatIdx,slotIdx,type,newNum){
+  const m=lgm();const h=m.heats[heatIdx];
+  const s=h.slots[slotIdx];
+  if(!mutate(()=>{
+    s.num=newNum;s.subType=type;s.excl=null;
+    h.menuOpen=null;h.subListFor=null;
+    lgReorder(h);
+  }))return;
+  UI.closeModal();
+  lgRender();
+};
+/* Okno rezerwy: po kodach -, T, U/-, W2 automatycznie pytamy, czy będzie rezerwa. */
+UI.lgReservePrompt=function(heatIdx,slotIdx){
+  const m=lgm();if(!m)return;
+  const h=m.heats[heatIdx];
+  const s=h.slots[slotIdx];
+  if(!s.excl)return;
+  const teamKey=lgTeamOfHelmet(s.helmet);
+  const exclNum=s.num!=null?s.num:s.origNum;
+  const rzOk=lgEligible(teamKey,exclNum,"RZ",heatIdx).length>0;
+  const rtOk=lgRtAllowed(teamKey,heatIdx)&&lgEligible(teamKey,exclNum,"RT",heatIdx).length>0;
+  if(!rzOk&&!rtOk){lgRenderHeatOnly(heatIdx);return;}
+  const btn=(type,ok,txt)=>ok
+    ?"<button class='btn primary' data-onclick='UI.lgReservePick("+heatIdx+","+slotIdx+",\""+type+"\")'>"+txt+"</button>"
+    :"<button class='btn' disabled style='opacity:0.4'>"+txt+"</button>";
+  UI.openModal("<h3>Rezerwa?</h3><p style='text-align:center;font-size:0.78rem;color:var(--text-muted);margin:0 0 10px'>Bieg "+h.n+" — kod <b>"+escq(s.excl)+"</b>. Czy przewidujesz rezerwę?</p>"+
+    btn("RZ",rzOk,"RZ — rezerwa zwykła")+
+    btn("RT",rtOk,"RT — rezerwa taktyczna")+
+    "<button class='btn' data-onclick='UI.closeModal()'>Bez rezerwy</button>");
+};
+UI.lgReservePick=function(heatIdx,slotIdx,type){
+  const m=lgm();if(!m)return;
+  const h=m.heats[heatIdx];
+  const s=h.slots[slotIdx];
+  const teamKey=lgTeamOfHelmet(s.helmet);
+  const exclNum=s.num!=null?s.num:s.origNum;
+  const us=lgUsage(m);
+  const cands=lgEligible(teamKey,exclNum,type,heatIdx);
+  if(!cands.length){UI.toast("Brak dostępnych zawodników na "+type+".");return;}
+  let html="<h3>Wybierz zawodnika ("+type+")</h3><p style='text-align:center;font-size:0.78rem;color:var(--text-muted);margin:0 0 10px'>Kto wjedzie w biegu "+h.n+"?</p>";
+  cands.forEach(n=>{
+    const rec=us[n]||{starts:0,usedRT:false,usedZZ:false};
+    const left=5+(rec.usedRT?1:0)+(rec.usedZZ?1:0)-rec.starts;
+    html+="<button class='btn' style='text-transform:none' data-onclick='UI.lgPickSub("+heatIdx+","+slotIdx+",\""+type+"\","+n+")'>"+escq(lgRiderName(n))+" <small style='opacity:0.7'>(pozostałe starty: "+left+")</small></button>";
+  });
+  html+="<button class='btn' data-onclick='UI.closeModal()'>Anuluj</button>";
+  UI.openModal(html);
+};
+UI.lgPickNominated=function(heatIdx,slotIdx,val){
+  if(!lgHeatEditable(heatIdx))return;
+  const h=lgm().heats[heatIdx];
+  if(!mutate(()=>{
+    h.slots[slotIdx].num=val===""?null:Number(val);
+    lgReorder(h);
+  }))return;
+  lgRenderHeatOnly(heatIdx);
+};
+UI.lgSetPart=function(part,n){
+  const m=lgm();if(!m)return;
+  const from=part===1?0:13,to=part===1?13:15;
+  const curSet=part===1?m.set1_13:m.set14_15;
+  if(n===curSet)return;
+  const touched=m.heats.slice(from,to).some(h=>h.confirmed||h.slots.some(s=>s.excl||s.subType));
+  const lbl=part===1?"1–13":"14–15";
+  const go=()=>{
+    if(!mutate(()=>{
+      const src=LG_SETS[n];
+      for(let i=from;i<to;i++){
+        const h=m.heats[i];
+        h.slots=src[i].map(lgSlotFromSrc);
+        h.order=[0,1,2,3];h.confirmed=false;h.score=null;h.menuOpen=null;h.subListFor=null;h.time=null;
+      }
+      if(part===1)m.set1_13=n;else m.set14_15=n;
+    }))return;
+    lgRender();
+  };
+  if(touched)UI.confirm("Zmiana zestawu dla biegów "+lbl+" wyzeruje wyniki i zmiany zapisane w tych biegach. Kontynuować?",go);
+  else go();
+};
+/* Czas biegu — numpad (ostatnie 3 cyfry = milisekundy), obsługa klawiatury fizycznej. */
+let LgTime={heatIdx:null,ms:0};
+UI.lgEditTime=function(heatIdx){
+  const h=lgm().heats[heatIdx];
+  LgTime={heatIdx,ms:h.time?Math.round(parseFloat(h.time.replace(",","."))*1000):0};
+  let html="<h3>Czas biegu "+h.n+"</h3>"+
+    "<p style='text-align:center;color:var(--text-muted);font-size:0.75rem;margin:0 0 10px'>Wpisz cyfry — ostatnie trzy to milisekundy</p>"+
+    "<div class='timedisplay' id='lgTimeVal'>"+fmtHeatTime(LgTime.ms)+"</div><div class='numpad'>";
+  for(let d=1;d<=9;d++)html+="<button class='btn' data-onclick='UI.lgTimeDigit("+d+")'>"+d+"</button>";
+  html+="<button class='btn secondary' data-onclick='UI.lgTimeBackspace()'>&#9003;</button>"+
+    "<button class='btn' data-onclick='UI.lgTimeDigit(0)'>0</button>"+
+    "<button class='btn danger' data-onclick='UI.lgTimeClear()'>C</button></div>"+
+    "<button class='btn primary' style='margin-top:14px' data-onclick='UI.lgTimeSave()'>Zapisz</button>"+
+    "<button class='btn' data-onclick='UI.closeModal()'>Anuluj</button>";
+  UI.openModal(html);
+  UI._timeKeyHandler=ev=>{
+    if(ev.key>="0"&&ev.key<="9"){ev.preventDefault();UI.lgTimeDigit(+ev.key);}
+    else if(ev.key==="Backspace"||ev.key==="Delete"){ev.preventDefault();UI.lgTimeBackspace();}
+    else if(ev.key==="Enter"){ev.preventDefault();UI.lgTimeSave();}
+  };
+  document.addEventListener("keydown",UI._timeKeyHandler);
+};
+UI.lgTimeDigit=function(d){
+  const t=(LgTime.ms||0)*10+d;
+  if(t>99999)return;
+  LgTime.ms=t;
+  const el=$("lgTimeVal");if(el)el.textContent=fmtHeatTime(t);
+};
+UI.lgTimeBackspace=function(){
+  LgTime.ms=Math.floor((LgTime.ms||0)/10);
+  const el=$("lgTimeVal");if(el)el.textContent=fmtHeatTime(LgTime.ms);
+};
+UI.lgTimeClear=function(){
+  LgTime.ms=0;
+  const el=$("lgTimeVal");if(el)el.textContent=fmtHeatTime(0);
+};
+UI.lgTimeSave=function(){
+  const h=lgm().heats[LgTime.heatIdx];
+  UI.closeModal();
+  if(!h)return;
+  if(!mutate(()=>{h.time=LgTime.ms?fmtHeatTime(LgTime.ms):null;}))return;
+  lgRender();
+};
+UI.lgScrollTeams=function(){window.scrollTo({top:0,behavior:"smooth"});};
+UI.lgScrollToNext=function(){
+  const m=lgm();if(!m)return;
+  const i=lgFirstOpenIdx(m);
+  if(i<0){UI.toast("Wszystkie biegi zostały zatwierdzone.");return;}
+  const el=$("lgheat-"+m.heats[i].n);
+  if(el&&el.scrollIntoView)el.scrollIntoView({behavior:"smooth",block:"start"});
+};
+UI.leaveMatch=function(){
+  const c=cur();
+  let msg="Na pewno wrócić do ekranu głównego?<br><small style='color:var(--text-muted)'>Bieżący stan meczu zostanie automatycznie zapisany.</small>";
+  if(c&&c.league&&c.match){
+    const open=c.match.heats.filter(h=>!h.confirmed).length;
+    const done=c.match.heats.filter(h=>h.confirmed).length;
+    if(done>0&&open>0)
+      msg="<b style='color:var(--amber)'>⚠ Uwaga: mecz w toku — "+open+" niezatwierdzonych biegów.</b><br><small style='color:var(--text-muted)'>Stan zostanie zapisany i można do niego wrócić z ekranu głównego.</small>";
+  }
+  UI.confirm(msg,()=>{UI.screen("home");});
+};
+/* ===== Render meczu ===== */
+function lgRender(){
+  const c=cur();if(!c||!c.league||!c.match){UI.screen("home");return;}
+  $("lgTeamsWrap").innerHTML=lgTeamCard("home")+lgTeamCard("away");
+  $("lgHeatsWrap").innerHTML=c.match.heats.map((_,i)=>lgHeatHtml(i)).join("");
+  $("lgScorebar").innerHTML=lgScorebarHtml();
+  lgMaybePromptZZ();
+  lgMaybeNominate();
+}
+function lgRenderHeatOnly(heatIdx){
+  const el=$("lgheat-"+(heatIdx+1));
+  if(!el){lgRender();return;}
+  el.outerHTML=lgHeatHtml(heatIdx);
+  lgMaybePromptZZ();
+}
+const LG_HELM={home:["#ef4444","#3b82f6"],away:["#f8fafc","#eab308"]};
+function lgHelmets(teamKey){return "<span class='lg-helmets'><i style='background:"+LG_HELM[teamKey][0]+"'></i><i style='background:"+LG_HELM[teamKey][1]+"'></i></span>";}
+function lgTeamCard(teamKey){
+  const side=lgLineup(teamKey);
+  const nums=Object.keys(side.lineup).map(Number).sort((a,b)=>a-b);
+  const totals=lgRiderTotals(teamKey);
+  const maxCols=Math.max(5,...nums.map(n=>(totals[n]?totals[n].cells.length:0)),0);
+  const cols=Math.min(7,maxCols);
+  let head="<th class='lg-nm'>Zawodnik</th>";
+  for(let i=1;i<=cols;i++)head+="<th>"+i+"</th>";
+  head+="<th>S</th><th>B</th>";
+  let rows=nums.map(n=>{
+    const t=totals[n]||{pts:0,bon:0,cells:[]};
+    const started=t.cells.length>0;
+    const cells=[];
+    for(let i=1;i<=cols;i++){
+      const cell=t.cells[i-1];
+      if(!cell)cells.push("<td class='lg-res0'>-</td>");
+      else if(cell.excl!=null)cells.push("<td class='lg-res0'>"+escq(cell.excl)+"</td>");
+      else cells.push("<td>"+cell.pts+(cell.bonus?"'":"")+"</td>");
+    }
+    const nm=side.lineup[n]||"—";
+    const sp=nm.indexOf(" ");
+    const fn=sp>0?nm.slice(0,sp):"";
+    const ln=sp>0?nm.slice(sp+1):nm;
+    return "<tr><td class='lg-nm'><span class='lg-num'>"+n+"</span> <span class='lg-rname'>"+(fn?"<small class='fn'>"+escq(fn)+"</small>":"")+"<b class='ln'>"+escq(ln)+"</b></span></td>"+cells.join("")+
+      "<td class='lg-sum'>"+(started?t.pts:"")+"</td><td class='lg-bon'>"+(t.bon>0?t.bon:"")+"</td></tr>";
+  }).join("");
+  return "<div class='lg-teamcard "+teamKey+"'><div class='lg-teamhead'>"+lgHelmets(teamKey)+"<div class='lg-tname'>"+escq(side.name)+"</div></div>"+
+    "<div class='tblwrap'><table class='lg-rt'><thead><tr>"+head+"</tr></thead><tbody>"+rows+"</tbody></table></div></div>";
+}
+function lgScorebarHtml(){
+  const c=cur();
+  const sc=lgCumulative(c.match,15);
+  return "<div class='lg-scorebar-inner'><div class='lg-sbrow'>"+
+    "<button class='lg-skladybtn' data-onclick='UI.lgScrollTeams()'>&#9650; Składy</button>"+
+    "<button class='lg-skladybtn' data-onclick='UI.lgScrollToNext()'>&#9660; Najbliższy wyścig</button>"+
+    "<button class='lg-sbicon' title='Reset całych zawodów' data-onclick='UI.lgResetMatch()'><svg viewBox='0 0 24 24'><path d='M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z'/></svg></button>"+
+    "<button class='lg-sbicon' title='Ekran główny' data-onclick='UI.leaveMatch()'><svg viewBox='0 0 24 24'><path d='M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z'/></svg></button></div>"+
+    "<div class='lg-scorerow'><div class='snm'>"+escq(c.home.name)+"</div>"+
+    "<div class='ssc'>"+sc.home+":"+sc.away+"</div>"+
+    "<div class='snm away'>"+escq(c.away.name)+"</div></div></div>";
+}
+UI.lgResetMatch=function(){
+  const m=lgm();if(!m)return;
+  UI.confirm("Zresetować <b>całe zawody</b>?<br><small style='color:var(--text-muted)'>Wszystkie wyniki biegów, wykluczenia i zmiany zostaną przywrócone do stanu początkowego. Tej operacji nie można cofnąć.</small>",()=>{
+    if(!mutate(()=>{
+      const a=LG_SETS[m.set1_13],b=LG_SETS[m.set14_15];
+      m.heats.forEach((h,i)=>{
+        const src=i<13?a[i]:b[i];
+        h.slots=src.map(lgSlotFromSrc);
+        h.order=[0,1,2,3];h.confirmed=false;h.score=null;h.menuOpen=null;h.subListFor=null;h.time=null;
+      });
+      lgZZAsked={};lgNomAsked={};LgNom=null;
+    }))return;
+    lgRender();
+  });
+};
+function lgSlotMenuHtml(heatIdx,slotIdx,teamKey){
+  const m=lgm();const h=m.heats[heatIdx];
+  const curExcl=h.slots[slotIdx].excl;
+  const us=lgUsage(m);
+  const slot=h.slots[slotIdx];
+  const exclNum=slot.num!=null?slot.num:slot.origNum;
+  const isMain=teamKey==="home"?(exclNum>=9&&exclNum<=13):(exclNum>=1&&exclNum<=5);
+  let html="<div class='lg-menu'><div class='sublabel'>Wykluczenie</div><div class='mrow'>"+
+    LG_EXCL_CODES.map(code=>"<button class='btn small "+(curExcl===code?"primary":"secondary")+"' data-onclick='UI.lgSetExcl("+heatIdx+","+slotIdx+",\""+code+"\")'>"+code+"</button>").join("")+
+    "</div>";
+  if(curExcl){
+    html+="<div class='lg-hints'><div>Po kodach -, T, U/-, W2 pojawi się okienko z pytaniem o rezerwę.</div>"+
+      "<div>ZZ — automatycznie, gdy w biegu jedzie Zawodnik zastępowany.</div></div>";
+  }else{
+    html+="<div class='lg-hints'><div>Wskaż kod wykluczenia — dla -, T, U/-, W2 pojawi się pytanie o rezerwę.</div></div>";
+  }
+  if(h.subListFor&&h.subListFor.slot===slotIdx){
+    const type=h.subListFor.type;
+    const cands=lgEligible(teamKey,exclNum,type,heatIdx);
+    html+="<div class='sublabel'>Wybierz zawodnika ("+type+")</div><div class='lg-candlist'>";
+    if(!cands.length)html+="<div style='color:var(--text-muted);font-size:0.8rem'>Brak dostępnych zawodników spełniających warunki.</div>";
+    cands.forEach(n=>{
+      const rec=us[n]||{starts:0,usedRT:false,usedZZ:false};
+      const left=5+(rec.usedRT?1:0)+(rec.usedZZ?1:0)-rec.starts;
+      html+="<button class='lg-candbtn' data-onclick='UI.lgPickSub("+heatIdx+","+slotIdx+",\""+type+"\","+n+")'>"+escq(lgRiderName(n))+"<small>pozostałe starty: "+left+"</small></button>";
+    });
+    html+="</div>";
+  }
+  html+="</div>";
+  return html;
+}
+function lgHeatHtml(heatIdx){
+  const m=lgm();
+  const h=m.heats[heatIdx];
+  const firstOpen=lgFirstOpenIdx(m);
+  const active=!h.confirmed&&heatIdx===firstOpen;
+  const dim=!h.confirmed&&!active;
+  const HELM_COLOR={C:"#ef4444",N:"#3b82f6",B:"#f8fafc","Ż":"#eab308"};
+  let extraBar="";
+  if(h.n===1){
+    extraBar="<div class='lg-setbar'><span>ZESTAW STARTOWY (biegi 1–13)</span>"+
+      [1,2].map(n=>"<button class='btn small "+(m.set1_13===n?"primary":"secondary")+"' data-onclick='UI.lgSetPart(1,"+n+")'>"+n+"</button>").join("")+"</div>";
+  }
+  if(h.n===14){
+    extraBar="<div class='lg-setbar'><span>ZESTAW STARTOWY (biegi 14–15)</span>"+
+      [1,2].map(n=>"<button class='btn small "+(m.set14_15===n?"primary":"secondary")+"' data-onclick='UI.lgSetPart(2,"+n+")'>"+n+"</button>").join("")+"</div>";
+  }
+  const scoreTxt=h.confirmed?(h.score.home+":"+h.score.away):"–:–";
+  const fins=lgFinishers(h);
+  const rows=h.order.map(slotIdx=>{
+    const slot=h.slots[slotIdx];
+    const teamKey=lgTeamOfHelmet(slot.helmet);
+    const col=HELM_COLOR[slot.helmet];
+    const finPos=fins.indexOf(slotIdx);
+    const ptsHere=finPos>=0?Math.max(3-finPos,0):null;
+    const isBonusHere=h.confirmed&&h.score&&h.score.bonusSlot===slotIdx;
+    let nameHtml,posHtml="",btns="";
+    if(slot.num==null){
+      if(active){
+        const opts=lgEligibleNominated(teamKey,heatIdx)
+          .map(n=>"<option value='"+n+"'>"+n+" — "+escq(lgRiderName(n))+"</option>").join("");
+        nameHtml="<span class='name' style='flex:1'><select data-onchange='UI.lgPickNominated("+heatIdx+","+slotIdx+",this.value)'><option value=''>Wybierz zawodnika…</option>"+opts+"</select></span>";
+      }else{
+        nameHtml="<span class='name' style='flex:1;color:var(--text-muted)'>do obsadzenia (nominowany)</span>";
+      }
+    }else{
+      const tag=slot.excl?("<span class='mk'>"+escq(slot.excl)+"</span>"):(slot.subType?("<span class='mk'>"+escq(slot.subType)+"</span>"):"");
+      nameHtml="<span class='name'><b>"+slot.num+"</b> "+escq(lgRiderName(slot.num))+tag+"</span>";
+      if(h.confirmed){
+        if(finPos>=0)posHtml="<span class='pos'>"+(finPos+1)+". — "+ptsHere+(isBonusHere?"'":"")+" pkt.</span>";
+      }else if(finPos>=0){
+        posHtml="<span class='pos'>"+(finPos+1)+".</span>";
+      }
+    }
+    const menu=(active&&h.menuOpen===slotIdx)?lgSlotMenuHtml(heatIdx,slotIdx,teamKey):"";
+    if(active&&slot.num!=null&&!slot.excl){
+      const upDis=finPos<=0?"disabled":"";
+      const downDis=(finPos<0||finPos>=fins.length-1)?"disabled":"";
+      btns="<div class='rcardbtns'>"+
+        "<button class='cardbtn' "+upDis+" title='Przesuń w górę' data-onclick='UI.lgMoveSlot("+heatIdx+","+slotIdx+",-1)'>"+ICON_UP+"</button>"+
+        "<button class='cardbtn' "+downDis+" title='Przesuń w dół' data-onclick='UI.lgMoveSlot("+heatIdx+","+slotIdx+",1)'>"+ICON_DOWN+"</button>"+
+        "<button class='cardbtn flag"+(h.menuOpen===slotIdx?" on":"")+"' title='Wykluczenia i zmiany' data-onclick='UI.lgToggleMenu("+heatIdx+","+slotIdx+")'>"+ICON_FLAG+"</button>"+
+        "</div>";
+    }
+    return "<div class='rcard"+(slot.excl?" ex locked":"")+"' style='border-left:4px solid "+col+"'>"+
+      "<span class='dot' style='background:"+col+"'></span>"+nameHtml+posHtml+btns+
+      "</div>"+menu;
+  }).join("");
+  const actions="<div class='heatactions'>"+
+    "<button class='iconbtn sm' title='Czas wyścigu' data-onclick='UI.lgEditTime("+heatIdx+")'>"+ICON_CLOCK+"</button>"+
+    (h.confirmed
+      ?"<button class='iconbtn sm' title='Edytuj bieg' data-onclick='UI.lgEditHeat("+heatIdx+")'>"+ICON_EDIT+"</button>"+
+       "<button class='iconbtn sm' title='Reset biegu' data-onclick='UI.lgResetHeat("+heatIdx+")'>"+ICON_RESET+"</button>"
+      :active
+      ?"<button class='btn small primary' style='margin:0' data-onclick='UI.lgConfirmHeat("+heatIdx+")'>&#10004; Zatwierdź</button>"+
+       "<button class='iconbtn sm' title='Reset biegu' data-onclick='UI.lgResetHeat("+heatIdx+")'>"+ICON_RESET+"</button>"
+      :"<span style='color:var(--text-muted);font-size:0.8rem'>"+ICON_LOCK_SM+"Zablokowany</span>")+
+    "</div>";
+  return extraBar+"<div id='lgheat-"+h.n+"' class='heat"+(h.confirmed?" done":"")+(active?" active":"")+(dim?" dim":"")+"'>"+
+    "<div class='heathead'><span class='heatnum'>BIEG "+h.n+(h.time?"<span class='heattime'>"+escq(h.time)+"</span>":"")+"</span>"+
+    "<div class='lg-heatscore"+(h.confirmed?"":" empty")+"'>"+scoreTxt+"</div>"+actions+"</div>"+
+    "<div class='hrows'>"+rows+"</div></div>";
+}
+
 renderHome();
 /* Zastosowanie zapisanego rozmiaru czcionki przy starcie aplikacji. */
 UI.applyFont();
