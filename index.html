@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 <!-- Polityka bezpiecze&#324;stwa tre&#347;ci: brak zewn&#281;trznych skrypt&#243;w, brak po&#322;&#261;cze&#324; sieciowych poza w&#322;asnym hostem,
      obrazy tylko data:, czcionki tylko systemowe. Skrypt inline dozwolony wyłącznie przez hash SHA-256 (brak inline handlerów), connect-src 'none'. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-Da49iDlqDFl8B1EGydUmSAP8uQPLu+ZhQLOAsxzBRFw='; style-src 'unsafe-inline'; font-src 'none'; img-src data:; connect-src 'none'; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-g3guoS8WhepTQX0MTjok7Os7+yHVnYsIydAn8q0ppwo='; style-src 'unsafe-inline'; font-src 'none'; img-src data:; connect-src 'none'; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'">
 <title>Program &#380;u&#380;lowy</title>
 
 <!-- Typografia: wy&#322;&#261;cznie czcionki systemowe (zero po&#322;&#261;cze&#324; sieciowych) -->
@@ -1070,9 +1070,10 @@ const UI={
     clearTimeout(UI._toastT);
     UI._toastT=setTimeout(()=>{el.style.display="none";},err?4500:2200);
   },
-  openModal(html){
+  openModal(html,locked){
     const m=$("modal");
     if(!$("overlay").classList.contains("on"))UI._prevFocus=document.activeElement;
+    UI._modalLock=!!locked; /* locked=true — okna nie zamyka kliknięcie w tło ani Esc */
     m.innerHTML=html;
     m.setAttribute("role","dialog");m.setAttribute("aria-modal","true");m.tabIndex=-1;
     const h=m.querySelector("h3");
@@ -1087,6 +1088,7 @@ const UI={
   },
   closeModal(){
     if(UI._timeKeyHandler){document.removeEventListener("keydown",UI._timeKeyHandler);UI._timeKeyHandler=null;}
+    UI._modalLock=false;
     $("overlay").classList.remove("on");
     const wrap=document.querySelector(".wrap");
     if(wrap&&"inert" in wrap){wrap.inert=false;wrap.removeAttribute("aria-hidden");}if($("races").classList.contains("on"))renderRaces();if($("lineup").classList.contains("on"))renderLineup();
@@ -2126,7 +2128,7 @@ function heatCardHtml(c,h,firstOpen){
       if(code){try{run(code,el);}catch(e){}}
     }
   }));
-  document.getElementById("overlay").addEventListener("click",ev=>{if(ev.target===ev.currentTarget)UI.closeModal();});
+  document.getElementById("overlay").addEventListener("click",ev=>{if(ev.target===ev.currentTarget&&!UI._modalLock)UI.closeModal();});
 })();
 /* Rejestracja Service Workera \u2014 w\u0142\u0105cza pe\u0142n\u0105 instalowalno\u015b\u0107 (PWA) i prac\u0119 offline,
    ale tylko gdy plik jest hostowany przez http/https razem z sw.js. Otwarty lokalnie
@@ -2149,7 +2151,7 @@ if("serviceWorker" in navigator){
   document.addEventListener("keydown",ev=>{
     const ov=$("overlay");
     if(ov&&ov.classList.contains("on")){
-      if(ev.key==="Escape"){ev.preventDefault();UI.closeModal();return;}
+      if(ev.key==="Escape"){ev.preventDefault();if(!UI._modalLock)UI.closeModal();return;}
       if(ev.key==="Tab"){
         const f=[...$("modal").querySelectorAll("button:not([disabled]),input,[tabindex]:not([tabindex='-1'])")].filter(x=>x.offsetParent!==null);
         if(!f.length){ev.preventDefault();return;}
@@ -2640,16 +2642,13 @@ function lgZZCandidates(teamKey,heatIdx){
     return true;
   });
 }
-/* Okno z zapowiedzią: pokazuje się na chwilę (domyślnie 2 s), żeby użytkownik
-   zorientował się, CO zaraz nastąpi — a dopiero potem otwiera okno wyboru.
-   Kliknięcie „Dalej” przerywa czekanie. */
-UI.announce=function(title,msg,cb,ms){
+/* Okno z zapowiedzią: NIE znika samo — użytkownik zamyka je przyciskiem „Dalej”,
+   żeby zdążyć przeczytać, co zaraz nastąpi. locked=true → nie zamknie go też
+   kliknięcie w tło ani Esc. */
+UI.announce=function(title,msg,cb){
   UI.openModal("<h3>"+title+"</h3><p style='text-align:center;font-size:0.85rem;margin:0 0 12px'>"+msg+"</p>"+
-    "<button class='btn primary' id='annOk'>Dalej &#10132;</button>");
-  let done=false;
-  const go=()=>{if(done)return;done=true;clearTimeout(UI._annT);UI.closeModal();cb&&cb();};
-  $("annOk").onclick=go;
-  UI._annT=setTimeout(go,ms||2000);
+    "<button class='btn primary' id='annOk'>Dalej &#10132;</button>",true);
+  $("annOk").onclick=()=>{UI.closeModal();cb&&cb();};
 };
 function lgMaybePromptZZ(){
   const m=lgm();if(!m)return;
@@ -2682,8 +2681,8 @@ UI.lgPromptZZ=function(heatIdx,slotIdx,teamKey,cands){
         const left=5+(rec.usedRT?1:0)+1-rec.starts;
         html+="<button class='btn' style='text-transform:none' data-zz='"+n+"'>"+escq(lgRiderName(n))+" <small style='opacity:0.7'>(pozostałe starty: "+left+")</small></button>";
       });
-      html+="<button class='btn' data-onclick='UI.closeModal()'>Anuluj</button>";
-      UI.openModal(html);
+      /* Bez „Anuluj” — ZZ musi zostać wybrane; okna nie zamyka też kliknięcie w tło ani Esc. */
+      UI.openModal(html,true);
       $("modal").querySelectorAll("[data-zz]").forEach(b=>b.onclick=()=>UI.lgPickZZ(heatIdx,slotIdx,teamKey,+b.dataset.zz));
     });
 };
@@ -2756,9 +2755,9 @@ UI.lgNominatePanel=function(){
   const m=lgm();if(!m)return;
   UI.announce("Nominacje — biegi 14 i 15",
     "Zatwierdzono biegi 1–13. Trenerzy <b>obu drużyn</b> wybiorą teraz zawodników nominowanych"+
-    " — najpierw do biegu 15 (dwaj najlepsi punktowo), potem do biegu 14.",
+    " — najpierw do biegu 14, potem do biegu 15 (w nim jadą dwaj najlepsi punktowo).",
     ()=>{
-      LgNom={steps:[["home",15],["home",14],["away",15],["away",14]],i:0,picks:[],sel:[]};
+      LgNom={steps:[["home",14],["away",14],["home",15],["away",15]],i:0,picks:[],sel:[]};
       UI.lgNominateShow();
     });
 };
@@ -2768,15 +2767,21 @@ UI.lgNominateShow=function(){
   const tk=st[0],n=st[1];
   let cands=lgEligibleNominated(tk,n-1);
   if(n===14){
-    const ch=LgNom.picks.filter(p=>p.tk===tk&&p.n===15).map(p=>p.riders).flat();
+    /* Najlepsi punktowi są zarezerwowani do biegu 15 — nie można ich wybrać do 14. */
+    const grp=new Set(lgNomTopGroup(tk));
+    cands=cands.filter(x=>!grp.has(x));
+  }
+  if(n===15){
+    /* Wykluczamy zawodników właśnie wybranych do biegu 14 (tej samej drużyny). */
+    const ch=LgNom.picks.filter(p=>p.tk===tk&&p.n===14).map(p=>p.riders).flat();
     cands=cands.filter(x=>!ch.includes(x));
   }
   LgNom.tk=tk;LgNom.n=n;LgNom.cands=cands;LgNom.need=Math.min(2,cands.length);
   let html="<h3>Nominacja \u2014 bieg "+n+"</h3>"+
     "<p style='text-align:center;font-size:0.78rem;color:var(--text-muted);margin:0 0 10px'>"+
     escq(lgLineup(tk).name)+" \u2014 wybierz "+LgNom.need+" zawodnik\u00f3w."+
-    (n===15?" W biegu 15 jad\u0105 dwaj najlepsi punktowo (remisy rozstrzyga trener).":
-     " Pozostali zawodnicy z pozycji 1\u20135 / 9\u201313 \u2014 do biegu 14.")+"</p>";
+    (n===14?" Najlepsi punktowi drużyny jadą w biegu 15 \u2014 wybierz z pozosta\u0142ych.":
+     " W biegu 15 jad\u0105 dwaj najlepsi punktowo (remisy rozstrzyga trener).")+"</p>";
   cands.forEach(x=>{
     const on=LgNom.sel.includes(x);
     html+="<button class='btn "+(on?"primary":"secondary")+"' style='text-transform:none' data-onclick='UI.lgNominateToggle("+x+")'>"+x+" \u2014 "+escq(lgRiderName(x))+"</button>";
@@ -2875,6 +2880,18 @@ UI.lgConfirmHeat=function(heatIdx){
   const fo=lgFirstOpenIdx(m);
   if(fo!==heatIdx&&fo>=0){UI.toast("Najpierw zatwierdź bieg "+m.heats[fo].n+".");return;}
   if(h.slots.some(s=>s.num==null)){UI.toast("Wybierz zawodników do biegu nominowanego.");return;}
+  /* Bezwzględne zabezpieczenie: „Zawodnik zastępowany” NIGDY nie może zostać
+     zatwierdzony jako jadący bez wybranego zastępstwa ZZ. */
+  for(const s of h.slots){
+    if(s.num==null||s.excl||s.subType)continue;
+    const tk=lgTeamOfHelmet(s.helmet);
+    if(lgIsZZRider(s.num,tk)){
+      /* Gdy nie ma żadnego dostępnego kandydata na ZZ, nie blokujemy zatwierdzenia. */
+      if(lgZZCandidates(tk,heatIdx).length===0)continue;
+      UI.toast("Bieg "+h.n+": pod numerem "+s.num+" jedzie Zawodnik zastępowany — wybierz najpierw zastępstwo ZZ.");
+      return;
+    }
+  }
   if(h.n===14||h.n===15){
     const mains={home:new Set(lgNomMainNums("home")),away:new Set(lgNomMainNums("away"))};
     const grp={home:new Set(lgNomTopGroup("home")),away:new Set(lgNomTopGroup("away"))};
