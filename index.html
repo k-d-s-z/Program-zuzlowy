@@ -1,5 +1,7 @@
 ---
 
+---
+
 <!doctype html>
 <html lang="pl">
 <head>
@@ -7,7 +9,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 <!-- Polityka bezpiecze&#324;stwa tre&#347;ci: brak zewn&#281;trznych skrypt&#243;w, brak po&#322;&#261;cze&#324; sieciowych poza w&#322;asnym hostem,
      obrazy tylko data:, czcionki tylko systemowe. Skrypt inline dozwolony wyłącznie przez hash SHA-256 (brak inline handlerów), connect-src 'none'. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-2/BLGy0DOYHeJtPC+Im6Rq5/DurNhm2mS6NRFLB9eAA='; style-src 'unsafe-inline'; font-src 'none'; img-src data:; connect-src 'none'; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-wUFcsA0QdJCUhwkD7txeOXsLMmRKUOfL982tKpHWcPM='; style-src 'unsafe-inline'; font-src 'none'; img-src data:; connect-src 'none'; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'">
 <title>Program &#380;u&#380;lowy</title>
 
 <!-- Typografia: wy&#322;&#261;cznie czcionki systemowe (zero po&#322;&#261;cze&#324; sieciowych) -->
@@ -417,7 +419,7 @@ table.lg-rt th, table.lg-rt td { padding: 8px 7px; text-align: center; white-spa
 table.lg-rt th { color: var(--text-muted); font-weight: 800; background: var(--ov-03); }
 table.lg-rt td.lg-nm { text-align: left; font-weight: 700; min-width: 120px; }
 table.lg-rt td.lg-nm .lg-rname { display: inline-flex; flex-direction: column; vertical-align: middle; line-height: 1.12; margin-left: 4px; }
-table.lg-rt td.lg-nm .fn { font-size: 0.7rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.4px; }
+table.lg-rt td.lg-nm .fn { font-size: 0.7rem; font-weight: 700; color: var(--text-muted); letter-spacing: 0.4px; }
 table.lg-rt td.lg-nm .ln { font-size: 1rem; font-weight: 800; color: var(--text-strong); }
 table.lg-rt td.lg-num { color: var(--accent-blue); font-weight: 800; }
 table.lg-rt td.lg-sum { font-weight: 800; color: var(--text-strong); background: var(--ov-04); }
@@ -1100,7 +1102,7 @@ const UI={
   addRider(num){
     UI.openModal("<h3>Dodaj zawodnika</h3><label for='nr' class='sr-label'>Imię i nazwisko</label><input type='text' id='nr' placeholder='Imi\u0119 i Nazwisko' style='width:100%;margin-bottom:12px'>" + lgCatToggleHtml() + "<button class='btn primary' id='ok'>Dodaj</button><button class='btn' data-onclick='UI.closeModal()'>Anuluj</button>");
     const isJr=lgBindCatToggle();
-    $("ok").onclick=()=>{const v=cleanText($("nr").value,100);if(!v)return;
+    $("ok").onclick=()=>{const v=normName(cleanText($("nr").value,100));if(!v)return;
       mutate(()=>{
         if(!S.riders.includes(v))S.riders.push(v);
         lgSetJuniorFlag(v,isJr());
@@ -1121,11 +1123,15 @@ const UI={
   },
   editRider(i){
     const old=S.riders[i];
-    UI.openModal("<h3>Edycja</h3><input type='text' id='nr' value='"+escq(old)+"' style='width:100%;margin-bottom:12px'><button class='btn primary' id='ok'>Zapisz</button><button class='btn danger' id='del'>Usu\u0144</button><button class='btn' data-onclick='UI.closeModal()'>Anuluj</button>");
+    UI.openModal("<h3>Edycja</h3><label for='nr' class='sr-label'>Imię i nazwisko</label><input type='text' id='nr' value='"+escq(old)+"' style='width:100%;margin-bottom:12px'>" + lgCatToggleHtml() + "<button class='btn primary' id='ok'>Zapisz</button><button class='btn danger' id='del'>Usu\u0144</button><button class='btn' data-onclick='UI.closeModal()'>Anuluj</button>");
+    const isJr=lgBindCatToggle();
+    if((S.juniors||[]).includes(old))$("catJ").click();
+    const refreshRiderViews=()=>{renderRiderLib();if($("teamDetail").classList.contains("on"))renderTeamDetail();};
     /* Zmiana nazwiska nie mo\u017ce po cichu przepisywa\u0107 historii zapisanych zawod\u00f3w. */
     const applyRename=(v,everywhere)=>{
       const snap=JSON.stringify(S);
       S.riders[i]=v;
+      lgSetJuniorFlag(v,isJr());
       Object.keys(S.rosters).forEach(k=>{S.rosters[k]=S.rosters[k].map(n=>n===old?v:n);});
       if(S.juniors)S.juniors=S.juniors.map(n=>n===old?v:n);
       S.teams.forEach(t=>{t.riders=t.riders.map(n=>n===old?v:n);});
@@ -1136,11 +1142,14 @@ const UI={
         }
       });
       if(!persistAll()){try{S=JSON.parse(snap);}catch(e){}return;}
-      renderRiderLib();UI.closeModal();
+      refreshRiderViews();UI.closeModal();
     };
     $("ok").onclick=()=>{
-      const v=cleanText($("nr").value,100);if(!v)return;
-      if(v===old){UI.closeModal();return;}
+      const v=normName(cleanText($("nr").value,100));if(!v)return;
+      if(v===old){
+        /* Nazwisko bez zmian — zapisujemy ewentualną tylko zmianę kategorii S/J. */
+        if(!mutate(()=>{lgSetJuniorFlag(v,isJr());}))return;
+        UI.closeModal();refreshRiderViews();return;}
       if(S.riders.includes(v)){UI.toast("\u274c Taki zawodnik ju\u017c istnieje w bazie.");return;}
       const used=Object.values(S.comps).filter(c=>Object.values(c.mapping).includes(old)).length;
       if(!used){applyRename(v,false);return;}
@@ -1155,7 +1164,7 @@ const UI={
       const snap=JSON.stringify(S);
       S.riders.splice(i,1);
       if(!persist()){try{S=JSON.parse(snap);}catch(e){}return;}
-      renderRiderLib();});};
+      refreshRiderViews();});};
     $("nr").addEventListener("keydown",ev=>{if(ev.key==="Enter"){ev.preventDefault();$("ok").click();}});
   },
   startComp(){UI.screen("pick");},
@@ -1709,11 +1718,24 @@ function renderRiderLib(){
   el.innerHTML=list.map(name=>{
     const gi=S.riders.indexOf(name);
     const club=teamOfRider(name);
-    return "<div class='ri'><span>"+escq(name)+(club?" <small style='color:var(--text-muted)'>("+escq(club)+")</small>":"")+"</span><span><button class='btn small' data-edit-rider='"+gi+"'>Edytuj</button>"+(series?"<button class='btn small danger' data-rr-name='"+escq(name)+"'>X</button>":"")+"</span></div>";
+    const isJr=!!(S.juniors||[]).includes(name);
+    if(gi<0)return "<div class='ri'><span>"+escq(name)+(club?" <small style='color:var(--text-muted)'>("+escq(club)+")</small>":"")+"</span><span>"+(series?"<button class='btn small danger' data-rr-name='"+escq(name)+"'>X</button>":"")+"</span></div>";
+    return "<div class='ri'><span>"+escq(name)+(club?" <small style='color:var(--text-muted)'>("+escq(club)+")</small>":"")+"</span><span>"+
+      "<button class='btn small "+(isJr?"secondary":"primary")+"' data-lib-s='"+gi+"'>S</button>"+
+      "<button class='btn small "+(isJr?"primary":"secondary")+"' data-lib-j='"+gi+"'>J</button> "+
+      "<button class='btn small' data-edit-rider='"+gi+"'>Edytuj</button>"+(series?"<button class='btn small danger' data-rr-name='"+escq(name)+"'>X</button>":"")+"</span></div>";
   }).join("");
   /* Nazwisko trafia do data-atrybutu (bezpieczny kontekst HTML) \u2014 nigdy do inline JS. */
   el.querySelectorAll("[data-edit-rider]").forEach(b=>b.onclick=()=>UI.editRider(+b.dataset.editRider));
   el.querySelectorAll("[data-rr-name]").forEach(b=>b.onclick=()=>UI.removeRosterRider(b.dataset.rrName));
+  el.querySelectorAll("[data-lib-s]").forEach(b=>b.onclick=()=>{
+    const n=S.riders[+b.dataset.libS];
+    if((S.juniors||[]).includes(n)){if(!mutate(()=>lgSetJuniorFlag(n,false)))return;renderRiderLib();if($("teamDetail").classList.contains("on"))renderTeamDetail();}
+  });
+  el.querySelectorAll("[data-lib-j]").forEach(b=>b.onclick=()=>{
+    const n=S.riders[+b.dataset.libJ];
+    if(!(S.juniors||[]).includes(n)){if(!mutate(()=>lgSetJuniorFlag(n,true)))return;renderRiderLib();if($("teamDetail").classList.contains("on"))renderTeamDetail();}
+  });
 }
 
 function renderSaved(){
@@ -1880,6 +1902,11 @@ function escq(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;"
 /* Sanityzacja tekstu od u\u017cytkownika: przyci\u0119cie, limit d\u0142ugo\u015bci, usuni\u0119cie znak\u00f3w kontrolnych. */
 function cleanText(v,max){
   return String(v||"").replace(/[\u0000-\u001F\u007F\u200E\u200F\u202A-\u202E\u2066-\u2069]/g,"").trim().slice(0,max||100);
+}
+/* Normalizacja imion i nazwisk: tylko pierwsza litera każdego wyrazu wielka
+   (działa też dla już zapisanych danych pisanych WIELKIMI literami). */
+function normName(s){
+  return String(s||"").trim().replace(/[\p{L}\p{M}]+/gu,w=>w.charAt(0).toUpperCase()+w.slice(1).toLowerCase());
 }
 
 /* ============ Walidacja schematu importu ============ */
@@ -2153,7 +2180,7 @@ UI.addRosterRider=function(){
   UI.openModal("<h3>Dodaj zawodnika</h3><input type='text' id='nr' placeholder='Imię i Nazwisko' style='width:100%;margin-bottom:12px'>" + lgCatToggleHtml() + "<button class='btn primary' id='ok'>Dodaj</button><button class='btn' data-onclick='UI.closeModal()'>Anuluj</button>");
   const isJr=lgBindCatToggle();
   $("ok").onclick=()=>{
-    const v=cleanText($("nr").value,100);if(!v)return;
+    const v=normName(cleanText($("nr").value,100));if(!v)return;
     if(!mutate(()=>{
       if(!S.riders.includes(v))S.riders.push(v);
       lgSetJuniorFlag(v,isJr());
@@ -2234,12 +2261,15 @@ function renderTeamDetail(){
   el.innerHTML="<div style='font-size:0.72rem;color:var(--text-muted);text-align:right;margin:0 0 6px;font-weight:700'>S — senior · J — junior</div>"+t.riders.map(name=>{
     if(name===LG_ZZ_NAME)return "<div class='ri'><span>"+escq(name)+" <span class='mk'>ZZ</span></span></div>";
     const isJr=!!(S.juniors||[]).includes(name);
+    const gi=S.riders.indexOf(name);
     return "<div class='ri'><span>"+escq(name)+"</span><span>"+
       "<button class='btn small "+(isJr?"secondary":"primary")+"' data-cat-s='"+escq(name)+"'>S</button>"+
       "<button class='btn small "+(isJr?"primary":"secondary")+"' data-cat-j='"+escq(name)+"'>J</button> "+
+      (gi>=0?"<button class='btn small' data-tedit='"+gi+"'>Edytuj</button>":"")+
       "<button class='btn small danger' data-rm='"+escq(name)+"'>Usuń</button></span></div>";
   }).join("");
   const setCat=(nm,jr)=>mutate(()=>{if(!S.juniors)S.juniors=[];S.juniors=jr?S.juniors.concat(nm):S.juniors.filter(n=>n!==nm);});
+  el.querySelectorAll("[data-tedit]").forEach(b=>b.onclick=()=>UI.editRider(+b.dataset.tedit));
   el.querySelectorAll("[data-cat-s]").forEach(b=>b.onclick=()=>{if(S.juniors.includes(b.dataset.catS)){setCat(b.dataset.catS,false);renderTeamDetail();}});
   el.querySelectorAll("[data-cat-j]").forEach(b=>b.onclick=()=>{if(!S.juniors.includes(b.dataset.catJ)){setCat(b.dataset.catJ,true);renderTeamDetail();}});
   el.querySelectorAll("[data-rm]").forEach(b=>b.onclick=()=>{
@@ -2255,7 +2285,7 @@ UI.addTeamRider=function(){
     "<button class='btn primary' id='ok'>Dodaj</button><button class='btn' data-onclick='UI.closeModal()'>Anuluj</button>");
   const isJr=lgBindCatToggle();
   $("ok").onclick=()=>{
-    const v=cleanText($("tnr").value,100);if(!v)return;
+    const v=normName(cleanText($("tnr").value,100));if(!v)return;
     if(!mutate(()=>{
       if(!S.riders.includes(v))S.riders.push(v);
       lgSetJuniorFlag(v,isJr());
@@ -3064,7 +3094,7 @@ function lgTeamCard(teamKey){
       else if(cell.excl!=null)cells.push("<td class='lg-res0'>"+escq(cell.excl)+"</td>");
       else cells.push("<td>"+cell.pts+(cell.bonus?"'":"")+"</td>");
     }
-    const nm=side.lineup[n]||"—";
+    const nm=normName(side.lineup[n]||"—");
     const sp=nm.indexOf(" ");
     const fn=sp>0?nm.slice(0,sp):"";
     const ln=sp>0?nm.slice(sp+1):nm;
