@@ -2729,6 +2729,9 @@ UI.lgNominateShow=function(){
     html+="<button class='btn "+(on?"primary":"secondary")+"' style='text-transform:none' data-onclick='UI.lgNominateToggle("+x+")'>"+x+" \u2014 "+escq(lgRiderName(x))+"</button>";
   });
   html+="<div style='display:flex;gap:8px;justify-content:center;margin-top:12px'>"+
+    (LgNom.i>0
+      ?"<button class='btn secondary' data-onclick='UI.lgNominateBack()'>&#10094; Wstecz</button>"
+      :"")+
     (LgNom.sel.length===LgNom.need
       ?"<button class='btn primary' data-onclick='UI.lgNominateNext()'>Dalej &#10132;</button>"
       :"<button class='btn' disabled style='opacity:0.4'>Dalej &#10132;</button>")+
@@ -2763,6 +2766,34 @@ UI.lgNominateNext=function(){
   UI.lgNominateShow();
 };
 UI.lgNominateCancel=function(){LgNom=null;UI.closeModal();lgRender();};
+/* Cofnięcie do poprzedniego kroku kreatora nominacji (bez utraty wcześniejszych wyborów). */
+UI.lgNominateBack=function(){
+  if(!LgNom||LgNom.i===0)return;
+  LgNom.i--;
+  LgNom.picks.pop();
+  LgNom.sel=[];
+  UI.lgNominateShow();
+};
+/* Ponowne nominacje: wraca do momentu wyboru zawodników na biegi 14 i 15.
+   Dostępne, dopóki biegi 14 i 15 nie są zatwierdzone — czyści oba składy
+   i otwiera panel od nowa (dla obu drużyn). */
+UI.lgRenominate=function(){
+  const c=cur();const m=lgm();if(!c||!m)return;
+  const h14=m.heats[13],h15=m.heats[14];
+  if(!m.heats.slice(0,13).every(h=>h.confirmed)){UI.toast("Nominacje są dostępne po zatwierdzeniu biegów 1–13.");return;}
+  if(h14.confirmed||h15.confirmed){UI.toast("Najpierw zresetuj bieg 14 i 15 — nominacje można zmienić tylko przed ich zatwierdzeniem.");return;}
+  UI.confirm("Ponownie wybrać nominowanych zawodników do biegów 14 i 15?<br><small style='color:var(--text-muted)'>Obecne obsady tych biegów zostaną wyczyszczone.</small>",()=>{
+    if(!mutate(()=>{
+      [h14,h15].forEach(h=>{
+        h.slots.forEach(s=>{s.num=null;s.excl=null;s.subType=null;delete s.exclSeq;});
+        h.order=[0,1,2,3];h.confirmed=false;h.score=null;h.menuOpen=null;h.subListFor=null;h.time=null;
+      });
+    }))return;
+    UI.closeModal();
+    lgNomAsked[c.id]=true; /* panel otwieramy ręcznie; po anulowaniu niech nie wyskakuje sam */
+    UI.lgNominatePanel();
+  });
+};
 
 /* ===== Interakcje meczu ===== */
 let lgExclSeq=0;
@@ -3113,7 +3144,8 @@ function lgHeatHtml(heatIdx){
   }
   if(h.n===14){
     extraBar="<div class='lg-setbar'><span>ZESTAW STARTOWY (biegi 14–15)</span>"+
-      [1,2].map(n=>"<button class='btn small "+(m.set14_15===n?"primary":"secondary")+"' data-onclick='UI.lgSetPart(2,"+n+")'>"+n+"</button>").join("")+"</div>";
+      [1,2].map(n=>"<button class='btn small "+(m.set14_15===n?"primary":"secondary")+"' data-onclick='UI.lgSetPart(2,"+n+")'>"+n+"</button>").join("")+
+      "<button class='btn small secondary' data-onclick='UI.lgRenominate()'>Nominacje</button></div>";
   }
   const scoreTxt=h.confirmed?(h.score.home+":"+h.score.away):"–:–";
   const fins=lgFinishers(h);
