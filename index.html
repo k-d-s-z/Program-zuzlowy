@@ -2,6 +2,8 @@
 
 ---
 
+---
+
 <!doctype html>
 <html lang="pl">
 <head>
@@ -9,7 +11,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 <!-- Polityka bezpiecze&#324;stwa tre&#347;ci: brak zewn&#281;trznych skrypt&#243;w, brak po&#322;&#261;cze&#324; sieciowych poza w&#322;asnym hostem,
      obrazy tylko data:, czcionki tylko systemowe. Skrypt inline dozwolony wyłącznie przez hash SHA-256 (brak inline handlerów), connect-src 'none'. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-wUFcsA0QdJCUhwkD7txeOXsLMmRKUOfL982tKpHWcPM='; style-src 'unsafe-inline'; font-src 'none'; img-src data:; connect-src 'none'; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-Da49iDlqDFl8B1EGydUmSAP8uQPLu+ZhQLOAsxzBRFw='; style-src 'unsafe-inline'; font-src 'none'; img-src data:; connect-src 'none'; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'">
 <title>Program &#380;u&#380;lowy</title>
 
 <!-- Typografia: wy&#322;&#261;cznie czcionki systemowe (zero po&#322;&#261;cze&#324; sieciowych) -->
@@ -352,8 +354,10 @@ table.pts td.plc { font-weight: 800; color: var(--amber); user-select: none; }
 
 /* Modal & Toast */
 .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 100; padding: 16px; }
-.overlay.on { display: flex; }
-.modal { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 16px; padding: 20px; max-width: 400px; width: 100%; max-height: 85vh; overflow: auto; }
+.overlay.on { display: flex; animation: fadeIn 0.25s ease; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.modal { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 16px; padding: 20px; max-width: 400px; width: 100%; max-height: 85vh; overflow: auto; animation: modalIn 0.3s ease; }
+@keyframes modalIn { from { opacity: 0; transform: translateY(10px) scale(0.98); } to { opacity: 1; transform: none; } }
 .modal h3 { color: var(--text-strong); margin-bottom: 12px; }
 .riderlist .ri { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--border-color); }
 .numpad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
@@ -2642,6 +2646,17 @@ function lgZZCandidates(teamKey,heatIdx){
     return true;
   });
 }
+/* Okno z zapowiedzią: pokazuje się na chwilę (domyślnie 2 s), żeby użytkownik
+   zorientował się, CO zaraz nastąpi — a dopiero potem otwiera okno wyboru.
+   Kliknięcie „Dalej” przerywa czekanie. */
+UI.announce=function(title,msg,cb,ms){
+  UI.openModal("<h3>"+title+"</h3><p style='text-align:center;font-size:0.85rem;margin:0 0 12px'>"+msg+"</p>"+
+    "<button class='btn primary' id='annOk'>Dalej &#10132;</button>");
+  let done=false;
+  const go=()=>{if(done)return;done=true;clearTimeout(UI._annT);UI.closeModal();cb&&cb();};
+  $("annOk").onclick=go;
+  UI._annT=setTimeout(go,ms||2000);
+};
 function lgMaybePromptZZ(){
   const m=lgm();if(!m)return;
   const hi=lgFirstOpenIdx(m);if(hi<0)return;
@@ -2660,16 +2675,23 @@ function lgMaybePromptZZ(){
   }
 }
 UI.lgPromptZZ=function(heatIdx,slotIdx,teamKey,cands){
-  const m=lgm();const h=m.heats[heatIdx];const us=lgUsage(m);
-  let html="<h3>Zastępstwo — ZZ</h3><p style='text-align:center;font-size:0.78rem;color:var(--text-muted);margin:0 0 10px'>Bieg "+h.n+": <b>Zawodnik zastępowany</b> (nr "+h.slots[slotIdx].num+") — wybierz, kto pojedzie jako ZZ.</p>";
-  cands.forEach(n=>{
-    const rec=us[n]||{starts:0,usedRT:false,usedZZ:false};
-    const left=5+(rec.usedRT?1:0)+1-rec.starts;
-    html+="<button class='btn' style='text-transform:none' data-zz='"+n+"'>"+escq(lgRiderName(n))+" <small style='opacity:0.7'>(pozostałe starty: "+left+")</small></button>";
-  });
-  html+="<button class='btn' data-onclick='UI.closeModal()'>Anuluj</button>";
-  UI.openModal(html);
-  $("modal").querySelectorAll("[data-zz]").forEach(b=>b.onclick=()=>UI.lgPickZZ(heatIdx,slotIdx,teamKey,+b.dataset.zz));
+  const m=lgm();const h=m.heats[heatIdx];
+  const zzNum=h.slots[slotIdx].num;
+  UI.announce("Zastępstwo — ZZ",
+    "Bieg "+h.n+": w składzie pod numerem <b>"+zzNum+"</b> jedzie <b>Zawodnik zastępowany</b>."+
+    " Za chwilę wybierzesz, kto pojedzie w jego miejsce jako ZZ.",
+    ()=>{
+      const us=lgUsage(m);
+      let html="<h3>Zastępstwo — ZZ</h3><p style='text-align:center;font-size:0.78rem;color:var(--text-muted);margin:0 0 10px'>Bieg "+h.n+": <b>Zawodnik zastępowany</b> (nr "+zzNum+") — wybierz, kto pojedzie jako ZZ.</p>";
+      cands.forEach(n=>{
+        const rec=us[n]||{starts:0,usedRT:false,usedZZ:false};
+        const left=5+(rec.usedRT?1:0)+1-rec.starts;
+        html+="<button class='btn' style='text-transform:none' data-zz='"+n+"'>"+escq(lgRiderName(n))+" <small style='opacity:0.7'>(pozostałe starty: "+left+")</small></button>";
+      });
+      html+="<button class='btn' data-onclick='UI.closeModal()'>Anuluj</button>";
+      UI.openModal(html);
+      $("modal").querySelectorAll("[data-zz]").forEach(b=>b.onclick=()=>UI.lgPickZZ(heatIdx,slotIdx,teamKey,+b.dataset.zz));
+    });
 };
 UI.lgPickZZ=function(heatIdx,slotIdx,teamKey,n){
   const m=lgm();if(!m)return;
@@ -2738,8 +2760,13 @@ function lgMaybeNominate(){
 }
 UI.lgNominatePanel=function(){
   const m=lgm();if(!m)return;
-  LgNom={steps:[["home",15],["home",14],["away",15],["away",14]],i:0,picks:[],sel:[]};
-  UI.lgNominateShow();
+  UI.announce("Nominacje — biegi 14 i 15",
+    "Zatwierdzono biegi 1–13. Trenerzy <b>obu drużyn</b> wybiorą teraz zawodników nominowanych"+
+    " — najpierw do biegu 15 (dwaj najlepsi punktowo), potem do biegu 14.",
+    ()=>{
+      LgNom={steps:[["home",15],["home",14],["away",15],["away",14]],i:0,picks:[],sel:[]};
+      UI.lgNominateShow();
+    });
 };
 UI.lgNominateShow=function(){
   const m=lgm();if(!m||!LgNom)return;
@@ -2872,6 +2899,12 @@ UI.lgConfirmHeat=function(heatIdx){
   }
   if(!mutate(()=>{h.score=lgComputeScore(h);h.confirmed=true;h.menuOpen=null;h.subListFor=null;}))return;
   lgRender();
+  /* Automatyczne przewinięcie do najbliższego otwartego wyścigu. */
+  const ni=lgFirstOpenIdx(m);
+  if(ni>=0){
+    const el=$("lgheat-"+m.heats[ni].n);
+    if(el)setTimeout(()=>el.scrollIntoView({behavior:"smooth",block:"start"}),60);
+  }
 };
 UI.lgEditHeat=function(heatIdx){
   const h=lgm().heats[heatIdx];
