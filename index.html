@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 <!-- Polityka bezpiecze&#324;stwa tre&#347;ci: brak zewn&#281;trznych skrypt&#243;w, brak po&#322;&#261;cze&#324; sieciowych poza w&#322;asnym hostem,
      obrazy tylko data:, czcionki tylko systemowe. Skrypt inline dozwolony wyłącznie przez hash SHA-256 (brak inline handlerów), connect-src 'none'. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-g3guoS8WhepTQX0MTjok7Os7+yHVnYsIydAn8q0ppwo='; style-src 'unsafe-inline'; font-src 'none'; img-src data:; connect-src 'none'; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-yOJIzs3EAMH1nhxpVOqichwZPwMa+NybsDl6oEgKUTQ='; style-src 'unsafe-inline'; font-src 'none'; img-src data:; connect-src 'none'; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'">
 <title>Program &#380;u&#380;lowy</title>
 
 <!-- Typografia: wy&#322;&#261;cznie czcionki systemowe (zero po&#322;&#261;cze&#324; sieciowych) -->
@@ -449,10 +449,12 @@ table.lg-rt td.lg-bon { font-weight: 800; color: var(--amber); background: var(-
 .lg-scorebar-inner { max-width: 900px; margin: 0 auto; }
 .lg-sbrow { display: flex; gap: 5px; margin-bottom: 5px; }
 .lg-skladybtn { flex: 1; background: var(--ov-06); border: 1px solid var(--ov-15); border-radius: 10px; color: var(--text-strong); font-weight: 800; font-size: 0.7rem; letter-spacing: 0.5px; text-transform: uppercase; padding: 7px; min-height: 34px; }
-.lg-scorerow { display: flex; align-items: center; gap: 10px; padding: 8px 14px; border-radius: 14px; background: var(--ov-06); border: 1px solid var(--ov-12); }
-.lg-scorerow .snm { flex: 1; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.3px; color: var(--text-strong); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.lg-scorerow .snm.away { text-align: right; }
-.lg-scorerow .ssc { font-size: 1.15rem; font-weight: 800; font-family: var(--font-head); color: var(--accent-blue); flex-shrink: 0; }
+.lg-scorerow { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 14px; background: var(--ov-06); border: 1px solid var(--ov-12); }
+.lg-scorerow .snm { flex: 1; font-size: 1.15rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.4px; line-height: 1.15; color: var(--text-strong); display: flex; flex-direction: column; justify-content: center; min-width: 0; }
+.lg-scorerow .snm .wrap2 { display: flex; flex-direction: column; overflow: visible; }
+.lg-scorerow .snm .wrap2 span { display: block; overflow-wrap: break-word; }
+.lg-scorerow .snm.away { text-align: right; align-items: flex-end; }
+.lg-scorerow .ssc { font-size: 1.9rem; font-weight: 800; font-family: var(--font-head); color: var(--accent-blue); flex-shrink: 0; letter-spacing: 1px; }
 .lg-sbicon { flex: 0 0 44px; background: var(--ov-06); border: 1px solid var(--ov-15); border-radius: 10px; color: var(--text-strong); min-height: 34px; padding: 0; display: flex; align-items: center; justify-content: center; }
 .lg-sbicon svg { width: 18px; height: 18px; fill: currentColor; }
 
@@ -2728,7 +2730,6 @@ function lgEligibleNominated(teamKey,heatIdx){
   const other=m.heats[h.n===14?heatIdx+1:heatIdx-1];
   const inOther=new Set(other&&other.slots.filter(s=>s.num!=null).map(s=>s.num));
   let cands=lgNomMainNums(teamKey);
-  if(h.n===15){const grp=new Set(lgNomTopGroup(teamKey));cands=cands.filter(n=>grp.has(n));}
   return cands.filter(n=>{
     if(inHeat.has(n))return false;
     if(inOther.has(n))return false;
@@ -2757,6 +2758,19 @@ UI.lgNominatePanel=function(){
     "Zatwierdzono biegi 1–13. Trenerzy <b>obu drużyn</b> wybiorą teraz zawodników nominowanych"+
     " — najpierw do biegu 14, potem do biegu 15 (w nim jadą dwaj najlepsi punktowo).",
     ()=>{
+      /* KOLEJNOŚĆ KROKÓW: najpierw bieg 14 (gospodarze i goście), dopiero potem
+         bieg 15 (gospodarze i goście).
+         — Bieg 14: na liście wyboru pojawiają się WSZYSCY zawodnicy z pozycji
+           zasadniczych 1–5 / 9–13 (bez ograniczeń punktowych). Nad listą widnieje
+           jednak komentarz, że do biegu 15 nominuje się dwóch najlepszych
+           punktowo zawodników drużyny.
+         — Bieg 15: na liście pojawiają się wyłącznie dwaj najlepsi punktowi
+           (wg klasyfikacji po biegach 1–13, remisy rozstrzyga trener), ALE z
+           wykluczeniem zawodników już nominowanych do biegu 14 — bo kto jedzie
+           w 14, NIE może jechać w 15 (jedyny wyjątek: start w ramach rezerwy
+           taktycznej RT).
+         Dzięki tej kolejności trener od razu widzi pełną listę na bieg 14,
+         a przy wyborze do 15 system sam pilnuje wykluczenia dublowanych startów. */
       LgNom={steps:[["home",14],["away",14],["home",15],["away",15]],i:0,picks:[],sel:[]};
       UI.lgNominateShow();
     });
@@ -2766,25 +2780,39 @@ UI.lgNominateShow=function(){
   const st=LgNom.steps[LgNom.i];
   const tk=st[0],n=st[1];
   let cands=lgEligibleNominated(tk,n-1);
-  if(n===14){
-    /* Najlepsi punktowi są zarezerwowani do biegu 15 — nie można ich wybrać do 14. */
-    const grp=new Set(lgNomTopGroup(tk));
-    cands=cands.filter(x=>!grp.has(x));
-  }
+  /* Bieg 14: pełna lista zawodników z pozycji 1–5 / 9–13 (lub 4, gdy jest ZZ).
+     Bieg 15: ta sama pełna lista, ale z wykluczeniem zawodników już nominowanych
+     do biegu 14 (tej samej drużyny) — kto jedzie w 14, nie jedzie w 15
+     (wyjątek: start w ramach RT). W obu biegach wybiera się DWÓCH zawodników. */
   if(n===15){
-    /* Wykluczamy zawodników właśnie wybranych do biegu 14 (tej samej drużyny). */
     const ch=LgNom.picks.filter(p=>p.tk===tk&&p.n===14).map(p=>p.riders).flat();
     cands=cands.filter(x=>!ch.includes(x));
   }
   LgNom.tk=tk;LgNom.n=n;LgNom.cands=cands;LgNom.need=Math.min(2,cands.length);
+  /* Zabezpieczenie: gdyby w danym kroku nie było ani jednego kandydata,
+     krok pomijamy automatycznie (okno jest zablokowane — nie może utknąć). */
+  if(!cands.length){UI.lgNominateNext();return;}
+  /* Kolory kasków: kolejne wolne pola startowe tej drużyny w tym biegu.
+     Kandydat zaznaczony jako pierwszy pojedzie w kasku pierwszego wolnego pola,
+     drugi — w kasku drugiego pola (tak też trafia do slotów przy zapisie). */
+  const hN=m.heats[n-1];
+  const HELM_COL={C:"#ef4444",N:"#3b82f6",B:"#f8fafc","Ż":"#eab308"};
+  const dot=hel=>"<span style='display:inline-block;width:13px;height:13px;border-radius:50%;background:"+HELM_COL[hel]+";box-shadow:0 0 0 2px rgba(255,255,255,0.25);vertical-align:-2px;margin-right:6px;flex-shrink:0'></span>";
+  const freeHelmets=hN.slots.filter(s=>lgTeamOfHelmet(s.helmet)===tk&&s.num==null).map(s=>s.helmet);
   let html="<h3>Nominacja \u2014 bieg "+n+"</h3>"+
-    "<p style='text-align:center;font-size:0.78rem;color:var(--text-muted);margin:0 0 10px'>"+
+    "<p style='text-align:center;font-size:0.78rem;color:var(--text-muted);margin:0 0 4px'>"+
     escq(lgLineup(tk).name)+" \u2014 wybierz "+LgNom.need+" zawodnik\u00f3w."+
-    (n===14?" Najlepsi punktowi drużyny jadą w biegu 15 \u2014 wybierz z pozosta\u0142ych.":
-     " W biegu 15 jad\u0105 dwaj najlepsi punktowo (remisy rozstrzyga trener).")+"</p>";
+    (n===14?" Uwaga: do biegu 15 nominuje si\u0119 dw\u00f3ch najlepszych punktowo zawodnik\u00f3w.":"")+"</p>"+
+    "<p style='text-align:center;font-size:0.72rem;color:var(--text-muted);margin:0 0 10px'>Kaski w tym biegu: "+
+    freeHelmets.map(hel=>"<span style='white-space:nowrap'>"+dot(hel)+"</span>").join(" ")+
+    " \u2014 zaznaczony zawodnik jedzie w kolejnym wolnym kolorze</p>";
   cands.forEach(x=>{
     const on=LgNom.sel.includes(x);
-    html+="<button class='btn "+(on?"primary":"secondary")+"' style='text-transform:none' data-onclick='UI.lgNominateToggle("+x+")'>"+x+" \u2014 "+escq(lgRiderName(x))+"</button>";
+    /* Kropka kasku: już wybrani mają swój przydzielony kolor, pozostali —
+       kolor następnego wolnego pola (ten przejmą, jeśli zostaną wybrani teraz). */
+    const si=LgNom.sel.indexOf(x);
+    const hel=on?freeHelmets[si]:freeHelmets[LgNom.sel.length];
+    html+="<button class='btn "+(on?"primary":"secondary")+"' style='text-transform:none;justify-content:flex-start' data-onclick='UI.lgNominateToggle("+x+")'>"+(hel?dot(hel):"")+"<span style='flex:1;text-align:left'>"+x+" \u2014 "+escq(lgRiderName(x))+"</span></button>";
   });
   html+="<div style='display:flex;gap:8px;justify-content:center;margin-top:12px'>"+
     (LgNom.i>0
@@ -2793,8 +2821,11 @@ UI.lgNominateShow=function(){
     (LgNom.sel.length===LgNom.need
       ?"<button class='btn primary' data-onclick='UI.lgNominateNext()'>Dalej &#10132;</button>"
       :"<button class='btn' disabled style='opacity:0.4'>Dalej &#10132;</button>")+
-    "<button class='btn' data-onclick='UI.lgNominateCancel()'>Anuluj</button></div>";
-  UI.openModal(html);
+    "</div>";
+  /* Okno nominacji jest ZABLOKOWANE (locked): nie zamknie go kliknięcie w tło
+     ani Esc. Zamyka się automatycznie dopiero po zapisaniu WSZYSTKICH czterech
+     decyzji (2× bieg 14, 2× bieg 15) — nie ma przycisku „Anuluj”. */
+  UI.openModal(html,true);
 };
 UI.lgNominateToggle=function(x){
   if(!LgNom)return;
@@ -2894,7 +2925,10 @@ UI.lgConfirmHeat=function(heatIdx){
   }
   if(h.n===14||h.n===15){
     const mains={home:new Set(lgNomMainNums("home")),away:new Set(lgNomMainNums("away"))};
-    const grp={home:new Set(lgNomTopGroup("home")),away:new Set(lgNomTopGroup("away"))};
+    /* Numery jazd zasadniczych (bez rezerw RZ/RT/ZZ) w drugim biegu nominowanym —
+       żeby nikt nie jechał i w 14, i w 15 (wyjątek: rezerwa RT, ona może). */
+    const otherIdx=h.n===14?heatIdx+1:heatIdx-1;
+    const other=m.heats[otherIdx];
     for(const s of h.slots){
       if(s.num==null||s.subType)continue; /* rezerwy (RZ/RT/ZZ) wg zwykłych zasad */
       const tk=lgTeamOfHelmet(s.helmet);
@@ -2902,9 +2936,9 @@ UI.lgConfirmHeat=function(heatIdx){
         UI.toast("Bieg "+h.n+": w nominowanych jadą tylko zawodnicy z pozycji 1–5 / 9–13.");
         return;
       }
-      if(h.n===15&&!grp[tk].has(s.num)){
-        UI.toast("Bieg 15: mogą startować tylko najlepsi punktowo zawodnicy drużyny (remisy rozstrzyga trener).");
-        return;
+      if(other){
+        const dup=other.slots.find(x=>x.num===s.num&&!x.subType&&lgTeamOfHelmet(x.helmet)===tk);
+        if(dup){UI.toast("Bieg "+h.n+": zawodnik nr "+s.num+" jedzie już w biegu "+other.n+" (dozwolone tylko jako rezerwa RT).");return;}
       }
     }
   }
@@ -3154,11 +3188,11 @@ function lgScorebarHtml(){
   return "<div class='lg-scorebar-inner'><div class='lg-sbrow'>"+
     "<button class='lg-skladybtn' data-onclick='UI.lgScrollTeams()'>&#9650; Składy</button>"+
     "<button class='lg-skladybtn' data-onclick='UI.lgScrollToNext()'>&#9660; Najbliższy wyścig</button>"+
-    "<button class='lg-sbicon' title='Reset całych zawodów' data-onclick='UI.lgResetMatch()'><svg viewBox='0 0 24 24'><path d='M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z'/></svg></button>"+
+    "<button class='lg-sbicon danger' title='Reset całych zawodów' data-onclick='UI.lgResetMatch()'><svg viewBox='0 0 24 24'><path d='M15 16h4v2h-4zm0-8h7v2h-7zm0-4h6v2h-6zM3 18c0 1.1.9 2 2 2h6c1.1 0 2-.9 2-2V8H3v10zM14 5h-3l-1-1H6L5 5H2v2h12z'/></svg></button>"+
     "<button class='lg-sbicon' title='Ekran główny' data-onclick='UI.leaveMatch()'><svg viewBox='0 0 24 24'><path d='M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z'/></svg></button></div>"+
-    "<div class='lg-scorerow'><div class='snm'>"+escq(c.home.name)+"</div>"+
+    "<div class='lg-scorerow'><div class='snm'><span class='wrap2'>"+escq(c.home.name).split(" ").map(w=>"<span>"+w+"</span>").join("")+"</span></div>"+
     "<div class='ssc'>"+sc.home+":"+sc.away+"</div>"+
-    "<div class='snm away'>"+escq(c.away.name)+"</div></div></div>";
+    "<div class='snm away'><span class='wrap2'>"+escq(c.away.name).split(" ").map(w=>"<span>"+w+"</span>").join("")+"</span></div></div></div>";
 }
 UI.lgResetMatch=function(){
   const m=lgm();if(!m)return;
