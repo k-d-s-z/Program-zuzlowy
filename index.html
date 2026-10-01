@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 <!-- Polityka bezpiecze&#324;stwa tre&#347;ci: brak zewn&#281;trznych skrypt&#243;w, brak po&#322;&#261;cze&#324; sieciowych poza w&#322;asnym hostem,
      obrazy tylko data:, czcionki tylko systemowe. Skrypt inline dozwolony wyłącznie przez hash SHA-256 (brak inline handlerów), connect-src 'none'. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-yOJIzs3EAMH1nhxpVOqichwZPwMa+NybsDl6oEgKUTQ='; style-src 'unsafe-inline'; font-src 'none'; img-src data: 'self'; connect-src 'none'; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-qsBM1cf8+osX5m54jEr15IuM16zdTtu6j5JH+dpW31U='; style-src 'unsafe-inline'; font-src 'none'; img-src data: 'self'; connect-src 'none'; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'">
 <title>Program &#380;u&#380;lowy</title>
 
 <!-- Typografia: wy&#322;&#261;cznie czcionki systemowe (zero po&#322;&#261;cze&#324; sieciowych) -->
@@ -2705,17 +2705,23 @@ function lgNomMainNums(teamKey){
     .filter(n=>side.lineup[n]!=null&&side.lineup[n]!==LG_ZZ_NAME);
   return teamKey==="home"?nums.filter(n=>n>=9&&n<=13):nums.filter(n=>n>=1&&n<=5);
 }
-function lgNomTopGroup(teamKey){
-  /* Czo\u0142\u00f3wka do biegu 15: dwaj najlepsi zawodnicy pozycji seniorskich (punkty bez
-     bonus\u00f3w). Remisy: wszyscy zawodnicy z poziomu 1. i 2. miejsca trafiaj\u0105 do puli \u2014
-     kt\u00f3rzy dwaj jad\u0105 w 15, decyduje trener. */
-  const totals=lgRiderTotals(teamKey,13);
-  const sorted=lgNomMainNums(teamKey).slice()
-    .sort((x,y)=>((totals[y]||{}).pts||0)-((totals[x]||{}).pts||0));
-  if(!sorted.length)return [];
-  const v0=(totals[sorted[0]]||{}).pts||0;
-  const v1=sorted.length>1?((totals[sorted[1]]||{}).pts||0):v0;
-  return sorted.filter(n=>{const p=(totals[n]||{}).pts||0;return p===v0||p===v1;});
+function lgNomPlan(tk){
+  /* Plan nominacji 14/15 (punkty BEZ bonusów, po biegach 1-13; ZZ nigdy nie jedzie).
+     v1 = punkty 2. zawodnika. locked = ściśle powyżej v1 (pewni do biegu 15, ukryci w 14).
+     tie = równo v1 (remis o miejsca w 15); free = ile miejsc w 15 zostaje do obsadzenia.
+     Jeśli tie mieści się w free, wszyscy z tie jadą w 15 (forced). W przeciwnym razie
+     trener w biegu 14 może wziąć z tie najwyżej cap = tie-free osób. */
+  const totals=lgRiderTotals(tk,13);
+  const pts=n=>((totals[n]||{}).pts||0);
+  const avail=lgEligibleNominated(tk,13).slice().sort((x,y)=>pts(y)-pts(x));
+  if(!avail.length)return {avail,locked:[],tie:[],below:[],forced:[],free:0,cap:0};
+  const v1=pts(avail[Math.min(1,avail.length-1)]);
+  const locked=avail.filter(n=>pts(n)>v1);
+  const tie=avail.filter(n=>pts(n)===v1);
+  const below=avail.filter(n=>pts(n)<v1);
+  const free=Math.max(0,2-locked.length);
+  const forced=tie.length<=free?locked.concat(tie):locked.slice();
+  return {avail,locked,tie,below,forced,free,cap:Math.max(0,tie.length-free)};
 }
 function lgEligibleNominated(teamKey,heatIdx){
   /* Biegi nominowane 14/15: przy ustalaniu sk\u0142ad\u00f3w brani s\u0105 pod uwag\u0119 wy\u0142\u0105cznie
@@ -2779,16 +2785,26 @@ UI.lgNominateShow=function(){
   const m=lgm();if(!m||!LgNom)return;
   const st=LgNom.steps[LgNom.i];
   const tk=st[0],n=st[1];
-  let cands=lgEligibleNominated(tk,n-1);
-  /* Bieg 14: pełna lista zawodników z pozycji 1–5 / 9–13 (lub 4, gdy jest ZZ).
-     Bieg 15: ta sama pełna lista, ale z wykluczeniem zawodników już nominowanych
-     do biegu 14 (tej samej drużyny) — kto jedzie w 14, nie jedzie w 15
-     (wyjątek: start w ramach RT). W obu biegach wybiera się DWÓCH zawodników. */
-  if(n===15){
+  const plan=lgNomPlan(tk);
+  const nm=x=>x+" "+lgRiderName(x);
+  let cands,need,note="";
+  LgNom.lock=[];LgNom.tieSet=[];LgNom.cap=0;
+  if(n===14){
+    /* Bieg 14: bez pewniaków do 15; z remisu o 2. miejsce max cap osób. */
+    cands=plan.avail.filter(x=>!plan.forced.includes(x));
+    need=Math.min(2,plan.cap+plan.below.length);
+    LgNom.tieSet=plan.tie.slice();LgNom.cap=plan.cap;
+    if(plan.forced.length)note=" Do biegu 15 jadą z urzędu: "+plan.forced.map(nm).join(", ")+".";
+    if(plan.cap>0)note+=" Remis na "+plan.tie.length+" zawodników ("+plan.tie.map(x=>x).join(", ")+"): do biegu 14 możesz wziąć z nich najwyżej "+plan.cap+" — reszta pojedzie w 15.";
+  }else{
     const ch=LgNom.picks.filter(p=>p.tk===tk&&p.n===14).map(p=>p.riders).flat();
-    cands=cands.filter(x=>!ch.includes(x));
+    cands=plan.avail.filter(x=>(plan.locked.includes(x)||plan.tie.includes(x))&&!ch.includes(x));
+    need=Math.min(2,cands.length);
+    LgNom.lock=plan.locked.filter(x=>cands.includes(x));
+    LgNom.lock.forEach(x=>{if(!LgNom.sel.includes(x))LgNom.sel.unshift(x);});
+    if(LgNom.lock.length)note=" Z urzędu: "+LgNom.lock.map(nm).join(", ")+".";
   }
-  LgNom.tk=tk;LgNom.n=n;LgNom.cands=cands;LgNom.need=Math.min(2,cands.length);
+  LgNom.tk=tk;LgNom.n=n;LgNom.cands=cands;LgNom.need=need;
   /* Zabezpieczenie: gdyby w danym kroku nie było ani jednego kandydata,
      krok pomijamy automatycznie (okno jest zablokowane — nie może utknąć). */
   if(!cands.length){UI.lgNominateNext();return;}
@@ -2802,17 +2818,18 @@ UI.lgNominateShow=function(){
   let html="<h3>Nominacja \u2014 bieg "+n+"</h3>"+
     "<p style='text-align:center;font-size:0.78rem;color:var(--text-muted);margin:0 0 4px'>"+
     escq(lgLineup(tk).name)+" \u2014 wybierz "+LgNom.need+" zawodnik\u00f3w."+
-    (n===14?" Uwaga: do biegu 15 nominuje si\u0119 dw\u00f3ch najlepszych punktowo zawodnik\u00f3w.":"")+"</p>"+
+    note+"</p>"+
     "<p style='text-align:center;font-size:0.72rem;color:var(--text-muted);margin:0 0 10px'>Kaski w tym biegu: "+
     freeHelmets.map(hel=>"<span style='white-space:nowrap'>"+dot(hel)+"</span>").join(" ")+
     " \u2014 zaznaczony zawodnik jedzie w kolejnym wolnym kolorze</p>";
   cands.forEach(x=>{
     const on=LgNom.sel.includes(x);
+    const dim=(LgNom.lock||[]).includes(x)||(!on&&n===14&&LgNom.tieSet.includes(x)&&LgNom.sel.filter(v=>LgNom.tieSet.includes(v)).length>=LgNom.cap);
     /* Kropka kasku: już wybrani mają swój przydzielony kolor, pozostali —
        kolor następnego wolnego pola (ten przejmą, jeśli zostaną wybrani teraz). */
     const si=LgNom.sel.indexOf(x);
     const hel=on?freeHelmets[si]:freeHelmets[LgNom.sel.length];
-    html+="<button class='btn "+(on?"primary":"secondary")+"' style='text-transform:none;justify-content:flex-start' data-onclick='UI.lgNominateToggle("+x+")'>"+(hel?dot(hel):"")+"<span style='flex:1;text-align:left'>"+x+" \u2014 "+escq(lgRiderName(x))+"</span></button>";
+    html+="<button class='btn "+(on?"primary":"secondary")+"' style='text-transform:none;justify-content:flex-start"+(dim?";opacity:0.45":"")+"' data-onclick='UI.lgNominateToggle("+x+")'>"+(hel?dot(hel):"")+"<span style='flex:1;text-align:left'>"+x+" \u2014 "+escq(lgRiderName(x))+"</span></button>";
   });
   html+="<div style='display:flex;gap:8px;justify-content:center;margin-top:12px'>"+
     (LgNom.i>0
@@ -2829,8 +2846,14 @@ UI.lgNominateShow=function(){
 };
 UI.lgNominateToggle=function(x){
   if(!LgNom)return;
+  if((LgNom.lock||[]).includes(x))return; /* dwaj najlepsi — z urzędu w 15 */
   if(LgNom.sel.includes(x))LgNom.sel=LgNom.sel.filter(v=>v!==x);
-  else if(LgNom.sel.length<LgNom.need)LgNom.sel=[...LgNom.sel,x];
+  else if(LgNom.sel.length<LgNom.need){
+    if(LgNom.n===14&&LgNom.tieSet.includes(x)&&LgNom.sel.filter(v=>LgNom.tieSet.includes(v)).length>=LgNom.cap){
+      UI.toast("Za dużo z remisu — ktoś z nich musi pojechać w biegu 15.");return;
+    }
+    LgNom.sel=[...LgNom.sel,x];
+  }
   UI.lgNominateShow();
 };
 UI.lgNominateNext=function(){
