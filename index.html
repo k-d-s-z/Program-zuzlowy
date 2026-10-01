@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 <!-- Polityka bezpiecze&#324;stwa tre&#347;ci: brak zewn&#281;trznych skrypt&#243;w, brak po&#322;&#261;cze&#324; sieciowych poza w&#322;asnym hostem,
      obrazy tylko data:, czcionki tylko systemowe. Skrypt inline dozwolony wyłącznie przez hash SHA-256 (brak inline handlerów), connect-src 'none'. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-qsBM1cf8+osX5m54jEr15IuM16zdTtu6j5JH+dpW31U='; style-src 'unsafe-inline'; font-src 'none'; img-src data: 'self'; connect-src 'none'; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-s7NxxU3HDTX4eosFSDfi9E8IHYfTe4j0mC2EotyeRAg='; style-src 'unsafe-inline'; font-src 'none'; img-src data: 'self'; connect-src 'none'; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'">
 <title>Program &#380;u&#380;lowy</title>
 
 <!-- Typografia: wy&#322;&#261;cznie czcionki systemowe (zero po&#322;&#261;cze&#324; sieciowych) -->
@@ -2665,33 +2665,53 @@ function lgMaybePromptZZ(){
     if(lgZZAsked[key])continue;
     lgZZAsked[key]=true;
     const cands=lgZZCandidates(teamKey,hi);
-    if(cands.length)UI.lgPromptZZ(hi,slotIdx,teamKey,cands);
+    const rt=lgZZRtCandidates(teamKey,hi,slot.num);
+    if(cands.length||rt.length)UI.lgPromptZZ(hi,slotIdx,teamKey,cands,rt);
     return; /* jedno okienko naraz — kolejny slot ZZ dostanie prompt po obs\u0142u\u017ceniu tego */
   }
 }
-UI.lgPromptZZ=function(heatIdx,slotIdx,teamKey,cands){
+/* RT za Zawodnika zastępowanego: tylko przy stracie 6+ pkt. Pozwala wstawić także kogoś,
+   kto już raz pojechał jako ZZ (i dlatego nie ma go na liście ZZ). */
+function lgZZRtCandidates(teamKey,heatIdx,zzNum){
+  if(!lgRtAllowed(teamKey,heatIdx))return [];
+  return lgEligible(teamKey,zzNum,"RT",heatIdx);
+}
+UI.lgPromptZZ=function(heatIdx,slotIdx,teamKey,cands,rt){
+  rt=rt||[];
   const m=lgm();const h=m.heats[heatIdx];
   const zzNum=h.slots[slotIdx].num;
   UI.announce("Zastępstwo — ZZ",
     "Bieg "+h.n+": w składzie pod numerem <b>"+zzNum+"</b> jedzie <b>Zawodnik zastępowany</b>."+
-    " Za chwilę wybierzesz, kto pojedzie w jego miejsce jako ZZ.",
+    " Za chwilę wybierzesz, kto pojedzie w jego miejsce."+(rt.length?" Drużyna przegrywa o 6+ pkt, więc dostępna jest też <b>RT</b>.":""),
     ()=>{
       const us=lgUsage(m);
-      let html="<h3>Zastępstwo — ZZ</h3><p style='text-align:center;font-size:0.78rem;color:var(--text-muted);margin:0 0 10px'>Bieg "+h.n+": <b>Zawodnik zastępowany</b> (nr "+zzNum+") — wybierz, kto pojedzie jako ZZ.</p>";
-      cands.forEach(n=>{
-        const rec=us[n]||{starts:0,usedRT:false,usedZZ:false};
-        const left=5+(rec.usedRT?1:0)+1-rec.starts;
-        html+="<button class='btn' style='text-transform:none' data-zz='"+n+"'>"+escq(lgRiderName(n))+" <small style='opacity:0.7'>(pozostałe starty: "+left+")</small></button>";
-      });
-      /* Bez „Anuluj” — ZZ musi zostać wybrane; okna nie zamyka też kliknięcie w tło ani Esc. */
+      const lab=t=>"<div style='font-size:0.72rem;color:var(--text-muted);text-align:center;margin:8px 0 4px'>"+t+"</div>";
+      let html="<h3>Zastępstwo — Bieg "+h.n+"</h3><p style='text-align:center;font-size:0.78rem;color:var(--text-muted);margin:0 0 6px'><b>Zawodnik zastępowany</b> (nr "+zzNum+") — wybierz, kto pojedzie w jego miejsce.</p>";
+      if(cands.length){
+        if(rt.length)html+=lab("ZZ — zastępstwo zawodnika");
+        cands.forEach(n=>{
+          const rec=us[n]||{starts:0,usedRT:false,usedZZ:false};
+          const left=5+(rec.usedRT?1:0)+1-rec.starts;
+          html+="<button class='btn' style='text-transform:none' data-zz='"+n+"' data-t='ZZ'>"+escq(lgRiderName(n))+" <small style='opacity:0.7'>(pozostałe starty: "+left+")</small></button>";
+        });
+      }
+      if(rt.length){
+        html+=lab("RT — rezerwa taktyczna (strata 6+ pkt)");
+        rt.forEach(n=>{
+          const rec=us[n]||{starts:0,usedRT:false,usedZZ:false};
+          const left=5+(rec.usedZZ?1:0)-rec.starts;
+          html+="<button class='btn secondary' style='text-transform:none' data-zz='"+n+"' data-t='RT'>"+escq(lgRiderName(n))+" <small style='opacity:0.7'>(pozostałe starty: "+left+(rec.usedZZ?", był już ZZ":"")+")</small></button>";
+        });
+      }
+      /* Bez „Anuluj” — zastępstwo musi zostać wybrane; okna nie zamyka też kliknięcie w tło ani Esc. */
       UI.openModal(html,true);
-      $("modal").querySelectorAll("[data-zz]").forEach(b=>b.onclick=()=>UI.lgPickZZ(heatIdx,slotIdx,teamKey,+b.dataset.zz));
+      $("modal").querySelectorAll("[data-zz]").forEach(b=>b.onclick=()=>UI.lgPickZZ(heatIdx,slotIdx,teamKey,+b.dataset.zz,b.dataset.t));
     });
 };
-UI.lgPickZZ=function(heatIdx,slotIdx,teamKey,n){
+UI.lgPickZZ=function(heatIdx,slotIdx,teamKey,n,type){
   const m=lgm();if(!m)return;
   const h=m.heats[heatIdx];
-  if(!mutate(()=>{h.slots[slotIdx].num=n;h.slots[slotIdx].subType="ZZ";lgReorder(h);}))return;
+  if(!mutate(()=>{h.slots[slotIdx].num=n;h.slots[slotIdx].subType=type||"ZZ";lgReorder(h);}))return;
   UI.closeModal();lgRender();
 };
 /* Biegi nominowane 14/15: do 14 nie można wybrać dwóch najlepszych (bonusy się nie liczą). */
@@ -2754,6 +2774,7 @@ function lgMaybeNominate(){
   if(lgNomAsked[c.id])return;
   const hi=lgFirstOpenIdx(m);if(hi<0)return;
   if(m.heats[hi].n!==14)return;
+  if(m.nom)return; /* pula już wybrana */
   if(m.heats[hi].slots.some(s=>s.num!=null)||m.heats[hi+1].slots.some(s=>s.num!=null))return;
   lgNomAsked[c.id]=true;
   UI.lgNominatePanel();
@@ -2804,32 +2825,21 @@ UI.lgNominateShow=function(){
     LgNom.lock.forEach(x=>{if(!LgNom.sel.includes(x))LgNom.sel.unshift(x);});
     if(LgNom.lock.length)note=" Z urzędu: "+LgNom.lock.map(nm).join(", ")+".";
   }
+  if(cands.length<=need)LgNom.lock=cands.slice(); /* brak wyboru — wszyscy jadą */
+  LgNom.lock.forEach(x=>{if(!LgNom.sel.includes(x))LgNom.sel.unshift(x);});
   LgNom.tk=tk;LgNom.n=n;LgNom.cands=cands;LgNom.need=need;
   /* Zabezpieczenie: gdyby w danym kroku nie było ani jednego kandydata,
      krok pomijamy automatycznie (okno jest zablokowane — nie może utknąć). */
   if(!cands.length){UI.lgNominateNext();return;}
-  /* Kolory kasków: kolejne wolne pola startowe tej drużyny w tym biegu.
-     Kandydat zaznaczony jako pierwszy pojedzie w kasku pierwszego wolnego pola,
-     drugi — w kasku drugiego pola (tak też trafia do slotów przy zapisie). */
-  const hN=m.heats[n-1];
-  const HELM_COL={C:"#ef4444",N:"#3b82f6",B:"#f8fafc","Ż":"#eab308"};
-  const dot=hel=>"<span style='display:inline-block;width:13px;height:13px;border-radius:50%;background:"+HELM_COL[hel]+";box-shadow:0 0 0 2px rgba(255,255,255,0.25);vertical-align:-2px;margin-right:6px;flex-shrink:0'></span>";
-  const freeHelmets=hN.slots.filter(s=>lgTeamOfHelmet(s.helmet)===tk&&s.num==null).map(s=>s.helmet);
-  let html="<h3>Nominacja \u2014 bieg "+n+"</h3>"+
-    "<p style='text-align:center;font-size:0.78rem;color:var(--text-muted);margin:0 0 4px'>"+
-    escq(lgLineup(tk).name)+" \u2014 wybierz "+LgNom.need+" zawodnik\u00f3w."+
-    note+"</p>"+
-    "<p style='text-align:center;font-size:0.72rem;color:var(--text-muted);margin:0 0 10px'>Kaski w tym biegu: "+
-    freeHelmets.map(hel=>"<span style='white-space:nowrap'>"+dot(hel)+"</span>").join(" ")+
-    " \u2014 zaznaczony zawodnik jedzie w kolejnym wolnym kolorze</p>";
+  const sub="font-size:0.72rem;color:var(--text-muted);text-align:center;margin:0 0 8px";
+  let html="<h3>Nominacja — bieg "+n+"</h3>"+
+    "<p style='"+sub+"'>"+escq(lgLineup(tk).name)+" — wybierz "+LgNom.need+" zawodników.</p>"+
+    (note?"<p style='"+sub+"'>"+escq(note.trim())+"</p>":"")+
+    "<p style='"+sub+"'>Kolory kasków ustawisz za chwilę na karcie biegu.</p>";
   cands.forEach(x=>{
     const on=LgNom.sel.includes(x);
     const dim=(LgNom.lock||[]).includes(x)||(!on&&n===14&&LgNom.tieSet.includes(x)&&LgNom.sel.filter(v=>LgNom.tieSet.includes(v)).length>=LgNom.cap);
-    /* Kropka kasku: już wybrani mają swój przydzielony kolor, pozostali —
-       kolor następnego wolnego pola (ten przejmą, jeśli zostaną wybrani teraz). */
-    const si=LgNom.sel.indexOf(x);
-    const hel=on?freeHelmets[si]:freeHelmets[LgNom.sel.length];
-    html+="<button class='btn "+(on?"primary":"secondary")+"' style='text-transform:none;justify-content:flex-start"+(dim?";opacity:0.45":"")+"' data-onclick='UI.lgNominateToggle("+x+")'>"+(hel?dot(hel):"")+"<span style='flex:1;text-align:left'>"+x+" \u2014 "+escq(lgRiderName(x))+"</span></button>";
+    html+="<button class='btn "+(on?"primary":"secondary")+"' style='text-transform:none;justify-content:flex-start"+(dim?";opacity:0.45":"")+"' data-onclick='UI.lgNominateToggle("+x+")'><span style='flex:1;text-align:left'>"+x+" — "+escq(lgRiderName(x))+"</span></button>";
   });
   html+="<div style='display:flex;gap:8px;justify-content:center;margin-top:12px'>"+
     (LgNom.i>0
@@ -2866,12 +2876,8 @@ UI.lgNominateNext=function(){
     /* wszystkie cztery decyzje zapad\u0142y \u2014 zapisujemy jednym zapisem stanu */
     const picks=LgNom.picks;LgNom=null;
     if(!mutate(()=>{
-      picks.forEach(p=>{
-        const h=m.heats[p.n-1];
-        const idxs=h.slots.map((s,i)=>i).filter(i=>lgTeamOfHelmet(h.slots[i].helmet)===p.tk&&h.slots[i].num==null);
-        p.riders.forEach((r,j)=>{if(idxs[j]!=null)h.slots[idxs[j]].num=r;});
-        lgReorder(h);
-      });
+      m.nom={};
+      picks.forEach(p=>{(m.nom[p.n]=m.nom[p.n]||{})[p.tk]=p.riders.slice();});
     }))return;
     UI.closeModal();lgRender();return;
   }
@@ -2896,6 +2902,7 @@ UI.lgRenominate=function(){
   if(h14.confirmed||h15.confirmed){UI.toast("Najpierw zresetuj bieg 14 i 15 — nominacje można zmienić tylko przed ich zatwierdzeniem.");return;}
   UI.confirm("Ponownie wybrać nominowanych zawodników do biegów 14 i 15?<br><small style='color:var(--text-muted)'>Obecne obsady tych biegów zostaną wyczyszczone.</small>",()=>{
     if(!mutate(()=>{
+      delete m.nom;
       [h14,h15].forEach(h=>{
         h.slots.forEach(s=>{s.num=null;s.excl=null;s.subType=null;delete s.exclSeq;});
         h.order=[0,1,2,3];h.confirmed=false;h.score=null;h.menuOpen=null;h.subListFor=null;h.time=null;
@@ -2941,7 +2948,7 @@ UI.lgConfirmHeat=function(heatIdx){
     const tk=lgTeamOfHelmet(s.helmet);
     if(lgIsZZRider(s.num,tk)){
       /* Gdy nie ma żadnego dostępnego kandydata na ZZ, nie blokujemy zatwierdzenia. */
-      if(lgZZCandidates(tk,heatIdx).length===0)continue;
+      if(lgZZCandidates(tk,heatIdx).length===0&&lgZZRtCandidates(tk,heatIdx,s.num).length===0)continue;
       UI.toast("Bieg "+h.n+": pod numerem "+s.num+" jedzie Zawodnik zastępowany — wybierz najpierw zastępstwo ZZ.");
       return;
     }
@@ -3066,13 +3073,39 @@ UI.lgReservePick=function(heatIdx,slotIdx,type){
   html+="<button class='btn' data-onclick='UI.closeModal()'>Anuluj</button>";
   UI.openModal(html);
 };
+function lgNomPool(heatIdx,teamKey){
+  /* Zawodnicy wybrani w nominacji do tego biegu (i jeszcze niewstawieni do biegu). */
+  const m=lgm(),h=m.heats[heatIdx];
+  const base=lgEligibleNominated(teamKey,heatIdx);
+  const nom=m.nom&&m.nom[h.n]&&m.nom[h.n][teamKey];
+  return nom?base.filter(n=>nom.includes(n)):base;
+}
+UI.lgNomSlotOpen=function(heatIdx,slotIdx){
+  if(!lgHeatEditable(heatIdx))return;
+  const h=lgm().heats[heatIdx],s=h.slots[slotIdx];
+  const tk=lgTeamOfHelmet(s.helmet);
+  const KASK={C:"czerwonym",N:"niebieskim",B:"białym","Ż":"żółtym"};
+  let html="<h3>Bieg "+h.n+" — kask "+KASK[s.helmet]+"</h3>"+
+    "<p style='text-align:center;font-size:0.78rem;color:var(--text-muted);margin:0 0 10px'>Kto pojedzie w tym kasku? Drugi zawodnik drużyny dostanie pozostały kask.</p>";
+  lgNomPool(heatIdx,tk).forEach(n=>{
+    html+="<button class='btn' style='text-transform:none' data-onclick='UI.lgPickNominated("+heatIdx+","+slotIdx+","+n+")'>"+n+" — "+escq(lgRiderName(n))+"</button>";
+  });
+  html+="<button class='btn' data-onclick='UI.closeModal()'>Anuluj</button>";
+  UI.openModal(html);
+};
 UI.lgPickNominated=function(heatIdx,slotIdx,val){
   if(!lgHeatEditable(heatIdx))return;
-  const h=lgm().heats[heatIdx];
+  const h=lgm().heats[heatIdx],s=h.slots[slotIdx];
+  const tk=lgTeamOfHelmet(s.helmet);
+  const n=Number(val);
+  const rest=lgNomPool(heatIdx,tk).filter(x=>x!==n);
   if(!mutate(()=>{
-    h.slots[slotIdx].num=val===""?null:Number(val);
+    s.num=n;
+    const oi=h.slots.findIndex((x,i)=>i!==slotIdx&&x.num==null&&lgTeamOfHelmet(x.helmet)===tk);
+    if(oi>=0&&rest.length===1)h.slots[oi].num=rest[0]; /* drugi kask uzupełnia się sam */
     lgReorder(h);
   }))return;
+  UI.closeModal();
   lgRenderHeatOnly(heatIdx);
 };
 UI.lgSetPart=function(part,n){
@@ -3292,9 +3325,7 @@ function lgHeatHtml(heatIdx){
     let nameHtml,posHtml="",btns="";
     if(slot.num==null){
       if(active){
-        const opts=lgEligibleNominated(teamKey,heatIdx)
-          .map(n=>"<option value='"+n+"'>"+n+" — "+escq(lgRiderName(n))+"</option>").join("");
-        nameHtml="<span class='name' style='flex:1'><select data-onchange='UI.lgPickNominated("+heatIdx+","+slotIdx+",this.value)'><option value=''>Wybierz zawodnika…</option>"+opts+"</select></span>";
+        nameHtml="<span class='name' style='flex:1'><button class='btn secondary small' style='margin:0;text-transform:none' data-onclick='UI.lgNomSlotOpen("+heatIdx+","+slotIdx+")'>Wybierz zawodnika…</button></span>";
       }else{
         nameHtml="<span class='name' style='flex:1;color:var(--text-muted)'>do obsadzenia (nominowany)</span>";
       }
