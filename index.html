@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 <!-- Polityka bezpiecze&#324;stwa tre&#347;ci: brak zewn&#281;trznych skrypt&#243;w, brak po&#322;&#261;cze&#324; sieciowych poza w&#322;asnym hostem,
-     obrazy tylko data:, czcionki tylko systemowe. Skrypt inline dozwolony wyłącznie przez hash SHA-256 (brak inline handlerów), connect-src 'none'. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-yOJIzs3EAMH1nhxpVOqichwZPwMa+NybsDl6oEgKUTQ='; style-src 'unsafe-inline'; font-src 'none'; img-src data:; connect-src 'none'; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'">
+     obrazy tylko data:, czcionki tylko systemowe. Skrypt inline dozwolony wyÅÄcznie przez hash SHA-256 (brak inline handlerÃ³w), connect-src 'none'. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-yOJIzs3EAMH1nhxpVOqichwZPwMa+NybsDl6oEgKUTQ='; style-src 'unsafe-inline'; font-src 'none'; img-src data: 'self'; connect-src 'none'; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'">
 <title>Program &#380;u&#380;lowy</title>
 
 <!-- Typografia: wy&#322;&#261;cznie czcionki systemowe (zero po&#322;&#261;cze&#324; sieciowych) -->
@@ -14,8 +14,8 @@
 <!-- Ikonka i tryb pe&#322;noekranowy dzia&#322;aj&#261; od razu, nawet otwarte jako pojedynczy plik.
      Pe&#322;ny przycisk "Zainstaluj aplikacj&#281;" na Androidzie wymaga jednak hostowania
      przez HTTPS wraz z plikami manifest.json i sw.js (patrz README-PWA.txt). -->
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxODAgMTgwIj48cmVjdCB3aWR0aD0iMTgwIiBoZWlnaHQ9IjE4MCIgcng9IjM2IiBmaWxsPSIjMGIwZjE5Ii8+PHRleHQgeD0iOTAiIHk9IjEzMCIgZm9udC1mYW1pbHk9IkFyaWFsLCBIZWx2ZXRpY2EsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTEyIiBmb250LXdlaWdodD0iODAwIiBmaWxsPSIjMzhiZGY4IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj7FuzwvdGV4dD48L3N2Zz4=">
-<link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxODAgMTgwIj48cmVjdCB3aWR0aD0iMTgwIiBoZWlnaHQ9IjE4MCIgcng9IjM2IiBmaWxsPSIjMGIwZjE5Ii8+PHRleHQgeD0iOTAiIHk9IjEzMCIgZm9udC1mYW1pbHk9IkFyaWFsLCBIZWx2ZXRpY2EsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTEyIiBmb250LXdlaWdodD0iODAwIiBmaWxsPSIjMzhiZGY4IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj7FuzwvdGV4dD48L3N2Zz4=">
+<link rel="icon" type="image/svg+xml" href="./icon.svg">
+<link rel="apple-touch-icon" href="./icon.svg">
 <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" content="#0b0f19">
 <meta name="mobile-web-app-capable" content="yes">
@@ -67,9 +67,9 @@ body {
   overscroll-behavior-y: contain;
 }
 html { overscroll-behavior-y: contain; }
-/* A11y: pomimo globalnego user-select:none tekst w formularzach, tabelach wyników
-   i treści tekstowej pozostaje normalnie zaznaczalny (kopiowanie wyników itd.). */
-/* A11y: widoczna etykieta pól formularzy (zamiast samego placeholdera). */
+/* A11y: pomimo globalnego user-select:none tekst w formularzach, tabelach wynikÃ³w
+   i treÅci tekstowej pozostaje normalnie zaznaczalny (kopiowanie wynikÃ³w itd.). */
+/* A11y: widoczna etykieta pÃ³l formularzy (zamiast samego placeholdera). */
 .sr-label { display:block; font-size: 0.72rem; font-weight: 800; color: var(--text-muted); letter-spacing: 0.4px; text-transform: uppercase; margin-bottom: 6px; text-align:left; }
 input, textarea, select, table, .copyable, .lg-tname { user-select: text; -webkit-user-select: text; }
 button { font-family: inherit; cursor: pointer; }
@@ -399,7 +399,7 @@ table.pts td.plc:not(.tie) { cursor: default; }
 }
 .switch.on .knob { left: 28px; }
 
-/* ===== MECZ LIGOWY (prefiks lg- — niezależny od stylów zawodów indywidualnych) ===== */
+/* ===== MECZ LIGOWY (prefiks lg- â niezaleÅ¼ny od stylÃ³w zawodÃ³w indywidualnych) ===== */
 #match { padding-bottom: 200px; }
 .lg-teamcard { position: relative; border-radius: 18px; margin: 14px 0; background: var(--ov-06); border: 1px solid var(--ov-12); overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,0.35), inset 0 1px 0 var(--ov-08); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
 .heat.done { background: rgba(0,0,0,0.28); border-color: var(--ov-08); opacity: 0.72; }
@@ -444,7 +444,7 @@ table.lg-rt td.lg-bon { font-weight: 800; color: var(--amber); background: var(-
 .lg-candbtn { width: 100%; text-align: left; background: var(--ov-05); border: 1px solid var(--border-color); border-radius: 8px; padding: 8px 10px; color: var(--text-strong); font-size: 0.82rem; font-weight: 600; }
 .lg-candbtn small { display: block; color: var(--text-muted); font-weight: 600; }
 
-/* Pasek wyniku meczu — zawsze przypięty na dole */
+/* Pasek wyniku meczu â zawsze przypiÄty na dole */
 .lg-scorebar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; background: var(--bar-bg); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-top: 1px solid var(--ov-12); padding: 8px 10px calc(8px + env(safe-area-inset-bottom,0px)); box-shadow: 0 -6px 14px -6px rgba(0,0,0,0.6); }
 .lg-scorebar-inner { max-width: 900px; margin: 0 auto; }
 .lg-sbrow { display: flex; gap: 5px; margin-bottom: 5px; }
@@ -458,11 +458,11 @@ table.lg-rt td.lg-bon { font-weight: 800; color: var(--amber); background: var(-
 .lg-sbicon { flex: 0 0 44px; background: var(--ov-06); border: 1px solid var(--ov-15); border-radius: 10px; color: var(--text-strong); min-height: 34px; padding: 0; display: flex; align-items: center; justify-content: center; }
 .lg-sbicon svg { width: 18px; height: 18px; fill: currentColor; }
 
-/* Ekran składów drużyny (lineup meczu ligowego) */
+/* Ekran skÅadÃ³w druÅ¼yny (lineup meczu ligowego) */
 .lg-lineuprow { display: flex; align-items: center; gap: 8px; padding: 6px 0; }
 .lg-lineuprow .no { font-family: var(--font-head); font-weight: 800; color: var(--accent-blue); width: 34px; text-align: center; flex-shrink: 0; }
 
-/* A11y: respektowanie preferencji prefers-reduced-motion — wyłącza animacje. */
+/* A11y: respektowanie preferencji prefers-reduced-motion â wyÅÄcza animacje. */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
@@ -521,7 +521,7 @@ table.lg-rt td.lg-bon { font-weight: 800; color: var(--amber); background: var(-
   <div class="card">
     <button class="btn" id="continueBtn" style="display:none;flex-direction:column;gap:2px" data-onclick="UI.continueLast()"></button>
     <button class="btn" id="newCompBtn" data-onclick="UI.startComp()">+ Nowe zawody</button>
-    <button class="btn" data-onclick="UI.screen('people')">ZAWODNICY I DRUŻYNY</button>
+    <button class="btn" data-onclick="UI.screen('people')">ZAWODNICY I DRUÅ»YNY</button>
     <button class="btn" data-onclick="UI.screen('options')">USTAWIENIA</button>
   </div>
 </section>
@@ -566,7 +566,7 @@ table.lg-rt td.lg-bon { font-weight: 800; color: var(--amber); background: var(-
     <button class="btn hint" data-onclick="UI.newComp(23)"><span>Indywidualne &#8212; 23 wy&#347;cigi</span><small>np. SGP</small></button>
     <button class="btn hint" data-onclick="UI.newComp(22)"><span>Indywidualne &#8212; 22 wy&#347;cigi</span><small>np. SEC</small></button>
     <button class="btn hint" data-onclick="UI.newComp(20)"><span>Indywidualne &#8212; 20 wy&#347;cig&#243;w</span><small>np. MIMP</small></button>
-    <button class="btn hint" style="margin-top:14px" data-onclick="UI.startLeague()"><span>Zawody ligowe</span><small>mecz drużynowy, 15 wyścigów</small></button>
+    <button class="btn hint" style="margin-top:14px" data-onclick="UI.startLeague()"><span>Zawody ligowe</span><small>mecz druÅ¼ynowy, 15 wyÅcigÃ³w</small></button>
   </div>
 </section>
 
@@ -588,9 +588,9 @@ table.lg-rt td.lg-bon { font-weight: 800; color: var(--amber); background: var(-
   <button class="btn primary" data-onclick="UI.launch()">URUCHOM ZAWODY</button>
 </section>
 
-<!-- ZAWODNICY I DRUŻYNY — hub -->
+<!-- ZAWODNICY I DRUÅ»YNY â hub -->
 <section id="people" class="screen">
-  <div class="topbar"><button class="iconbtn" title="Wróć" data-onclick="UI.screen('home')"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></button><h2>ZAWODNICY I DRUŻYNY</h2></div>
+  <div class="topbar"><button class="iconbtn" title="WrÃ³Ä" data-onclick="UI.screen('home')"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></button><h2>ZAWODNICY I DRUÅ»YNY</h2></div>
   <div class="card">
     <h3>INDYWIDUALNE</h3>
     <button class="btn" data-onclick="UI.openRoster('SGP')">SGP</button>
@@ -600,49 +600,49 @@ table.lg-rt td.lg-bon { font-weight: 800; color: var(--amber); background: var(-
   </div>
   <div class="card">
     <h3>LIGOWE</h3>
-    <button class="btn" data-onclick="UI.screen('teams')">DRUŻYNY</button>
+    <button class="btn" data-onclick="UI.screen('teams')">DRUÅ»YNY</button>
   </div>
 </section>
 
-<!-- DRUŻYNY — menedżer -->
+<!-- DRUÅ»YNY â menedÅ¼er -->
 <section id="teams" class="screen">
-  <div class="topbar"><button class="iconbtn" title="Wróć" data-onclick="UI.screen('people')"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></button><h2>DRUŻYNY</h2></div>
+  <div class="topbar"><button class="iconbtn" title="WrÃ³Ä" data-onclick="UI.screen('people')"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></button><h2>DRUÅ»YNY</h2></div>
   <div class="card">
-    <button class="btn primary" data-onclick="UI.addTeam()">+ DODAJ DRUŻYNĘ</button>
+    <button class="btn primary" data-onclick="UI.addTeam()">+ DODAJ DRUÅ»YNÄ</button>
     <div id="teamList"></div>
   </div>
 </section>
 
-<!-- SZCZEGÓŁY DRUŻYNY -->
+<!-- SZCZEGÃÅY DRUÅ»YNY -->
 <section id="teamDetail" class="screen">
-  <div class="topbar"><button class="iconbtn" title="Wróć" data-onclick="UI.teamDetailBack()"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></button><h2 class="grow" id="teamDetailTitle">DRUŻYNA</h2></div>
+  <div class="topbar"><button class="iconbtn" title="WrÃ³Ä" data-onclick="UI.teamDetailBack()"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></button><h2 class="grow" id="teamDetailTitle">DRUÅ»YNA</h2></div>
   <div class="card">
     <button class="btn primary" data-onclick="UI.addTeamRider()">+ DODAJ ZAWODNIKA</button>
     <button class="btn" data-onclick="UI.assignTeamRider()">PRZYPISZ Z BAZY</button>
-    <button class="btn" data-onclick="UI.editTeam(S.uiTeam)">EDYTUJ DRUŻYNĘ</button>
+    <button class="btn" data-onclick="UI.editTeam(S.uiTeam)">EDYTUJ DRUÅ»YNÄ</button>
     <div id="teamRiderList" class="riderlist"></div>
   </div>
 </section>
 
-<!-- WYBÓR DRUŻYNY (gospodarze/goście) -->
+<!-- WYBÃR DRUÅ»YNY (gospodarze/goÅcie) -->
 <section id="lgTeam" class="screen">
-  <div class="topbar"><button class="iconbtn" title="Wróć" data-onclick="UI.cancelLeague()"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></button><h2 class="grow" id="lgTeamTitle">WYBÓR DRUŻYNY</h2></div>
+  <div class="topbar"><button class="iconbtn" title="WrÃ³Ä" data-onclick="UI.cancelLeague()"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></button><h2 class="grow" id="lgTeamTitle">WYBÃR DRUÅ»YNY</h2></div>
   <div class="card">
-    <button class="btn primary" data-onclick="UI.addTeam(true)">+ NOWA DRUŻYNA</button>
+    <button class="btn primary" data-onclick="UI.addTeam(true)">+ NOWA DRUÅ»YNA</button>
     <div id="lgTeamList"></div>
   </div>
 </section>
 
-<!-- SKŁAD DRUŻYNY NA MECZ -->
+<!-- SKÅAD DRUÅ»YNY NA MECZ -->
 <section id="lgLineup" class="screen">
-  <div class="topbar"><button class="iconbtn" title="Wróć" data-onclick="UI.cancelLeague()"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></button><h2 class="grow" id="lgLineupTitle">SKŁAD</h2></div>
+  <div class="topbar"><button class="iconbtn" title="WrÃ³Ä" data-onclick="UI.cancelLeague()"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></button><h2 class="grow" id="lgLineupTitle">SKÅAD</h2></div>
   <div class="card" style="padding:8px">
     <div id="lgLineupList"></div>
   </div>
   <button class="btn primary" data-onclick="UI.lgLineupNext()">DALEJ</button>
 </section>
 
-<!-- MECZ LIGOWY — jeden ekran: góra składy, dół wyścigi -->
+<!-- MECZ LIGOWY â jeden ekran: gÃ³ra skÅady, dÃ³Å wyÅcigi -->
 <section id="match" class="screen">
   <div id="lgTeamsWrap"></div>
   <div id="lgHeatsWrap"></div>
@@ -756,7 +756,7 @@ const DB={
 };
 let S=DB.loadAll();
 function persist(){
-  /* Atomowość na miarę localStorage: przed zapisem pamiętamy poprzednie wartości kluczy; jeśeli którykolwiek zapis rzuci, przywracamy STARY stan w storage — dzięki temu RAM i dysk nie rozjeżdżają się po połączonym zapisie. */
+  /* AtomowoÅÄ na miarÄ localStorage: przed zapisem pamiÄtamy poprzednie wartoÅci kluczy; jeÅeli ktÃ³rykolwiek zapis rzuci, przywracamy STARY stan w storage â dziÄki temu RAM i dysk nie rozjeÅ¼dÅ¼ajÄ siÄ po poÅÄczonym zapisie. */
   const meta={riders:S.riders,current:S.current,settings:S.settings,teams:S.teams,juniors:S.juniors,rosters:S.rosters};
   const c=cur();
   const cKey=c?DB.compKey(c.id):null;
@@ -772,7 +772,7 @@ function persist(){
       if(oldMeta!=null)store.set(DB.metaKey,oldMeta);else store.remove(DB.metaKey);
       if(cKey){if(oldCompExisted)store.set(cKey,oldComp);else store.remove(cKey);}
     }catch(e2){}
-    UI.toast("❌ Zapis nieudany — brak miejsca w pamięci przeglądarki.");
+    UI.toast("â Zapis nieudany â brak miejsca w pamiÄci przeglÄdarki.");
     return false;
   }
 }
@@ -1020,9 +1020,9 @@ function placeLabel(c,num,groups){
 
 /* ================= UI ================= */
 const $=id=>document.getElementById(id);
-/* Przełącznik kategorii J/S w oknach „Dodaj zawodnika” — kategoria od razu
-   trafia do S.juniors, dzięki czemu nowego zawodnika można od razu przypisać
-   do drużyny (6-7 / 14-15 to miejsca juniorów) i do serii indywidualnych. */
+/* PrzeÅÄcznik kategorii J/S w oknach âDodaj zawodnikaâ â kategoria od razu
+   trafia do S.juniors, dziÄki czemu nowego zawodnika moÅ¼na od razu przypisaÄ
+   do druÅ¼yny (6-7 / 14-15 to miejsca juniorÃ³w) i do serii indywidualnych. */
 function lgCatToggleHtml(){
   return "<div style='display:flex;gap:8px;margin-bottom:12px'>"+
     "<button class='btn small primary' style='flex:1' id='catS'>Senior (S)</button>"+
@@ -1075,7 +1075,7 @@ const UI={
   openModal(html,locked){
     const m=$("modal");
     if(!$("overlay").classList.contains("on"))UI._prevFocus=document.activeElement;
-    UI._modalLock=!!locked; /* locked=true — okna nie zamyka kliknięcie w tło ani Esc */
+    UI._modalLock=!!locked; /* locked=true â okna nie zamyka klikniÄcie w tÅo ani Esc */
     m.innerHTML=html;
     m.setAttribute("role","dialog");m.setAttribute("aria-modal","true");m.tabIndex=-1;
     const h=m.querySelector("h3");
@@ -1084,7 +1084,7 @@ const UI={
     /* Fokus: pole tekstowe, je\u015bli jest; w przeciwnym razie sam dialog. */
     const inp=m.querySelector("input[type=text]");
     try{(inp||m).focus({preventScroll:true});}catch(e){}
-    /* A11y: tło staje się nieosiągalne dla klawiatury i czytników ekranu. */
+    /* A11y: tÅo staje siÄ nieosiÄgalne dla klawiatury i czytnikÃ³w ekranu. */
     const wrap=document.querySelector(".wrap");
     if(wrap&&"inert" in wrap){wrap.inert=true;wrap.setAttribute("aria-hidden","true");}
   },
@@ -1102,7 +1102,7 @@ const UI={
     $("cn").onclick=()=>{UI.closeModal();onNo?onNo():null;};},
 
   addRider(num){
-    UI.openModal("<h3>Dodaj zawodnika</h3><label for='nr' class='sr-label'>Imię i nazwisko</label><input type='text' id='nr' placeholder='Imi\u0119 i Nazwisko' style='width:100%;margin-bottom:12px'>" + lgCatToggleHtml() + "<button class='btn primary' id='ok'>Dodaj</button><button class='btn' data-onclick='UI.closeModal()'>Anuluj</button>");
+    UI.openModal("<h3>Dodaj zawodnika</h3><label for='nr' class='sr-label'>ImiÄ i nazwisko</label><input type='text' id='nr' placeholder='Imi\u0119 i Nazwisko' style='width:100%;margin-bottom:12px'>" + lgCatToggleHtml() + "<button class='btn primary' id='ok'>Dodaj</button><button class='btn' data-onclick='UI.closeModal()'>Anuluj</button>");
     const isJr=lgBindCatToggle();
     $("ok").onclick=()=>{const v=normName(cleanText($("nr").value,100));if(!v)return;
       mutate(()=>{
@@ -1125,7 +1125,7 @@ const UI={
   },
   editRider(i){
     const old=S.riders[i];
-    UI.openModal("<h3>Edycja</h3><label for='nr' class='sr-label'>Imię i nazwisko</label><input type='text' id='nr' value='"+escq(old)+"' style='width:100%;margin-bottom:12px'>" + lgCatToggleHtml() + "<button class='btn primary' id='ok'>Zapisz</button><button class='btn danger' id='del'>Usu\u0144</button><button class='btn' data-onclick='UI.closeModal()'>Anuluj</button>");
+    UI.openModal("<h3>Edycja</h3><label for='nr' class='sr-label'>ImiÄ i nazwisko</label><input type='text' id='nr' value='"+escq(old)+"' style='width:100%;margin-bottom:12px'>" + lgCatToggleHtml() + "<button class='btn primary' id='ok'>Zapisz</button><button class='btn danger' id='del'>Usu\u0144</button><button class='btn' data-onclick='UI.closeModal()'>Anuluj</button>");
     const isJr=lgBindCatToggle();
     if((S.juniors||[]).includes(old))$("catJ").click();
     const refreshRiderViews=()=>{renderRiderLib();if($("teamDetail").classList.contains("on"))renderTeamDetail();};
@@ -1149,7 +1149,7 @@ const UI={
     $("ok").onclick=()=>{
       const v=normName(cleanText($("nr").value,100));if(!v)return;
       if(v===old){
-        /* Nazwisko bez zmian — zapisujemy ewentualną tylko zmianę kategorii S/J. */
+        /* Nazwisko bez zmian â zapisujemy ewentualnÄ tylko zmianÄ kategorii S/J. */
         if(!mutate(()=>{lgSetJuniorFlag(v,isJr());}))return;
         UI.closeModal();refreshRiderViews();return;}
       if(S.riders.includes(v)){UI.toast("\u274c Taki zawodnik ju\u017c istnieje w bazie.");return;}
@@ -1767,9 +1767,9 @@ UI.openComp=function(id){S.current=id;S.settings.lastComp=id;persist();
   UI.screen(c.league?"match":(c.launched?"points":"lineup"));};
 UI.delComp=function(id){
   const c=S.comps[id];const nm=c?escq(c.name||("Zawody "+c.format+"-biegowe")):"";
-  UI.confirm("Usunąć zawody <b>"+nm+"</b>?<br><small style='color:var(--text-muted)'>Tej operacji nie można cofnąć.</small>",()=>{
-    /* Transakcyjnie: mutate() cofnie zarówno stan w RAM, jak i (dzięki rollbackowi
-       w persist) zapis w storage — przy błędzie nic nie zostaje usunięte. */
+  UI.confirm("UsunÄÄ zawody <b>"+nm+"</b>?<br><small style='color:var(--text-muted)'>Tej operacji nie moÅ¼na cofnÄÄ.</small>",()=>{
+    /* Transakcyjnie: mutate() cofnie zarÃ³wno stan w RAM, jak i (dziÄki rollbackowi
+       w persist) zapis w storage â przy bÅÄdzie nic nie zostaje usuniÄte. */
     if(!mutate(()=>{
       delete S.comps[id];DB.removeComp(id);if(S.current===id)S.current=null;
       if(S.settings.lastComp===id)delete S.settings.lastComp;
@@ -1905,8 +1905,8 @@ function escq(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;"
 function cleanText(v,max){
   return String(v||"").replace(/[\u0000-\u001F\u007F\u200E\u200F\u202A-\u202E\u2066-\u2069]/g,"").trim().slice(0,max||100);
 }
-/* Normalizacja imion i nazwisk: tylko pierwsza litera każdego wyrazu wielka
-   (działa też dla już zapisanych danych pisanych WIELKIMI literami). */
+/* Normalizacja imion i nazwisk: tylko pierwsza litera kaÅ¼dego wyrazu wielka
+   (dziaÅa teÅ¼ dla juÅ¼ zapisanych danych pisanych WIELKIMI literami). */
 function normName(s){
   return String(s||"").trim().replace(/[\p{L}\p{M}]+/gu,w=>w.charAt(0).toUpperCase()+w.slice(1).toLowerCase());
 }
@@ -2168,10 +2168,10 @@ if("serviceWorker" in navigator){
     }
   });
 })();
-/* ===================== DRUŻYNY I MECZE LIGOWE ===================== */
-/* Model danych: jedna wspólna baza zawodników (S.riders) + przypisanie do klubu
-   jako członkostwo w drużynie (S.teams). Składy serii indywidualnych (S.rosters)
-   to podzbiory tej samej bazy — edycja nazwiska działa wszędzie. */
+/* ===================== DRUÅ»YNY I MECZE LIGOWE ===================== */
+/* Model danych: jedna wspÃ³lna baza zawodnikÃ³w (S.riders) + przypisanie do klubu
+   jako czÅonkostwo w druÅ¼ynie (S.teams). SkÅady serii indywidualnych (S.rosters)
+   to podzbiory tej samej bazy â edycja nazwiska dziaÅa wszÄdzie. */
 function teamOfRider(name){
   const t=S.teams.find(t=>t.riders.includes(name));
   return t?t.name:null;
@@ -2179,7 +2179,7 @@ function teamOfRider(name){
 UI.openRoster=function(series){S.uiSeries=series;UI.screen("riders");};
 UI.addRosterRider=function(){
   const series=S.uiSeries;
-  UI.openModal("<h3>Dodaj zawodnika</h3><input type='text' id='nr' placeholder='Imię i Nazwisko' style='width:100%;margin-bottom:12px'>" + lgCatToggleHtml() + "<button class='btn primary' id='ok'>Dodaj</button><button class='btn' data-onclick='UI.closeModal()'>Anuluj</button>");
+  UI.openModal("<h3>Dodaj zawodnika</h3><input type='text' id='nr' placeholder='ImiÄ i Nazwisko' style='width:100%;margin-bottom:12px'>" + lgCatToggleHtml() + "<button class='btn primary' id='ok'>Dodaj</button><button class='btn' data-onclick='UI.closeModal()'>Anuluj</button>");
   const isJr=lgBindCatToggle();
   $("ok").onclick=()=>{
     const v=normName(cleanText($("nr").value,100));if(!v)return;
@@ -2199,9 +2199,9 @@ UI.removeRosterRider=function(name){
 };
 UI.assignRosterRider=function(){
   const series=S.uiSeries;
-  if(!series){UI.toast("Najpierw wybierz serię (np. SGP, SEC).");return;}
+  if(!series){UI.toast("Najpierw wybierz seriÄ (np. SGP, SEC).");return;}
   const pool=S.riders.filter(n=>!(S.rosters[series]||[]).includes(n));
-  if(!pool.length){UI.toast("Wszyscy zawodnicy bazy są już na tej liście.");return;}
+  if(!pool.length){UI.toast("Wszyscy zawodnicy bazy sÄ juÅ¼ na tej liÅcie.");return;}
   UI.openModal("<h3>Przypisz z bazy</h3>"+pool.map(n=>"<button class='btn' style='text-transform:none' data-a='"+escq(n)+"'>"+escq(n)+"</button>").join("")+"<button class='btn' style='margin-top:10px' data-onclick='UI.closeModal()'>Anuluj</button>");
   $("modal").querySelectorAll("[data-a]").forEach(b=>b.onclick=()=>{
     const nm=b.dataset.a;
@@ -2210,10 +2210,10 @@ UI.assignRosterRider=function(){
   });
 };
 UI.addTeam=function(fromLeague){
-  UI.openModal("<h3>Dodaj drużynę</h3><p style='text-align:center;font-size:0.78rem;color:var(--text-muted);margin:0 0 10px'>Do nowej drużyny automatycznie trafia <b>Zawodnik zastępowany</b> (ZZ).</p><label for='tn' class='sr-label'>Nazwa drużyny</label><input type='text' id='tn' placeholder='Nazwa drużyny' style='width:100%;margin-bottom:12px'><button class='btn primary' id='ok'>Dodaj</button><button class='btn' data-onclick='UI.closeModal()'>Anuluj</button>");
+  UI.openModal("<h3>Dodaj druÅ¼ynÄ</h3><p style='text-align:center;font-size:0.78rem;color:var(--text-muted);margin:0 0 10px'>Do nowej druÅ¼yny automatycznie trafia <b>Zawodnik zastÄpowany</b> (ZZ).</p><label for='tn' class='sr-label'>Nazwa druÅ¼yny</label><input type='text' id='tn' placeholder='Nazwa druÅ¼yny' style='width:100%;margin-bottom:12px'><button class='btn primary' id='ok'>Dodaj</button><button class='btn' data-onclick='UI.closeModal()'>Anuluj</button>");
   $("ok").onclick=()=>{
     const v=cleanText($("tn").value,100);if(!v)return;
-    if(S.teams.some(t=>t.name===v)){UI.toast("❌ Taka drużyna już istnieje.");return;}
+    if(S.teams.some(t=>t.name===v)){UI.toast("â Taka druÅ¼yna juÅ¼ istnieje.");return;}
     if(!mutate(()=>{S.teams.push({name:v,riders:[LG_ZZ_NAME]});}))return;
     UI.closeModal();
     if(fromLeague){S.uiTeam=S.teams.length-1;LgFromLeague=true;UI.screen("teamDetail");}
@@ -2227,7 +2227,7 @@ UI.teamDetailBack=function(){
 };
 UI.editTeam=function(idx){
   const old=S.teams[idx].name;
-  UI.openModal("<h3>Edycja drużyny</h3><input type='text' id='tn' value='"+escq(old)+"' style='width:100%;margin-bottom:12px'><button class='btn primary' id='ok'>Zapisz</button><button class='btn danger' id='del'>Usuń</button><button class='btn' data-onclick='UI.closeModal()'>Anuluj</button>");
+  UI.openModal("<h3>Edycja druÅ¼yny</h3><input type='text' id='tn' value='"+escq(old)+"' style='width:100%;margin-bottom:12px'><button class='btn primary' id='ok'>Zapisz</button><button class='btn danger' id='del'>UsuÅ</button><button class='btn' data-onclick='UI.closeModal()'>Anuluj</button>");
   const refresh=()=>{
     if(LgFromLeague&&LgW){LgFromLeague=false;UI.screen("lgTeam");}
     else if($("teamDetail").classList.contains("on"))renderTeamDetail();
@@ -2235,13 +2235,13 @@ UI.editTeam=function(idx){
   };
   $("ok").onclick=()=>{
     const v=cleanText($("tn").value,100);if(!v)return;
-    if(v!==old&&S.teams.some(t=>t.name===v)){UI.toast("❌ Taka drużyna już istnieje.");return;}
+    if(v!==old&&S.teams.some(t=>t.name===v)){UI.toast("â Taka druÅ¼yna juÅ¼ istnieje.");return;}
     mutate(()=>{S.teams[idx].name=v;});
     UI.closeModal();refresh();
   };
   $("del").onclick=()=>{
     UI.closeModal();
-    UI.confirm("Usunąć drużynę <b>"+escq(old)+"</b>?<br><small style='color:var(--text-muted)'>Zawodnicy zostaną w bazie; zapisane mecze się nie zmienią.</small>",()=>{
+    UI.confirm("UsunÄÄ druÅ¼ynÄ <b>"+escq(old)+"</b>?<br><small style='color:var(--text-muted)'>Zawodnicy zostanÄ w bazie; zapisane mecze siÄ nie zmieniÄ.</small>",()=>{
       mutate(()=>{S.teams.splice(idx,1);});refresh();
     });
   };
@@ -2250,7 +2250,7 @@ UI.editTeam=function(idx){
 UI.openTeam=function(idx){S.uiTeam=idx;UI.screen("teamDetail");};
 function renderTeams(){
   const el=$("teamList");
-  if(!S.teams.length){el.innerHTML="<p style='color:var(--text-muted);text-align:center;'>Brak drużyn — dodaj pierwszą.</p>";return;}
+  if(!S.teams.length){el.innerHTML="<p style='color:var(--text-muted);text-align:center;'>Brak druÅ¼yn â dodaj pierwszÄ.</p>";return;}
   el.innerHTML=S.teams.map((t,i)=>"<div class='ri'><span>"+escq(t.name)+" <small style='color:var(--text-muted)'>("+t.riders.length+")</small></span><span><button class='btn small' data-open='"+i+"'>Zawodnicy</button><button class='btn small' data-edit='"+i+"'>Edytuj</button></span></div>").join("");
   el.querySelectorAll("[data-open]").forEach(b=>b.onclick=()=>UI.openTeam(+b.dataset.open));
   el.querySelectorAll("[data-edit]").forEach(b=>b.onclick=()=>UI.editTeam(+b.dataset.edit));
@@ -2259,8 +2259,8 @@ function renderTeamDetail(){
   const t=S.teams[S.uiTeam];if(!t){UI.screen("teams");return;}
   $("teamDetailTitle").textContent=t.name.toUpperCase();
   const el=$("teamRiderList");
-  if(!t.riders.length){el.innerHTML="<p style='color:var(--text-muted);text-align:center;'>Brak zawodników w drużynie.</p>";return;}
-  el.innerHTML="<div style='font-size:0.72rem;color:var(--text-muted);text-align:right;margin:0 0 6px;font-weight:700'>S — senior · J — junior</div>"+t.riders.map(name=>{
+  if(!t.riders.length){el.innerHTML="<p style='color:var(--text-muted);text-align:center;'>Brak zawodnikÃ³w w druÅ¼ynie.</p>";return;}
+  el.innerHTML="<div style='font-size:0.72rem;color:var(--text-muted);text-align:right;margin:0 0 6px;font-weight:700'>S â senior Â· J â junior</div>"+t.riders.map(name=>{
     if(name===LG_ZZ_NAME)return "<div class='ri'><span>"+escq(name)+" <span class='mk'>ZZ</span></span></div>";
     const isJr=!!(S.juniors||[]).includes(name);
     const gi=S.riders.indexOf(name);
@@ -2268,7 +2268,7 @@ function renderTeamDetail(){
       "<button class='btn small "+(isJr?"secondary":"primary")+"' data-cat-s='"+escq(name)+"'>S</button>"+
       "<button class='btn small "+(isJr?"primary":"secondary")+"' data-cat-j='"+escq(name)+"'>J</button> "+
       (gi>=0?"<button class='btn small' data-tedit='"+gi+"'>Edytuj</button>":"")+
-      "<button class='btn small danger' data-rm='"+escq(name)+"'>Usuń</button></span></div>";
+      "<button class='btn small danger' data-rm='"+escq(name)+"'>UsuÅ</button></span></div>";
   }).join("");
   const setCat=(nm,jr)=>mutate(()=>{if(!S.juniors)S.juniors=[];S.juniors=jr?S.juniors.concat(nm):S.juniors.filter(n=>n!==nm);});
   el.querySelectorAll("[data-tedit]").forEach(b=>b.onclick=()=>UI.editRider(+b.dataset.tedit));
@@ -2282,8 +2282,8 @@ function renderTeamDetail(){
 }
 UI.addTeamRider=function(){
   const t=S.teams[S.uiTeam];if(!t)return;
-  UI.openModal("<h3>Dodaj zawodnika</h3><p style='text-align:center;font-size:0.78rem;color:var(--text-muted);margin:0 0 10px'>Drużyna: <b>"+escq(t.name)+"</b> — zawodnik trafi też do wspólnej bazy. Kategorię ustaw przyciskami poniżej: S (senior) lub J (junior).</p>"+
-    "<label for='tnr' class='sr-label'>Imię i nazwisko</label><input type='text' id='tnr' placeholder='Imię i Nazwisko' style='width:100%;margin-bottom:12px'>"+lgCatToggleHtml()+
+  UI.openModal("<h3>Dodaj zawodnika</h3><p style='text-align:center;font-size:0.78rem;color:var(--text-muted);margin:0 0 10px'>DruÅ¼yna: <b>"+escq(t.name)+"</b> â zawodnik trafi teÅ¼ do wspÃ³lnej bazy. KategoriÄ ustaw przyciskami poniÅ¼ej: S (senior) lub J (junior).</p>"+
+    "<label for='tnr' class='sr-label'>ImiÄ i nazwisko</label><input type='text' id='tnr' placeholder='ImiÄ i Nazwisko' style='width:100%;margin-bottom:12px'>"+lgCatToggleHtml()+
     "<button class='btn primary' id='ok'>Dodaj</button><button class='btn' data-onclick='UI.closeModal()'>Anuluj</button>");
   const isJr=lgBindCatToggle();
   $("ok").onclick=()=>{
@@ -2300,7 +2300,7 @@ UI.addTeamRider=function(){
 UI.assignTeamRider=function(){
   const t=S.teams[S.uiTeam];if(!t)return;
   const pool=S.riders.filter(n=>!t.riders.includes(n));
-  if(!pool.length){UI.toast("Wszyscy zawodnicy bazy są już w tej drużynie.");return;}
+  if(!pool.length){UI.toast("Wszyscy zawodnicy bazy sÄ juÅ¼ w tej druÅ¼ynie.");return;}
   UI.openModal("<h3>Przypisz z bazy</h3>"+pool.map(n=>"<button class='btn' style='text-transform:none' data-a='"+escq(n)+"'>"+escq(n)+"</button>").join("")+"<button class='btn' style='margin-top:10px' data-onclick='UI.closeModal()'>Anuluj</button>");
   $("modal").querySelectorAll("[data-a]").forEach(b=>b.onclick=()=>{
     const nm=b.dataset.a;
@@ -2311,16 +2311,16 @@ UI.assignTeamRider=function(){
 
 /* ===== Kreator meczu ligowego ===== */
 let LgW=null; /* kreator: {side:'home'|'away', home:{...}, away:{...}} */
-let LgFromLeague=false; /* edycja drużyny otwarta z kreatora meczu — powrót do wyboru drużyn */
+let LgFromLeague=false; /* edycja druÅ¼yny otwarta z kreatora meczu â powrÃ³t do wyboru druÅ¼yn */
 let LgLineupStep=null;
 UI.startLeague=function(){LgW={side:"home",home:null,away:null};LgLineupStep=null;UI.screen("lgTeam");};
-UI.cancelLeague=function(){UI.confirm("Porzucić tworzenie meczu?",()=>{LgW=null;LgLineupStep=null;UI.screen("home");});};
+UI.cancelLeague=function(){UI.confirm("PorzuciÄ tworzenie meczu?",()=>{LgW=null;LgLineupStep=null;UI.screen("home");});};
 function renderLgTeamPick(){
   if(!LgW){UI.screen("home");return;}
   const isHome=LgW.side==="home";
-  $("lgTeamTitle").textContent=(isHome?"GOSPODARZE":"GOŚCIE")+" — WYBÓR DRUŻYNY";
+  $("lgTeamTitle").textContent=(isHome?"GOSPODARZE":"GOÅCIE")+" â WYBÃR DRUÅ»YNY";
   const el=$("lgTeamList");
-  if(!S.teams.length){el.innerHTML="<p style='color:var(--text-muted);text-align:center;'>Brak drużyn — dodaj pierwszą.</p>";return;}
+  if(!S.teams.length){el.innerHTML="<p style='color:var(--text-muted);text-align:center;'>Brak druÅ¼yn â dodaj pierwszÄ.</p>";return;}
   el.innerHTML=S.teams.map((t,i)=>"<div style='display:flex;gap:6px;margin-bottom:6px'>"+
     "<button class='btn' style='flex:1;text-transform:none' data-pick='"+i+"'>"+escq(t.name)+" <small style='opacity:0.7'>("+t.riders.length+")</small></button>"+
     "<button class='btn small' style='align-self:center' data-tedit='"+i+"'>Edytuj</button></div>").join("");
@@ -2329,10 +2329,10 @@ function renderLgTeamPick(){
 }
 UI.lgPickTeam=function(idx){
   const t=S.teams[idx];if(!t||!LgW)return;
-  /* Starsze drużyny mogą nie mieć „Zawodnika zastępowanego” — dodajemy go automatycznie. */
+  /* Starsze druÅ¼yny mogÄ nie mieÄ âZawodnika zastÄpowanegoâ â dodajemy go automatycznie. */
   if(!t.riders.includes(LG_ZZ_NAME))mutate(()=>{t.riders.push(LG_ZZ_NAME);});
   const nums=LgW.side==="home"?[9,10,11,12,13,14,15,16]:[1,2,3,4,5,6,7,8];
-  const lineup={};nums.forEach(n=>lineup[n]=null); /* skład startuje pusty — „Brak zawodnika” */
+  const lineup={};nums.forEach(n=>lineup[n]=null); /* skÅad startuje pusty â âBrak zawodnikaâ */
   LgW[LgW.side]={name:t.name,lineup,teamIdx:idx};
   if(LgW.side==="home"){LgW.side="away";renderLgTeamPick();}
   else UI.screen("lgLineup");
@@ -2343,14 +2343,14 @@ function renderLgLineup(){
   if(LgLineupStep==="away"&&!LgW.away)LgLineupStep="home";
   const side=LgW[LgLineupStep];
   const nums=LgLineupStep==="home"?[9,10,11,12,13,14,15,16]:[1,2,3,4,5,6,7,8];
-  $("lgLineupTitle").textContent=(LgLineupStep==="home"?"GOSPODARZE":"GOŚCIE")+": "+side.name.toUpperCase();
+  $("lgLineupTitle").textContent=(LgLineupStep==="home"?"GOSPODARZE":"GOÅCIE")+": "+side.name.toUpperCase();
   const team=S.teams[side.teamIdx];
   const all=team?team.riders:[];
   let html="";
   nums.forEach(n=>{
     const cur=side.lineup[n];
     const juniorOnly=(LgLineupStep==="home"&&(n===14||n===15))||(LgLineupStep==="away"&&(n===6||n===7));
-    /* Wybrani zawodnicy znikają z list; 6-7 / 14-15 — tylko juniorzy. */
+    /* Wybrani zawodnicy znikajÄ z list; 6-7 / 14-15 â tylko juniorzy. */
     const pool=all.filter(name=>{
       if(name===cur)return true;
       if(Object.values(side.lineup).includes(name))return false;
@@ -2366,8 +2366,8 @@ function renderLgLineup(){
       "</div>";
   });
   html+="<div class='lg-hints' style='margin-top:8px'>"+
-    "<div>Jeżeli drużyna będzie korzystać z zastępstwa zawodnika (ZZ), umieść w składzie „Zawodnik zastępowany” na wybranym numerze.</div>"+
-    "<div>Numery 6–7 / 14–15 mogą zajmować wyłącznie juniorzy.</div></div>";
+    "<div>JeÅ¼eli druÅ¼yna bÄdzie korzystaÄ z zastÄpstwa zawodnika (ZZ), umieÅÄ w skÅadzie âZawodnik zastÄpowanyâ na wybranym numerze.</div>"+
+    "<div>Numery 6â7 / 14â15 mogÄ zajmowaÄ wyÅÄcznie juniorzy.</div></div>";
   $("lgLineupList").innerHTML=html;
 }
 UI.lgSetLineup=function(num,val){
@@ -2375,12 +2375,12 @@ UI.lgSetLineup=function(num,val){
   const team=S.teams[side.teamIdx];
   if(val==="-1"||!team){side.lineup[num]=null;renderLgLineup();return;}
   const name=team.riders[+val];
-  /* Każdy zawodnik (także Zawodnik zastępowany) tylko raz w składzie. */
+  /* KaÅ¼dy zawodnik (takÅ¼e Zawodnik zastÄpowany) tylko raz w skÅadzie. */
   const dup=Object.keys(side.lineup).some(k=>+k!==num&&side.lineup[k]===name);
-  if(dup){UI.toast("❌ Ten zawodnik jest już w składzie pod innym numerem.");renderLgLineup();return;}
-  /* 6-7 (goście) i 14-15 (gospodarze) — wyłącznie juniorzy. */
+  if(dup){UI.toast("â Ten zawodnik jest juÅ¼ w skÅadzie pod innym numerem.");renderLgLineup();return;}
+  /* 6-7 (goÅcie) i 14-15 (gospodarze) â wyÅÄcznie juniorzy. */
   const juniorOnly=(LgLineupStep==="home"&&(num===14||num===15))||(LgLineupStep==="away"&&(num===6||num===7));
-  if(juniorOnly&&!(S.juniors||[]).includes(name)){UI.toast("❌ Pod numer "+num+" można wpisać wyłącznie juniora.");renderLgLineup();return;}
+  if(juniorOnly&&!(S.juniors||[]).includes(name)){UI.toast("â Pod numer "+num+" moÅ¼na wpisaÄ wyÅÄcznie juniora.");renderLgLineup();return;}
   side.lineup[num]=name;
   renderLgLineup();
 };
@@ -2397,12 +2397,12 @@ UI.lgLineupNext=function(){
     return;
   }
   if(!LgW.away.lineup[1]){UI.toast("Przypisz zawodnika nr 1.");return;}
-  /* Walidacja: 6-7 / 14-15 tylko juniorzy (jeśli obsadzone). */
+  /* Walidacja: 6-7 / 14-15 tylko juniorzy (jeÅli obsadzone). */
   const badJr=[["home",14],["home",15],["away",6],["away",7]].find(([tk,n])=>{
     const nm=LgW[tk].lineup[n];
     return nm&&!(S.juniors||[]).includes(nm);
   });
-  if(badJr){UI.toast("❌ Nr "+badJr[1]+" ("+(badJr[0]==="home"?"gospodarze":"goście")+") — wyłącznie junior.");LgLineupStep=badJr[0];UI.screen("lgLineup");return;}
+  if(badJr){UI.toast("â Nr "+badJr[1]+" ("+(badJr[0]==="home"?"gospodarze":"goÅcie")+") â wyÅÄcznie junior.");LgLineupStep=badJr[0];UI.screen("lgLineup");return;}
   const c=newLeagueComp(LgW);
   if(!mutate(()=>{
     S.comps[c.id]=c;S.current=c.id;S.settings.lastComp=c.id;
@@ -2411,51 +2411,51 @@ UI.lgLineupNext=function(){
   UI.screen("match");
 };
 
-/* Zestawy startowe meczu ligowego (numery: goście 1-8, gospodarze 9-16). Kolejność
-   w wierszu = pole startowe; kaski: C czerwony i N niebieski = gospodarze, B biały i Ż żółty = goście. */
+/* Zestawy startowe meczu ligowego (numery: goÅcie 1-8, gospodarze 9-16). KolejnoÅÄ
+   w wierszu = pole startowe; kaski: C czerwony i N niebieski = gospodarze, B biaÅy i Å» Å¼Ã³Åty = goÅcie. */
 const LG_SET1=[
-[[1,"Ż"],[9,"C"],[3,"B"],[11,"N"]],
-[[15,"C"],[6,"B"],[14,"N"],[7,"Ż"]],
-[[5,"Ż"],[12,"N"],[2,"B"],[13,"C"]],
-[[14,"N"],[4,"Ż"],[10,"C"],[6,"B"]],
-[[11,"C"],[3,"B"],[12,"N"],[4,"Ż"]],
-[[13,"C"],[2,"B"],[15,"N"],[1,"Ż"]],
-[[7,"B"],[10,"N"],[5,"Ż"],[9,"C"]],
-[[3,"B"],[13,"C"],[4,"Ż"],[14,"N"]],
-[[9,"C"],[1,"Ż"],[10,"N"],[2,"B"]],
-[[6,"B"],[11,"C"],[5,"Ż"],[12,"N"]],
-[[12,"N"],[4,"B"],[9,"C"],[1,"Ż"]],
-[[2,"Ż"],[15,"N"],[7,"B"],[11,"C"]],
-[[10,"N"],[5,"Ż"],[13,"C"],[3,"B"]],
-[["Ż"],["C"],["B"],["N"]],
-[["C"],["Ż"],["N"],["B"]]
+[[1,"Å»"],[9,"C"],[3,"B"],[11,"N"]],
+[[15,"C"],[6,"B"],[14,"N"],[7,"Å»"]],
+[[5,"Å»"],[12,"N"],[2,"B"],[13,"C"]],
+[[14,"N"],[4,"Å»"],[10,"C"],[6,"B"]],
+[[11,"C"],[3,"B"],[12,"N"],[4,"Å»"]],
+[[13,"C"],[2,"B"],[15,"N"],[1,"Å»"]],
+[[7,"B"],[10,"N"],[5,"Å»"],[9,"C"]],
+[[3,"B"],[13,"C"],[4,"Å»"],[14,"N"]],
+[[9,"C"],[1,"Å»"],[10,"N"],[2,"B"]],
+[[6,"B"],[11,"C"],[5,"Å»"],[12,"N"]],
+[[12,"N"],[4,"B"],[9,"C"],[1,"Å»"]],
+[[2,"Å»"],[15,"N"],[7,"B"],[11,"C"]],
+[[10,"N"],[5,"Å»"],[13,"C"],[3,"B"]],
+[["Å»"],["C"],["B"],["N"]],
+[["C"],["Å»"],["N"],["B"]]
 ];
 const LG_SET2=[
-[[9,"C"],[1,"Ż"],[11,"N"],[3,"B"]],
-[[6,"B"],[15,"C"],[7,"Ż"],[14,"N"]],
-[[12,"N"],[5,"Ż"],[13,"C"],[2,"B"]],
-[[4,"Ż"],[14,"N"],[6,"B"],[10,"C"]],
-[[3,"B"],[11,"C"],[4,"Ż"],[12,"N"]],
-[[2,"B"],[13,"C"],[1,"Ż"],[15,"N"]],
-[[10,"N"],[7,"B"],[9,"C"],[5,"Ż"]],
-[[13,"C"],[3,"B"],[14,"N"],[4,"Ż"]],
-[[1,"Ż"],[9,"C"],[2,"B"],[10,"N"]],
-[[11,"C"],[6,"B"],[12,"N"],[5,"Ż"]],
-[[4,"B"],[12,"N"],[1,"Ż"],[9,"C"]],
-[[15,"N"],[2,"Ż"],[11,"C"],[7,"B"]],
-[[5,"Ż"],[10,"N"],[3,"B"],[13,"C"]],
-[["C"],["Ż"],["N"],["B"]],
-[["Ż"],["C"],["B"],["N"]]
+[[9,"C"],[1,"Å»"],[11,"N"],[3,"B"]],
+[[6,"B"],[15,"C"],[7,"Å»"],[14,"N"]],
+[[12,"N"],[5,"Å»"],[13,"C"],[2,"B"]],
+[[4,"Å»"],[14,"N"],[6,"B"],[10,"C"]],
+[[3,"B"],[11,"C"],[4,"Å»"],[12,"N"]],
+[[2,"B"],[13,"C"],[1,"Å»"],[15,"N"]],
+[[10,"N"],[7,"B"],[9,"C"],[5,"Å»"]],
+[[13,"C"],[3,"B"],[14,"N"],[4,"Å»"]],
+[[1,"Å»"],[9,"C"],[2,"B"],[10,"N"]],
+[[11,"C"],[6,"B"],[12,"N"],[5,"Å»"]],
+[[4,"B"],[12,"N"],[1,"Å»"],[9,"C"]],
+[[15,"N"],[2,"Å»"],[11,"C"],[7,"B"]],
+[[5,"Å»"],[10,"N"],[3,"B"],[13,"C"]],
+[["C"],["Å»"],["N"],["B"]],
+[["Å»"],["C"],["B"],["N"]]
 ];
 const LG_SETS={1:LG_SET1,2:LG_SET2};
 const LG_EXCL_CODES=["W","D","T","U","W2","U/-","-"];
 const LG_RZ_CODES=["T","W2","U/-","-"];
-/* „Zawodnik zastępowany” — ficzer ZZ: stoi w składzie, sam nie jeździ; przed każdym
-   jego biegiem (1–13) pojawia się okienko wyboru, kto pojedzie jako ZZ. */
-const LG_ZZ_NAME="Zawodnik zastępowany";
+/* âZawodnik zastÄpowanyâ â ficzer ZZ: stoi w skÅadzie, sam nie jeÅºdzi; przed kaÅ¼dym
+   jego biegiem (1â13) pojawia siÄ okienko wyboru, kto pojedzie jako ZZ. */
+const LG_ZZ_NAME="Zawodnik zastÄpowany";
 
-/* Zawodnicy dodani w drużinach zasilają wspólną bazę (S.riders) — są dzięki temu
-   od razu widoczni w „Przypisz z bazy” serii indywidualnych (SGP, SEC...). */
+/* Zawodnicy dodani w druÅ¼inach zasilajÄ wspÃ³lnÄ bazÄ (S.riders) â sÄ dziÄki temu
+   od razu widoczni w âPrzypisz z bazyâ serii indywidualnych (SGP, SEC...). */
 (function(){
   let added=false;
   (S.teams||[]).forEach(t=>(t.riders||[]).forEach(n=>{
@@ -2475,7 +2475,7 @@ function newLeagueComp(w){
   }
   return {id:(typeof crypto!=="undefined"&&crypto.randomUUID)?crypto.randomUUID():("c"+Date.now()),
     date:new Date().toLocaleDateString("pl-PL"),format:"liga",league:true,launched:true,
-    name:w.home.name+" – "+w.away.name,
+    name:w.home.name+" â "+w.away.name,
     home:{name:w.home.name,lineup:Object.assign({},w.home.lineup)},
     away:{name:w.away.name,lineup:Object.assign({},w.away.lineup)},
     match:m,mapping:{},overrides:{}};
@@ -2497,12 +2497,12 @@ function lgLineup(teamKey){
   return teamKey==="home"?c.home:c.away;
 }
 function lgTeamOfHelmet(h){return (h==="C"||h==="N")?"home":"away";}
-function lgDotClass(h){return {C:"lg-dC",N:"lg-dN",B:"lg-dB","Ż":"lg-dZ"}[h];}
+function lgDotClass(h){return {C:"lg-dC",N:"lg-dN",B:"lg-dB","Å»":"lg-dZ"}[h];}
 function lgFinishers(h){
   return h.order.filter(i=>{const s=h.slots[i];return !s.excl&&s.num!=null;});
 }
-/* Punktacja: 3-2-1-0 wg kolejności mety. Bonus (apostrof) tylko przy 5:1/1:5 (2. miejsce)
-   i przy 3:3 — wyłącznie gdy bieg ukończyły wszystkie 4 osoby (3. miejsce). */
+/* Punktacja: 3-2-1-0 wg kolejnoÅci mety. Bonus (apostrof) tylko przy 5:1/1:5 (2. miejsce)
+   i przy 3:3 â wyÅÄcznie gdy bieg ukoÅczyÅy wszystkie 4 osoby (3. miejsce). */
 function lgComputeScore(h){
   const fins=lgFinishers(h);
   const present=fins.map(i=>h.slots[i]);
@@ -2524,7 +2524,7 @@ function lgCumulative(m,beforeHeatIdx){
   }
   return {home,away};
 }
-/* Limity startów liczone od nowa ze stanu biegów: 5 bazowo, +1 za RT, +1 za ZZ (max 7). */
+/* Limity startÃ³w liczone od nowa ze stanu biegÃ³w: 5 bazowo, +1 za RT, +1 za ZZ (max 7). */
 function lgUsage(m){
   const us={};
   const rec=n=>{if(!us[n])us[n]={starts:0,usedRT:false,usedZZ:false};return us[n];};
@@ -2539,7 +2539,7 @@ function lgUsage(m){
   return us;
 }
 function lgRiderTotals(teamKey,upto){
-  /* upto — liczba biegów branych pod uwagę (nominacje 14/15 liczą punkty z bieg\u00f3w 1-13) */
+  /* upto â liczba biegÃ³w branych pod uwagÄ (nominacje 14/15 liczÄ punkty z bieg\u00f3w 1-13) */
   const m=lgm();if(!m)return{};
   const side=lgLineup(teamKey);
   const totals={};
@@ -2596,14 +2596,14 @@ function lgEligible(teamKey,exclNum,type,heatIdx){
     if(isMain)cands=reserves.filter(n=>n!==jrNum);
     else if(isRes&&lgIsJunior(jrNum,teamKey))cands=[jrNum];
   }else if(type==="RT"){
-    /* RT za juniora (6-7 / 14-15) — wyłącznie junior z rezerw (6-8 / 14-16). */
+    /* RT za juniora (6-7 / 14-15) â wyÅÄcznie junior z rezerw (6-8 / 14-16). */
     if(isRes)cands=reserves.filter(n=>n!==exclNum&&lgIsJunior(n,teamKey));
     else cands=nums.filter(n=>n!==exclNum);
   }
   const inHeat=new Set(m.heats[heatIdx].slots.map(s=>s.num));
   return cands.filter(n=>{
-    if(side.lineup[n]==null)return false; /* miejsce nieobsadzone — nie ma kto jechać */
-    if(side.lineup[n]===LG_ZZ_NAME)return false; /* Zawodnik zastępowany nikogo nie zastępuje */
+    if(side.lineup[n]==null)return false; /* miejsce nieobsadzone â nie ma kto jechaÄ */
+    if(side.lineup[n]===LG_ZZ_NAME)return false; /* Zawodnik zastÄpowany nikogo nie zastÄpuje */
     if(inHeat.has(n))return false;
     const rec=us[n]||{starts:0,usedRT:false,usedZZ:false};
     const limit=5+(rec.usedRT?1:0)+(rec.usedZZ?1:0);
@@ -2618,12 +2618,12 @@ function lgRtAllowed(teamKey,heatIdx){
   const diff=teamKey==="home"?(c.away-c.home):(c.home-c.away);
   return diff>=6;
 }
-/* ===== „Zawodnik zastępowany” (ZZ) =====
-   Stoi w składzie na wybranym numerze, ale sam nie jeździ. Gdy najbliższy (aktywny)
-   bieg 1–13 jest rozgrywany z jego udziałem, automatycznie pojawia się okienko:
-   trzeba wybrać, kto pojedzie jako ZZ. Każdy zawodnik może pojechać jako ZZ tylko
-   raz w meczu. W biegach nominowanych (14–15) nie można go wybrać. */
-let lgZZAsked={}; /* klucz heatIdx_slotIdx — okienko pokazane, nie powtarzamy */
+/* ===== âZawodnik zastÄpowanyâ (ZZ) =====
+   Stoi w skÅadzie na wybranym numerze, ale sam nie jeÅºdzi. Gdy najbliÅ¼szy (aktywny)
+   bieg 1â13 jest rozgrywany z jego udziaÅem, automatycznie pojawia siÄ okienko:
+   trzeba wybraÄ, kto pojedzie jako ZZ. KaÅ¼dy zawodnik moÅ¼e pojechaÄ jako ZZ tylko
+   raz w meczu. W biegach nominowanych (14â15) nie moÅ¼na go wybraÄ. */
+let lgZZAsked={}; /* klucz heatIdx_slotIdx â okienko pokazane, nie powtarzamy */
 function lgIsZZRider(num,teamKey){
   const side=lgLineup(teamKey);
   return !!(side&&side.lineup[num]===LG_ZZ_NAME);
@@ -2638,15 +2638,15 @@ function lgZZCandidates(teamKey,heatIdx){
     if(side.lineup[n]==null||side.lineup[n]===LG_ZZ_NAME)return false;
     if(inHeat.has(n))return false;
     const rec=us[n]||{starts:0,usedRT:false,usedZZ:false};
-    if(rec.usedZZ)return false; /* każdy zawodnik tylko raz jako ZZ */
-    const limit=5+(rec.usedRT?1:0)+1; /* pojechanie jako ZZ daje +1 do limitu startów */
+    if(rec.usedZZ)return false; /* kaÅ¼dy zawodnik tylko raz jako ZZ */
+    const limit=5+(rec.usedRT?1:0)+1; /* pojechanie jako ZZ daje +1 do limitu startÃ³w */
     if(rec.starts>=limit)return false;
     return true;
   });
 }
-/* Okno z zapowiedzią: NIE znika samo — użytkownik zamyka je przyciskiem „Dalej”,
-   żeby zdążyć przeczytać, co zaraz nastąpi. locked=true → nie zamknie go też
-   kliknięcie w tło ani Esc. */
+/* Okno z zapowiedziÄ: NIE znika samo â uÅ¼ytkownik zamyka je przyciskiem âDalejâ,
+   Å¼eby zdÄÅ¼yÄ przeczytaÄ, co zaraz nastÄpi. locked=true â nie zamknie go teÅ¼
+   klikniÄcie w tÅo ani Esc. */
 UI.announce=function(title,msg,cb){
   UI.openModal("<h3>"+title+"</h3><p style='text-align:center;font-size:0.85rem;margin:0 0 12px'>"+msg+"</p>"+
     "<button class='btn primary' id='annOk'>Dalej &#10132;</button>",true);
@@ -2666,24 +2666,24 @@ function lgMaybePromptZZ(){
     lgZZAsked[key]=true;
     const cands=lgZZCandidates(teamKey,hi);
     if(cands.length)UI.lgPromptZZ(hi,slotIdx,teamKey,cands);
-    return; /* jedno okienko naraz — kolejny slot ZZ dostanie prompt po obs\u0142u\u017ceniu tego */
+    return; /* jedno okienko naraz â kolejny slot ZZ dostanie prompt po obs\u0142u\u017ceniu tego */
   }
 }
 UI.lgPromptZZ=function(heatIdx,slotIdx,teamKey,cands){
   const m=lgm();const h=m.heats[heatIdx];
   const zzNum=h.slots[slotIdx].num;
-  UI.announce("Zastępstwo — ZZ",
-    "Bieg "+h.n+": w składzie pod numerem <b>"+zzNum+"</b> jedzie <b>Zawodnik zastępowany</b>."+
-    " Za chwilę wybierzesz, kto pojedzie w jego miejsce jako ZZ.",
+  UI.announce("ZastÄpstwo â ZZ",
+    "Bieg "+h.n+": w skÅadzie pod numerem <b>"+zzNum+"</b> jedzie <b>Zawodnik zastÄpowany</b>."+
+    " Za chwilÄ wybierzesz, kto pojedzie w jego miejsce jako ZZ.",
     ()=>{
       const us=lgUsage(m);
-      let html="<h3>Zastępstwo — ZZ</h3><p style='text-align:center;font-size:0.78rem;color:var(--text-muted);margin:0 0 10px'>Bieg "+h.n+": <b>Zawodnik zastępowany</b> (nr "+zzNum+") — wybierz, kto pojedzie jako ZZ.</p>";
+      let html="<h3>ZastÄpstwo â ZZ</h3><p style='text-align:center;font-size:0.78rem;color:var(--text-muted);margin:0 0 10px'>Bieg "+h.n+": <b>Zawodnik zastÄpowany</b> (nr "+zzNum+") â wybierz, kto pojedzie jako ZZ.</p>";
       cands.forEach(n=>{
         const rec=us[n]||{starts:0,usedRT:false,usedZZ:false};
         const left=5+(rec.usedRT?1:0)+1-rec.starts;
-        html+="<button class='btn' style='text-transform:none' data-zz='"+n+"'>"+escq(lgRiderName(n))+" <small style='opacity:0.7'>(pozostałe starty: "+left+")</small></button>";
+        html+="<button class='btn' style='text-transform:none' data-zz='"+n+"'>"+escq(lgRiderName(n))+" <small style='opacity:0.7'>(pozostaÅe starty: "+left+")</small></button>";
       });
-      /* Bez „Anuluj” — ZZ musi zostać wybrane; okna nie zamyka też kliknięcie w tło ani Esc. */
+      /* Bez âAnulujâ â ZZ musi zostaÄ wybrane; okna nie zamyka teÅ¼ klikniÄcie w tÅo ani Esc. */
       UI.openModal(html,true);
       $("modal").querySelectorAll("[data-zz]").forEach(b=>b.onclick=()=>UI.lgPickZZ(heatIdx,slotIdx,teamKey,+b.dataset.zz));
     });
@@ -2694,7 +2694,7 @@ UI.lgPickZZ=function(heatIdx,slotIdx,teamKey,n){
   if(!mutate(()=>{h.slots[slotIdx].num=n;h.slots[slotIdx].subType="ZZ";lgReorder(h);}))return;
   UI.closeModal();lgRender();
 };
-/* Biegi nominowane 14/15: do 14 nie można wybrać dwóch najlepszych (bonusy się nie liczą). */
+/* Biegi nominowane 14/15: do 14 nie moÅ¼na wybraÄ dwÃ³ch najlepszych (bonusy siÄ nie liczÄ). */
 /* Biegi nominowane 14/15: przy ustalaniu sk\u0142ad\u00f3w NIE uwzgl\u0119dniamy rezerw 6-8/14-16
    (one mog\u0105 w nich wyst\u0105pi\u0107 wg normalnych zasad rezerw). Bieg 15: je\u017adzi najlepszy
    zawodnik podstawowego sk\u0142adu (1-5 / 9-13) plus jeden dowolnie wybrany; pozostali
@@ -2754,23 +2754,23 @@ function lgMaybeNominate(){
 }
 UI.lgNominatePanel=function(){
   const m=lgm();if(!m)return;
-  UI.announce("Nominacje — biegi 14 i 15",
-    "Zatwierdzono biegi 1–13. Trenerzy <b>obu drużyn</b> wybiorą teraz zawodników nominowanych"+
-    " — najpierw do biegu 14, potem do biegu 15 (w nim jadą dwaj najlepsi punktowo).",
+  UI.announce("Nominacje â biegi 14 i 15",
+    "Zatwierdzono biegi 1â13. Trenerzy <b>obu druÅ¼yn</b> wybiorÄ teraz zawodnikÃ³w nominowanych"+
+    " â najpierw do biegu 14, potem do biegu 15 (w nim jadÄ dwaj najlepsi punktowo).",
     ()=>{
-      /* KOLEJNOŚĆ KROKÓW: najpierw bieg 14 (gospodarze i goście), dopiero potem
-         bieg 15 (gospodarze i goście).
-         — Bieg 14: na liście wyboru pojawiają się WSZYSCY zawodnicy z pozycji
-           zasadniczych 1–5 / 9–13 (bez ograniczeń punktowych). Nad listą widnieje
-           jednak komentarz, że do biegu 15 nominuje się dwóch najlepszych
-           punktowo zawodników drużyny.
-         — Bieg 15: na liście pojawiają się wyłącznie dwaj najlepsi punktowi
-           (wg klasyfikacji po biegach 1–13, remisy rozstrzyga trener), ALE z
-           wykluczeniem zawodników już nominowanych do biegu 14 — bo kto jedzie
-           w 14, NIE może jechać w 15 (jedyny wyjątek: start w ramach rezerwy
+      /* KOLEJNOÅÄ KROKÃW: najpierw bieg 14 (gospodarze i goÅcie), dopiero potem
+         bieg 15 (gospodarze i goÅcie).
+         â Bieg 14: na liÅcie wyboru pojawiajÄ siÄ WSZYSCY zawodnicy z pozycji
+           zasadniczych 1â5 / 9â13 (bez ograniczeÅ punktowych). Nad listÄ widnieje
+           jednak komentarz, Å¼e do biegu 15 nominuje siÄ dwÃ³ch najlepszych
+           punktowo zawodnikÃ³w druÅ¼yny.
+         â Bieg 15: na liÅcie pojawiajÄ siÄ wyÅÄcznie dwaj najlepsi punktowi
+           (wg klasyfikacji po biegach 1â13, remisy rozstrzyga trener), ALE z
+           wykluczeniem zawodnikÃ³w juÅ¼ nominowanych do biegu 14 â bo kto jedzie
+           w 14, NIE moÅ¼e jechaÄ w 15 (jedyny wyjÄtek: start w ramach rezerwy
            taktycznej RT).
-         Dzięki tej kolejności trener od razu widzi pełną listę na bieg 14,
-         a przy wyborze do 15 system sam pilnuje wykluczenia dublowanych startów. */
+         DziÄki tej kolejnoÅci trener od razu widzi peÅnÄ listÄ na bieg 14,
+         a przy wyborze do 15 system sam pilnuje wykluczenia dublowanych startÃ³w. */
       LgNom={steps:[["home",14],["away",14],["home",15],["away",15]],i:0,picks:[],sel:[]};
       UI.lgNominateShow();
     });
@@ -2780,23 +2780,23 @@ UI.lgNominateShow=function(){
   const st=LgNom.steps[LgNom.i];
   const tk=st[0],n=st[1];
   let cands=lgEligibleNominated(tk,n-1);
-  /* Bieg 14: pełna lista zawodników z pozycji 1–5 / 9–13 (lub 4, gdy jest ZZ).
-     Bieg 15: ta sama pełna lista, ale z wykluczeniem zawodników już nominowanych
-     do biegu 14 (tej samej drużyny) — kto jedzie w 14, nie jedzie w 15
-     (wyjątek: start w ramach RT). W obu biegach wybiera się DWÓCH zawodników. */
+  /* Bieg 14: peÅna lista zawodnikÃ³w z pozycji 1â5 / 9â13 (lub 4, gdy jest ZZ).
+     Bieg 15: ta sama peÅna lista, ale z wykluczeniem zawodnikÃ³w juÅ¼ nominowanych
+     do biegu 14 (tej samej druÅ¼yny) â kto jedzie w 14, nie jedzie w 15
+     (wyjÄtek: start w ramach RT). W obu biegach wybiera siÄ DWÃCH zawodnikÃ³w. */
   if(n===15){
     const ch=LgNom.picks.filter(p=>p.tk===tk&&p.n===14).map(p=>p.riders).flat();
     cands=cands.filter(x=>!ch.includes(x));
   }
   LgNom.tk=tk;LgNom.n=n;LgNom.cands=cands;LgNom.need=Math.min(2,cands.length);
-  /* Zabezpieczenie: gdyby w danym kroku nie było ani jednego kandydata,
-     krok pomijamy automatycznie (okno jest zablokowane — nie może utknąć). */
+  /* Zabezpieczenie: gdyby w danym kroku nie byÅo ani jednego kandydata,
+     krok pomijamy automatycznie (okno jest zablokowane â nie moÅ¼e utknÄÄ). */
   if(!cands.length){UI.lgNominateNext();return;}
-  /* Kolory kasków: kolejne wolne pola startowe tej drużyny w tym biegu.
+  /* Kolory kaskÃ³w: kolejne wolne pola startowe tej druÅ¼yny w tym biegu.
      Kandydat zaznaczony jako pierwszy pojedzie w kasku pierwszego wolnego pola,
-     drugi — w kasku drugiego pola (tak też trafia do slotów przy zapisie). */
+     drugi â w kasku drugiego pola (tak teÅ¼ trafia do slotÃ³w przy zapisie). */
   const hN=m.heats[n-1];
-  const HELM_COL={C:"#ef4444",N:"#3b82f6",B:"#f8fafc","Ż":"#eab308"};
+  const HELM_COL={C:"#ef4444",N:"#3b82f6",B:"#f8fafc","Å»":"#eab308"};
   const dot=hel=>"<span style='display:inline-block;width:13px;height:13px;border-radius:50%;background:"+HELM_COL[hel]+";box-shadow:0 0 0 2px rgba(255,255,255,0.25);vertical-align:-2px;margin-right:6px;flex-shrink:0'></span>";
   const freeHelmets=hN.slots.filter(s=>lgTeamOfHelmet(s.helmet)===tk&&s.num==null).map(s=>s.helmet);
   let html="<h3>Nominacja \u2014 bieg "+n+"</h3>"+
@@ -2808,8 +2808,8 @@ UI.lgNominateShow=function(){
     " \u2014 zaznaczony zawodnik jedzie w kolejnym wolnym kolorze</p>";
   cands.forEach(x=>{
     const on=LgNom.sel.includes(x);
-    /* Kropka kasku: już wybrani mają swój przydzielony kolor, pozostali —
-       kolor następnego wolnego pola (ten przejmą, jeśli zostaną wybrani teraz). */
+    /* Kropka kasku: juÅ¼ wybrani majÄ swÃ³j przydzielony kolor, pozostali â
+       kolor nastÄpnego wolnego pola (ten przejmÄ, jeÅli zostanÄ wybrani teraz). */
     const si=LgNom.sel.indexOf(x);
     const hel=on?freeHelmets[si]:freeHelmets[LgNom.sel.length];
     html+="<button class='btn "+(on?"primary":"secondary")+"' style='text-transform:none;justify-content:flex-start' data-onclick='UI.lgNominateToggle("+x+")'>"+(hel?dot(hel):"")+"<span style='flex:1;text-align:left'>"+x+" \u2014 "+escq(lgRiderName(x))+"</span></button>";
@@ -2822,9 +2822,9 @@ UI.lgNominateShow=function(){
       ?"<button class='btn primary' data-onclick='UI.lgNominateNext()'>Dalej &#10132;</button>"
       :"<button class='btn' disabled style='opacity:0.4'>Dalej &#10132;</button>")+
     "</div>";
-  /* Okno nominacji jest ZABLOKOWANE (locked): nie zamknie go kliknięcie w tło
-     ani Esc. Zamyka się automatycznie dopiero po zapisaniu WSZYSTKICH czterech
-     decyzji (2× bieg 14, 2× bieg 15) — nie ma przycisku „Anuluj”. */
+  /* Okno nominacji jest ZABLOKOWANE (locked): nie zamknie go klikniÄcie w tÅo
+     ani Esc. Zamyka siÄ automatycznie dopiero po zapisaniu WSZYSTKICH czterech
+     decyzji (2Ã bieg 14, 2Ã bieg 15) â nie ma przycisku âAnulujâ. */
   UI.openModal(html,true);
 };
 UI.lgNominateToggle=function(x){
@@ -2855,7 +2855,7 @@ UI.lgNominateNext=function(){
   UI.lgNominateShow();
 };
 UI.lgNominateCancel=function(){LgNom=null;UI.closeModal();lgRender();};
-/* Cofnięcie do poprzedniego kroku kreatora nominacji (bez utraty wcześniejszych wyborów). */
+/* CofniÄcie do poprzedniego kroku kreatora nominacji (bez utraty wczeÅniejszych wyborÃ³w). */
 UI.lgNominateBack=function(){
   if(!LgNom||LgNom.i===0)return;
   LgNom.i--;
@@ -2863,15 +2863,15 @@ UI.lgNominateBack=function(){
   LgNom.sel=[];
   UI.lgNominateShow();
 };
-/* Ponowne nominacje: wraca do momentu wyboru zawodników na biegi 14 i 15.
-   Dostępne, dopóki biegi 14 i 15 nie są zatwierdzone — czyści oba składy
-   i otwiera panel od nowa (dla obu drużyn). */
+/* Ponowne nominacje: wraca do momentu wyboru zawodnikÃ³w na biegi 14 i 15.
+   DostÄpne, dopÃ³ki biegi 14 i 15 nie sÄ zatwierdzone â czyÅci oba skÅady
+   i otwiera panel od nowa (dla obu druÅ¼yn). */
 UI.lgRenominate=function(){
   const c=cur();const m=lgm();if(!c||!m)return;
   const h14=m.heats[13],h15=m.heats[14];
-  if(!m.heats.slice(0,13).every(h=>h.confirmed)){UI.toast("Nominacje są dostępne po zatwierdzeniu biegów 1–13.");return;}
-  if(h14.confirmed||h15.confirmed){UI.toast("Najpierw zresetuj bieg 14 i 15 — nominacje można zmienić tylko przed ich zatwierdzeniem.");return;}
-  UI.confirm("Ponownie wybrać nominowanych zawodników do biegów 14 i 15?<br><small style='color:var(--text-muted)'>Obecne obsady tych biegów zostaną wyczyszczone.</small>",()=>{
+  if(!m.heats.slice(0,13).every(h=>h.confirmed)){UI.toast("Nominacje sÄ dostÄpne po zatwierdzeniu biegÃ³w 1â13.");return;}
+  if(h14.confirmed||h15.confirmed){UI.toast("Najpierw zresetuj bieg 14 i 15 â nominacje moÅ¼na zmieniÄ tylko przed ich zatwierdzeniem.");return;}
+  UI.confirm("Ponownie wybraÄ nominowanych zawodnikÃ³w do biegÃ³w 14 i 15?<br><small style='color:var(--text-muted)'>Obecne obsady tych biegÃ³w zostanÄ wyczyszczone.</small>",()=>{
     if(!mutate(()=>{
       [h14,h15].forEach(h=>{
         h.slots.forEach(s=>{s.num=null;s.excl=null;s.subType=null;delete s.exclSeq;});
@@ -2879,7 +2879,7 @@ UI.lgRenominate=function(){
       });
     }))return;
     UI.closeModal();
-    lgNomAsked[c.id]=true; /* panel otwieramy ręcznie; po anulowaniu niech nie wyskakuje sam */
+    lgNomAsked[c.id]=true; /* panel otwieramy rÄcznie; po anulowaniu niech nie wyskakuje sam */
     UI.lgNominatePanel();
   });
 };
@@ -2909,42 +2909,42 @@ UI.lgMoveSlot=function(heatIdx,slotIdx,dir){
 UI.lgConfirmHeat=function(heatIdx){
   const m=lgm();const h=m.heats[heatIdx];
   const fo=lgFirstOpenIdx(m);
-  if(fo!==heatIdx&&fo>=0){UI.toast("Najpierw zatwierdź bieg "+m.heats[fo].n+".");return;}
-  if(h.slots.some(s=>s.num==null)){UI.toast("Wybierz zawodników do biegu nominowanego.");return;}
-  /* Bezwzględne zabezpieczenie: „Zawodnik zastępowany” NIGDY nie może zostać
-     zatwierdzony jako jadący bez wybranego zastępstwa ZZ. */
+  if(fo!==heatIdx&&fo>=0){UI.toast("Najpierw zatwierdÅº bieg "+m.heats[fo].n+".");return;}
+  if(h.slots.some(s=>s.num==null)){UI.toast("Wybierz zawodnikÃ³w do biegu nominowanego.");return;}
+  /* BezwzglÄdne zabezpieczenie: âZawodnik zastÄpowanyâ NIGDY nie moÅ¼e zostaÄ
+     zatwierdzony jako jadÄcy bez wybranego zastÄpstwa ZZ. */
   for(const s of h.slots){
     if(s.num==null||s.excl||s.subType)continue;
     const tk=lgTeamOfHelmet(s.helmet);
     if(lgIsZZRider(s.num,tk)){
-      /* Gdy nie ma żadnego dostępnego kandydata na ZZ, nie blokujemy zatwierdzenia. */
+      /* Gdy nie ma Å¼adnego dostÄpnego kandydata na ZZ, nie blokujemy zatwierdzenia. */
       if(lgZZCandidates(tk,heatIdx).length===0)continue;
-      UI.toast("Bieg "+h.n+": pod numerem "+s.num+" jedzie Zawodnik zastępowany — wybierz najpierw zastępstwo ZZ.");
+      UI.toast("Bieg "+h.n+": pod numerem "+s.num+" jedzie Zawodnik zastÄpowany â wybierz najpierw zastÄpstwo ZZ.");
       return;
     }
   }
   if(h.n===14||h.n===15){
     const mains={home:new Set(lgNomMainNums("home")),away:new Set(lgNomMainNums("away"))};
-    /* Numery jazd zasadniczych (bez rezerw RZ/RT/ZZ) w drugim biegu nominowanym —
-       żeby nikt nie jechał i w 14, i w 15 (wyjątek: rezerwa RT, ona może). */
+    /* Numery jazd zasadniczych (bez rezerw RZ/RT/ZZ) w drugim biegu nominowanym â
+       Å¼eby nikt nie jechaÅ i w 14, i w 15 (wyjÄtek: rezerwa RT, ona moÅ¼e). */
     const otherIdx=h.n===14?heatIdx+1:heatIdx-1;
     const other=m.heats[otherIdx];
     for(const s of h.slots){
-      if(s.num==null||s.subType)continue; /* rezerwy (RZ/RT/ZZ) wg zwykłych zasad */
+      if(s.num==null||s.subType)continue; /* rezerwy (RZ/RT/ZZ) wg zwykÅych zasad */
       const tk=lgTeamOfHelmet(s.helmet);
       if(!mains[tk].has(s.num)){
-        UI.toast("Bieg "+h.n+": w nominowanych jadą tylko zawodnicy z pozycji 1–5 / 9–13.");
+        UI.toast("Bieg "+h.n+": w nominowanych jadÄ tylko zawodnicy z pozycji 1â5 / 9â13.");
         return;
       }
       if(other){
         const dup=other.slots.find(x=>x.num===s.num&&!x.subType&&lgTeamOfHelmet(x.helmet)===tk);
-        if(dup){UI.toast("Bieg "+h.n+": zawodnik nr "+s.num+" jedzie już w biegu "+other.n+" (dozwolone tylko jako rezerwa RT).");return;}
+        if(dup){UI.toast("Bieg "+h.n+": zawodnik nr "+s.num+" jedzie juÅ¼ w biegu "+other.n+" (dozwolone tylko jako rezerwa RT).");return;}
       }
     }
   }
   if(!mutate(()=>{h.score=lgComputeScore(h);h.confirmed=true;h.menuOpen=null;h.subListFor=null;}))return;
   lgRender();
-  /* Automatyczne przewinięcie do najbliższego otwartego wyścigu. */
+  /* Automatyczne przewiniÄcie do najbliÅ¼szego otwartego wyÅcigu. */
   const ni=lgFirstOpenIdx(m);
   if(ni>=0){
     const el=$("lgheat-"+m.heats[ni].n);
@@ -2958,7 +2958,7 @@ UI.lgEditHeat=function(heatIdx){
 };
 UI.lgResetHeat=function(heatIdx){
   const h=lgm().heats[heatIdx];
-  UI.confirm("Zresetować bieg "+h.n+" do stanu sprzed wyścigu?",()=>{
+  UI.confirm("ZresetowaÄ bieg "+h.n+" do stanu sprzed wyÅcigu?",()=>{
     if(!mutate(()=>{
       h.slots.forEach(s=>{s.num=s.origNum;s.excl=null;s.subType=null;delete s.exclSeq;});
       h.order=[0,1,2,3];h.confirmed=false;h.score=null;h.menuOpen=null;h.subListFor=null;h.time=null;
@@ -2983,7 +2983,7 @@ UI.lgSetExcl=function(heatIdx,slotIdx,code){
     s.excl=wasSet?null:code;
     if(!wasSet)s.exclSeq=++lgExclSeq;
     lgReorder(h);
-    /* Menu ZOSTAJE otwarte — po kodach -, T, U/-, W2 dodatkowo pytamy o rezerwę. */
+    /* Menu ZOSTAJE otwarte â po kodach -, T, U/-, W2 dodatkowo pytamy o rezerwÄ. */
     h.subListFor=null;
   }))return;
   lgRenderHeatOnly(heatIdx);
@@ -3006,7 +3006,7 @@ UI.lgPickSub=function(heatIdx,slotIdx,type,newNum){
   UI.closeModal();
   lgRender();
 };
-/* Okno rezerwy: po kodach -, T, U/-, W2 automatycznie pytamy, czy będzie rezerwa. */
+/* Okno rezerwy: po kodach -, T, U/-, W2 automatycznie pytamy, czy bÄdzie rezerwa. */
 UI.lgReservePrompt=function(heatIdx,slotIdx){
   const m=lgm();if(!m)return;
   const h=m.heats[heatIdx];
@@ -3020,9 +3020,9 @@ UI.lgReservePrompt=function(heatIdx,slotIdx){
   const btn=(type,ok,txt)=>ok
     ?"<button class='btn primary' data-onclick='UI.lgReservePick("+heatIdx+","+slotIdx+",\""+type+"\")'>"+txt+"</button>"
     :"<button class='btn' disabled style='opacity:0.4'>"+txt+"</button>";
-  UI.openModal("<h3>Rezerwa?</h3><p style='text-align:center;font-size:0.78rem;color:var(--text-muted);margin:0 0 10px'>Bieg "+h.n+" — kod <b>"+escq(s.excl)+"</b>. Czy przewidujesz rezerwę?</p>"+
-    btn("RZ",rzOk,"RZ — rezerwa zwykła")+
-    btn("RT",rtOk,"RT — rezerwa taktyczna")+
+  UI.openModal("<h3>Rezerwa?</h3><p style='text-align:center;font-size:0.78rem;color:var(--text-muted);margin:0 0 10px'>Bieg "+h.n+" â kod <b>"+escq(s.excl)+"</b>. Czy przewidujesz rezerwÄ?</p>"+
+    btn("RZ",rzOk,"RZ â rezerwa zwykÅa")+
+    btn("RT",rtOk,"RT â rezerwa taktyczna")+
     "<button class='btn' data-onclick='UI.closeModal()'>Bez rezerwy</button>");
 };
 UI.lgReservePick=function(heatIdx,slotIdx,type){
@@ -3033,12 +3033,12 @@ UI.lgReservePick=function(heatIdx,slotIdx,type){
   const exclNum=s.num!=null?s.num:s.origNum;
   const us=lgUsage(m);
   const cands=lgEligible(teamKey,exclNum,type,heatIdx);
-  if(!cands.length){UI.toast("Brak dostępnych zawodników na "+type+".");return;}
+  if(!cands.length){UI.toast("Brak dostÄpnych zawodnikÃ³w na "+type+".");return;}
   let html="<h3>Wybierz zawodnika ("+type+")</h3><p style='text-align:center;font-size:0.78rem;color:var(--text-muted);margin:0 0 10px'>Kto wjedzie w biegu "+h.n+"?</p>";
   cands.forEach(n=>{
     const rec=us[n]||{starts:0,usedRT:false,usedZZ:false};
     const left=5+(rec.usedRT?1:0)+(rec.usedZZ?1:0)-rec.starts;
-    html+="<button class='btn' style='text-transform:none' data-onclick='UI.lgPickSub("+heatIdx+","+slotIdx+",\""+type+"\","+n+")'>"+escq(lgRiderName(n))+" <small style='opacity:0.7'>(pozostałe starty: "+left+")</small></button>";
+    html+="<button class='btn' style='text-transform:none' data-onclick='UI.lgPickSub("+heatIdx+","+slotIdx+",\""+type+"\","+n+")'>"+escq(lgRiderName(n))+" <small style='opacity:0.7'>(pozostaÅe starty: "+left+")</small></button>";
   });
   html+="<button class='btn' data-onclick='UI.closeModal()'>Anuluj</button>";
   UI.openModal(html);
@@ -3058,7 +3058,7 @@ UI.lgSetPart=function(part,n){
   const curSet=part===1?m.set1_13:m.set14_15;
   if(n===curSet)return;
   const touched=m.heats.slice(from,to).some(h=>h.confirmed||h.slots.some(s=>s.excl||s.subType));
-  const lbl=part===1?"1–13":"14–15";
+  const lbl=part===1?"1â13":"14â15";
   const go=()=>{
     if(!mutate(()=>{
       const src=LG_SETS[n];
@@ -3071,16 +3071,16 @@ UI.lgSetPart=function(part,n){
     }))return;
     lgRender();
   };
-  if(touched)UI.confirm("Zmiana zestawu dla biegów "+lbl+" wyzeruje wyniki i zmiany zapisane w tych biegach. Kontynuować?",go);
+  if(touched)UI.confirm("Zmiana zestawu dla biegÃ³w "+lbl+" wyzeruje wyniki i zmiany zapisane w tych biegach. KontynuowaÄ?",go);
   else go();
 };
-/* Czas biegu — numpad (ostatnie 3 cyfry = milisekundy), obsługa klawiatury fizycznej. */
+/* Czas biegu â numpad (ostatnie 3 cyfry = milisekundy), obsÅuga klawiatury fizycznej. */
 let LgTime={heatIdx:null,ms:0};
 UI.lgEditTime=function(heatIdx){
   const h=lgm().heats[heatIdx];
   LgTime={heatIdx,ms:h.time?Math.round(parseFloat(h.time.replace(",","."))*1000):0};
   let html="<h3>Czas biegu "+h.n+"</h3>"+
-    "<p style='text-align:center;color:var(--text-muted);font-size:0.75rem;margin:0 0 10px'>Wpisz cyfry — ostatnie trzy to milisekundy</p>"+
+    "<p style='text-align:center;color:var(--text-muted);font-size:0.75rem;margin:0 0 10px'>Wpisz cyfry â ostatnie trzy to milisekundy</p>"+
     "<div class='timedisplay' id='lgTimeVal'>"+fmtHeatTime(LgTime.ms)+"</div><div class='numpad'>";
   for(let d=1;d<=9;d++)html+="<button class='btn' data-onclick='UI.lgTimeDigit("+d+")'>"+d+"</button>";
   html+="<button class='btn secondary' data-onclick='UI.lgTimeBackspace()'>&#9003;</button>"+
@@ -3121,18 +3121,18 @@ UI.lgScrollTeams=function(){window.scrollTo({top:0,behavior:"smooth"});};
 UI.lgScrollToNext=function(){
   const m=lgm();if(!m)return;
   const i=lgFirstOpenIdx(m);
-  if(i<0){UI.toast("Wszystkie biegi zostały zatwierdzone.");return;}
+  if(i<0){UI.toast("Wszystkie biegi zostaÅy zatwierdzone.");return;}
   const el=$("lgheat-"+m.heats[i].n);
   if(el&&el.scrollIntoView)el.scrollIntoView({behavior:"smooth",block:"start"});
 };
 UI.leaveMatch=function(){
   const c=cur();
-  let msg="Na pewno wrócić do ekranu głównego?<br><small style='color:var(--text-muted)'>Bieżący stan meczu zostanie automatycznie zapisany.</small>";
+  let msg="Na pewno wrÃ³ciÄ do ekranu gÅÃ³wnego?<br><small style='color:var(--text-muted)'>BieÅ¼Äcy stan meczu zostanie automatycznie zapisany.</small>";
   if(c&&c.league&&c.match){
     const open=c.match.heats.filter(h=>!h.confirmed).length;
     const done=c.match.heats.filter(h=>h.confirmed).length;
     if(done>0&&open>0)
-      msg="<b style='color:var(--amber)'>⚠ Uwaga: mecz w toku — "+open+" niezatwierdzonych biegów.</b><br><small style='color:var(--text-muted)'>Stan zostanie zapisany i można do niego wrócić z ekranu głównego.</small>";
+      msg="<b style='color:var(--amber)'>â  Uwaga: mecz w toku â "+open+" niezatwierdzonych biegÃ³w.</b><br><small style='color:var(--text-muted)'>Stan zostanie zapisany i moÅ¼na do niego wrÃ³ciÄ z ekranu gÅÃ³wnego.</small>";
   }
   UI.confirm(msg,()=>{UI.screen("home");});
 };
@@ -3172,7 +3172,7 @@ function lgTeamCard(teamKey){
       else if(cell.excl!=null)cells.push("<td class='lg-res0'>"+escq(cell.excl)+"</td>");
       else cells.push("<td>"+cell.pts+(cell.bonus?"'":"")+"</td>");
     }
-    const nm=normName(side.lineup[n]||"—");
+    const nm=normName(side.lineup[n]||"â");
     const sp=nm.indexOf(" ");
     const fn=sp>0?nm.slice(0,sp):"";
     const ln=sp>0?nm.slice(sp+1):nm;
@@ -3186,17 +3186,17 @@ function lgScorebarHtml(){
   const c=cur();
   const sc=lgCumulative(c.match,15);
   return "<div class='lg-scorebar-inner'><div class='lg-sbrow'>"+
-    "<button class='lg-skladybtn' data-onclick='UI.lgScrollTeams()'>&#9650; Składy</button>"+
-    "<button class='lg-skladybtn' data-onclick='UI.lgScrollToNext()'>&#9660; Najbliższy wyścig</button>"+
-    "<button class='lg-sbicon danger' title='Reset całych zawodów' data-onclick='UI.lgResetMatch()'><svg viewBox='0 0 24 24'><path d='M15 16h4v2h-4zm0-8h7v2h-7zm0-4h6v2h-6zM3 18c0 1.1.9 2 2 2h6c1.1 0 2-.9 2-2V8H3v10zM14 5h-3l-1-1H6L5 5H2v2h12z'/></svg></button>"+
-    "<button class='lg-sbicon' title='Ekran główny' data-onclick='UI.leaveMatch()'><svg viewBox='0 0 24 24'><path d='M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z'/></svg></button></div>"+
+    "<button class='lg-skladybtn' data-onclick='UI.lgScrollTeams()'>&#9650; SkÅady</button>"+
+    "<button class='lg-skladybtn' data-onclick='UI.lgScrollToNext()'>&#9660; NajbliÅ¼szy wyÅcig</button>"+
+    "<button class='lg-sbicon danger' title='Reset caÅych zawodÃ³w' data-onclick='UI.lgResetMatch()'><svg viewBox='0 0 24 24'><path d='M15 16h4v2h-4zm0-8h7v2h-7zm0-4h6v2h-6zM3 18c0 1.1.9 2 2 2h6c1.1 0 2-.9 2-2V8H3v10zM14 5h-3l-1-1H6L5 5H2v2h12z'/></svg></button>"+
+    "<button class='lg-sbicon' title='Ekran gÅÃ³wny' data-onclick='UI.leaveMatch()'><svg viewBox='0 0 24 24'><path d='M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z'/></svg></button></div>"+
     "<div class='lg-scorerow'><div class='snm'><span class='wrap2'>"+escq(c.home.name).split(" ").map(w=>"<span>"+w+"</span>").join("")+"</span></div>"+
     "<div class='ssc'>"+sc.home+":"+sc.away+"</div>"+
     "<div class='snm away'><span class='wrap2'>"+escq(c.away.name).split(" ").map(w=>"<span>"+w+"</span>").join("")+"</span></div></div></div>";
 }
 UI.lgResetMatch=function(){
   const m=lgm();if(!m)return;
-  UI.confirm("Zresetować <b>całe zawody</b>?<br><small style='color:var(--text-muted)'>Wszystkie wyniki biegów, wykluczenia i zmiany zostaną przywrócone do stanu początkowego. Tej operacji nie można cofnąć.</small>",()=>{
+  UI.confirm("ZresetowaÄ <b>caÅe zawody</b>?<br><small style='color:var(--text-muted)'>Wszystkie wyniki biegÃ³w, wykluczenia i zmiany zostanÄ przywrÃ³cone do stanu poczÄtkowego. Tej operacji nie moÅ¼na cofnÄÄ.</small>",()=>{
     if(!mutate(()=>{
       const a=LG_SETS[m.set1_13],b=LG_SETS[m.set14_15];
       m.heats.forEach((h,i)=>{
@@ -3220,20 +3220,20 @@ function lgSlotMenuHtml(heatIdx,slotIdx,teamKey){
     LG_EXCL_CODES.map(code=>"<button class='btn small "+(curExcl===code?"primary":"secondary")+"' data-onclick='UI.lgSetExcl("+heatIdx+","+slotIdx+",\""+code+"\")'>"+code+"</button>").join("")+
     "</div>";
   if(curExcl){
-    html+="<div class='lg-hints'><div>Po kodach -, T, U/-, W2 pojawi się okienko z pytaniem o rezerwę.</div>"+
-      "<div>ZZ — automatycznie, gdy w biegu jedzie Zawodnik zastępowany.</div></div>";
+    html+="<div class='lg-hints'><div>Po kodach -, T, U/-, W2 pojawi siÄ okienko z pytaniem o rezerwÄ.</div>"+
+      "<div>ZZ â automatycznie, gdy w biegu jedzie Zawodnik zastÄpowany.</div></div>";
   }else{
-    html+="<div class='lg-hints'><div>Wskaż kod wykluczenia — dla -, T, U/-, W2 pojawi się pytanie o rezerwę.</div></div>";
+    html+="<div class='lg-hints'><div>WskaÅ¼ kod wykluczenia â dla -, T, U/-, W2 pojawi siÄ pytanie o rezerwÄ.</div></div>";
   }
   if(h.subListFor&&h.subListFor.slot===slotIdx){
     const type=h.subListFor.type;
     const cands=lgEligible(teamKey,exclNum,type,heatIdx);
     html+="<div class='sublabel'>Wybierz zawodnika ("+type+")</div><div class='lg-candlist'>";
-    if(!cands.length)html+="<div style='color:var(--text-muted);font-size:0.8rem'>Brak dostępnych zawodników spełniających warunki.</div>";
+    if(!cands.length)html+="<div style='color:var(--text-muted);font-size:0.8rem'>Brak dostÄpnych zawodnikÃ³w speÅniajÄcych warunki.</div>";
     cands.forEach(n=>{
       const rec=us[n]||{starts:0,usedRT:false,usedZZ:false};
       const left=5+(rec.usedRT?1:0)+(rec.usedZZ?1:0)-rec.starts;
-      html+="<button class='lg-candbtn' data-onclick='UI.lgPickSub("+heatIdx+","+slotIdx+",\""+type+"\","+n+")'>"+escq(lgRiderName(n))+"<small>pozostałe starty: "+left+"</small></button>";
+      html+="<button class='lg-candbtn' data-onclick='UI.lgPickSub("+heatIdx+","+slotIdx+",\""+type+"\","+n+")'>"+escq(lgRiderName(n))+"<small>pozostaÅe starty: "+left+"</small></button>";
     });
     html+="</div>";
   }
@@ -3246,18 +3246,18 @@ function lgHeatHtml(heatIdx){
   const firstOpen=lgFirstOpenIdx(m);
   const active=!h.confirmed&&heatIdx===firstOpen;
   const dim=!h.confirmed&&!active;
-  const HELM_COLOR={C:"#ef4444",N:"#3b82f6",B:"#f8fafc","Ż":"#eab308"};
+  const HELM_COLOR={C:"#ef4444",N:"#3b82f6",B:"#f8fafc","Å»":"#eab308"};
   let extraBar="";
   if(h.n===1){
-    extraBar="<div class='lg-setbar'><span>ZESTAW STARTOWY (biegi 1–13)</span>"+
+    extraBar="<div class='lg-setbar'><span>ZESTAW STARTOWY (biegi 1â13)</span>"+
       [1,2].map(n=>"<button class='btn small "+(m.set1_13===n?"primary":"secondary")+"' data-onclick='UI.lgSetPart(1,"+n+")'>"+n+"</button>").join("")+"</div>";
   }
   if(h.n===14){
-    extraBar="<div class='lg-setbar'><span>ZESTAW STARTOWY (biegi 14–15)</span>"+
+    extraBar="<div class='lg-setbar'><span>ZESTAW STARTOWY (biegi 14â15)</span>"+
       [1,2].map(n=>"<button class='btn small "+(m.set14_15===n?"primary":"secondary")+"' data-onclick='UI.lgSetPart(2,"+n+")'>"+n+"</button>").join("")+
       "<button class='btn small secondary' data-onclick='UI.lgRenominate()'>Nominacje</button></div>";
   }
-  const scoreTxt=h.confirmed?(h.score.home+":"+h.score.away):"–:–";
+  const scoreTxt=h.confirmed?(h.score.home+":"+h.score.away):"â:â";
   const fins=lgFinishers(h);
   const rows=h.order.map(slotIdx=>{
     const slot=h.slots[slotIdx];
@@ -3270,8 +3270,8 @@ function lgHeatHtml(heatIdx){
     if(slot.num==null){
       if(active){
         const opts=lgEligibleNominated(teamKey,heatIdx)
-          .map(n=>"<option value='"+n+"'>"+n+" — "+escq(lgRiderName(n))+"</option>").join("");
-        nameHtml="<span class='name' style='flex:1'><select data-onchange='UI.lgPickNominated("+heatIdx+","+slotIdx+",this.value)'><option value=''>Wybierz zawodnika…</option>"+opts+"</select></span>";
+          .map(n=>"<option value='"+n+"'>"+n+" â "+escq(lgRiderName(n))+"</option>").join("");
+        nameHtml="<span class='name' style='flex:1'><select data-onchange='UI.lgPickNominated("+heatIdx+","+slotIdx+",this.value)'><option value=''>Wybierz zawodnikaâ¦</option>"+opts+"</select></span>";
       }else{
         nameHtml="<span class='name' style='flex:1;color:var(--text-muted)'>do obsadzenia (nominowany)</span>";
       }
@@ -3279,7 +3279,7 @@ function lgHeatHtml(heatIdx){
       const tag=slot.excl?("<span class='mk'>"+escq(slot.excl)+"</span>"):(slot.subType?("<span class='mk'>"+escq(slot.subType)+"</span>"):"");
       nameHtml="<span class='name'><b>"+slot.num+"</b> "+escq(lgRiderName(slot.num))+tag+"</span>";
       if(h.confirmed){
-        if(finPos>=0)posHtml="<span class='pos'>"+(finPos+1)+". — "+ptsHere+(isBonusHere?"'":"")+" pkt.</span>";
+        if(finPos>=0)posHtml="<span class='pos'>"+(finPos+1)+". â "+ptsHere+(isBonusHere?"'":"")+" pkt.</span>";
       }else if(finPos>=0){
         posHtml="<span class='pos'>"+(finPos+1)+".</span>";
       }
@@ -3289,8 +3289,8 @@ function lgHeatHtml(heatIdx){
       const upDis=finPos<=0?"disabled":"";
       const downDis=(finPos<0||finPos>=fins.length-1)?"disabled":"";
       btns="<div class='rcardbtns'>"+
-        "<button class='cardbtn' "+upDis+" title='Przesuń w górę' data-onclick='UI.lgMoveSlot("+heatIdx+","+slotIdx+",-1)'>"+ICON_UP+"</button>"+
-        "<button class='cardbtn' "+downDis+" title='Przesuń w dół' data-onclick='UI.lgMoveSlot("+heatIdx+","+slotIdx+",1)'>"+ICON_DOWN+"</button>"+
+        "<button class='cardbtn' "+upDis+" title='PrzesuÅ w gÃ³rÄ' data-onclick='UI.lgMoveSlot("+heatIdx+","+slotIdx+",-1)'>"+ICON_UP+"</button>"+
+        "<button class='cardbtn' "+downDis+" title='PrzesuÅ w dÃ³Å' data-onclick='UI.lgMoveSlot("+heatIdx+","+slotIdx+",1)'>"+ICON_DOWN+"</button>"+
         "<button class='cardbtn flag"+(h.menuOpen===slotIdx?" on":"")+"' title='Wykluczenia i zmiany' data-onclick='UI.lgToggleMenu("+heatIdx+","+slotIdx+")'>"+ICON_FLAG+"</button>"+
         "</div>";
     }
@@ -3299,12 +3299,12 @@ function lgHeatHtml(heatIdx){
       "</div>"+menu;
   }).join("");
   const actions="<div class='heatactions'>"+
-    "<button class='iconbtn sm' title='Czas wyścigu' data-onclick='UI.lgEditTime("+heatIdx+")'>"+ICON_CLOCK+"</button>"+
+    "<button class='iconbtn sm' title='Czas wyÅcigu' data-onclick='UI.lgEditTime("+heatIdx+")'>"+ICON_CLOCK+"</button>"+
     (h.confirmed
       ?"<button class='iconbtn sm' title='Edytuj bieg' data-onclick='UI.lgEditHeat("+heatIdx+")'>"+ICON_EDIT+"</button>"+
        "<button class='iconbtn sm' title='Reset biegu' data-onclick='UI.lgResetHeat("+heatIdx+")'>"+ICON_RESET+"</button>"
       :active
-      ?"<button class='btn small primary' style='margin:0' data-onclick='UI.lgConfirmHeat("+heatIdx+")'>&#10004; Zatwierdź</button>"+
+      ?"<button class='btn small primary' style='margin:0' data-onclick='UI.lgConfirmHeat("+heatIdx+")'>&#10004; ZatwierdÅº</button>"+
        "<button class='iconbtn sm' title='Reset biegu' data-onclick='UI.lgResetHeat("+heatIdx+")'>"+ICON_RESET+"</button>"
       :"<span style='color:var(--text-muted);font-size:0.8rem'>"+ICON_LOCK_SM+"Zablokowany</span>")+
     "</div>";

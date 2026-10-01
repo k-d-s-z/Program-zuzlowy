@@ -1,6 +1,6 @@
 {
- "name": "Program żużlowy",
- "short_name": "Żużel",
+ "name": "Program Å¼uÅ¼lowy",
+ "short_name": "Å»uÅ¼el",
  "lang": "pl",
  "start_url": "./index.html",
  "scope": "./",
@@ -9,7 +9,7 @@
  "theme_color": "#0b0f19",
  "icons": [
   {
-   "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxODAgMTgwIj48cmVjdCB3aWR0aD0iMTgwIiBoZWlnaHQ9IjE4MCIgcng9IjM2IiBmaWxsPSIjMGIwZjE5Ii8+PHRleHQgeD0iOTAiIHk9IjEzMCIgZm9udC1mYW1pbHk9IkFyaWFsLCBIZWx2ZXRpY2EsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTEyIiBmb250LXdlaWdodD0iODAwIiBmaWxsPSIjMzhiZGY4IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj7FuzwvdGV4dD48L3N2Zz4=",
+   "src": "./icon.svg",
    "sizes": "any",
    "type": "image/svg+xml",
    "purpose": "any"
