@@ -29,11 +29,6 @@
     </filter>
 
     <!-- WzÃ³r czarnego pola szachownicy -->
-    <pattern id="checkerPattern" width="74" height="74" patternUnits="userSpaceOnUse">
-      <rect width="74" height="74" fill="#ffffff"/>
-      <rect width="37" height="37" fill="#0f172a"/>
-      <rect x="37" y="37" width="37" height="37" fill="#0f172a"/>
-    </pattern>
 
     <!-- Klip: flaga i maszt nie wychodzÄ poza zaokrÄglone tÅo (squircle) -->
     <clipPath id="squircleClip">
@@ -56,13 +51,17 @@
   <g filter="url(#dropShadow)" clip-path="url(#squircleClip)">
 
     <!-- PROSTOKÄTNA FLAGA W SZACHOWNICÄ â zajmuje niemal caÅÄ szerokoÅÄ i wysokoÅÄ ikony -->
-    <rect x="56" y="71" width="444" height="370" fill="url(#checkerPattern)"/>
-
-    <!-- Obramowanie flagi dla podkreÅlenia krawÄdzi -->
-    <rect x="56" y="71" width="444" height="370" fill="none" stroke="#0f172a" stroke-width="3"/>
-
     <!-- Delikatny poÅysk na powierzchni materiaÅu -->
-    <rect x="56" y="71" width="444" height="370" fill="url(#flagGlint)"/>
+    <!-- Baza flagi: biale tlo -->
+    <rect x="56" y="71" width="444" height="369" fill="#ffffff"/>
+    <!-- Trzy wiersze naprzemiennych pol: 6 kolumn (szer. 74), wiersze wys. 123 -->
+    <rect x="130" y="71" width="74" height="123" fill="#0f172a"/><rect x="278" y="71" width="74" height="123" fill="#0f172a"/><rect x="426" y="71" width="74" height="123" fill="#0f172a"/>
+    <rect x="56" y="194" width="74" height="123" fill="#0f172a"/><rect x="204" y="194" width="74" height="123" fill="#0f172a"/><rect x="352" y="194" width="74" height="123" fill="#0f172a"/>
+    <rect x="130" y="317" width="74" height="123" fill="#0f172a"/><rect x="278" y="317" width="74" height="123" fill="#0f172a"/><rect x="426" y="317" width="74" height="123" fill="#0f172a"/>
+    <!-- Obramowanie flagi -->
+    <rect x="56" y="71" width="444" height="369" fill="none" stroke="#0f172a" stroke-width="3"/>
+    <!-- Delikatny polysk na powierzchni materialu -->
+    <rect x="56" y="71" width="444" height="369" fill="url(#flagGlint)"/>
 
     <!-- PROSTY METALICZNY MASZT -->
     <rect x="34" y="56" width="22" height="440" rx="11" fill="url(#poleGrad)"/>
