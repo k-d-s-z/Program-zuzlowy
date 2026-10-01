@@ -8,7 +8,12 @@
 <a name="-polski"></a>
 # 🇵🇱 Program Żużlowy (Speedway Live Score & Program)
 
-Aplikacja internetowa typu PWA (Progressive Web App) do śledzenia, prowadzenia i analizowania programu meczu żużlowego na żywo.
+Aplikacja internetowa typu PWA (Progressive Web App) do śledzenia, prowadzenia i analizowania programu meczu żużlowego i zawodów indywidualnych na żywo.
+
+🌐 **Aplikacja webowa:**  
+👉 [https://k-d-s-z.github.io/program-zuzlowy/](https://k-d-s-z.github.io/program-zuzlowy/)
+
+---
 
 ## 🚀 Funkcje
 
@@ -24,7 +29,7 @@ Aplikacja internetowa typu PWA (Progressive Web App) do śledzenia, prowadzenia 
 
 ## 📱 Instalacja (PWA)
 
-1. Otwórz aplikację w przeglądarce (np. Chrome, Safari, Edge).
+1. Otwórz aplikację w przeglądarce: [https://k-d-s-z.github.io/program-zuzlowy/](https://k-d-s-z.github.io/program-zuzlowy/)
 2. Kliknij przycisk **"Zainstaluj"** w pasku adresu lub wybierz opcję **"Dodaj do ekranu głównego"** w menu przeglądarki.
 3. Aplikacja pojawi się na liście Twoich aplikacji na urządzeniu.
 
@@ -45,7 +50,12 @@ Ten projekt jest udostępniany na licencji MIT.
 <a name="-english"></a>
 # 🇬🇧 Speedway Live Score & Program App
 
-A Progressive Web App (PWA) for managing, tracking, and scoring speedway matches live.
+A Progressive Web App (PWA) for managing, tracking, and scoring speedway matches and tournaments live.
+
+🌐 **Web App:**  
+👉 [https://k-d-s-z.github.io/program-zuzlowy/](https://k-d-s-z.github.io/program-zuzlowy/)
+
+---
 
 ## 🚀 Features
 
@@ -61,7 +71,7 @@ A Progressive Web App (PWA) for managing, tracking, and scoring speedway matches
 
 ## 📱 Installation (PWA)
 
-1. Open the application in your web browser (Chrome, Safari, Edge, etc.).
+1. Open the app in your browser: [https://k-d-s-z.github.io/program-zuzlowy/](https://k-d-s-z.github.io/program-zuzlowy/)
 2. Click the **"Install"** button in the address bar or select **"Add to Home Screen"** from the browser menu.
 3. Launch the app directly from your home screen or application list.
 
@@ -69,7 +79,7 @@ A Progressive Web App (PWA) for managing, tracking, and scoring speedway matches
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/k-d-s-z/speedway-program.git
+   git clone https://github.com/k-d-s-z/program-zuzlowy.git
    ```
 2. Open `index.html` in your web browser or use a local HTTP server (e.g., Live Server extension for VS Code).
 
