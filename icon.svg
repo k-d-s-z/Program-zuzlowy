@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <!-- Tło ikony - ciemne grafitowe tło PWA (Squircle) -->
+    <radialGradient id="bgGrad" cx="50%" cy="40%" r="65%">
+      <stop offset="0%" stop-color="#1c222e"/>
+      <stop offset="100%" stop-color="#0b0e14"/>
+    </radialGradient>
+
+    <!-- Metaliczny chromowany maszt -->
+    <linearGradient id="poleGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#334155"/>
+      <stop offset="30%" stop-color="#94a3b8"/>
+      <stop offset="55%" stop-color="#ffffff"/>
+      <stop offset="80%" stop-color="#cbd5e1"/>
+      <stop offset="100%" stop-color="#1e293b"/>
+    </linearGradient>
+
+    <!-- Metaliczna kula na szczycie masztu -->
+    <radialGradient id="knobGrad" cx="35%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="45%" stop-color="#cbd5e1"/>
+      <stop offset="80%" stop-color="#64748b"/>
+      <stop offset="100%" stop-color="#334155"/>
+    </radialGradient>
+
+    <!-- Cień rzucany pod maszt i flagę -->
+    <filter id="dropShadow" x="-20%" y="-20%" width="150%" height="150%">
+      <feDropShadow dx="4" dy="12" stdDeviation="12" flood-color="#000000" flood-opacity="0.65"/>
+    </filter>
+
+    <!-- Wzór czarnego pola szachownicy -->
+    <pattern id="checkerPattern" width="70" height="70" patternUnits="userSpaceOnUse">
+      <rect width="70" height="70" fill="#ffffff"/>
+      <rect width="35" height="35" fill="#0f172a"/>
+      <rect x="35" y="35" width="35" height="35" fill="#0f172a"/>
+    </pattern>
+  </defs>
+
+  <!-- Tło ikony (Standard App Icon / Squircle) -->
+  <rect width="512" height="512" rx="112" fill="url(#bgGrad)"/>
+  <rect width="504" height="504" x="4" y="4" rx="108" fill="none" stroke="#ffffff" stroke-opacity="0.08" stroke-width="8"/>
+
+  <!-- Grupa z cieniem -->
+  <g filter="url(#dropShadow)">
+
+    <!-- PROSTOKĄTNA FLAGA W SZACHOWNICĘ (Bez fal, proste krawędzie) -->
+    <!-- Podstawa flagi (Szachownica 8x4 pola) -->
+    <rect x="148" y="115" width="280" height="210" fill="url(#checkerPattern)" rx="3"/>
+    
+    <!-- Obramowanie flagi dla podkreślenia krawędzi -->
+    <rect x="148" y="115" width="280" height="210" fill="none" stroke="#0f172a" stroke-width="3" rx="3"/>
+
+    <!-- Delikatny połysk na powierzchni materiału -->
+    <linearGradient id="flagGlint" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.15"/>
+      <stop offset="50%" stop-color="#ffffff" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.2"/>
+    </linearGradient>
+    <rect x="148" y="115" width="280" height="210" fill="url(#flagGlint)" rx="3"/>
+
+    <!-- PROSTY METALICZNY MASZT -->
+    <rect x="130" y="95" width="18" height="325" rx="9" fill="url(#poleGrad)"/>
+    <circle cx="139" cy="90" r="16" fill="url(#knobGrad)"/>
+
+  </g>
+</svg>
