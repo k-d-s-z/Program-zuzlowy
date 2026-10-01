@@ -32,7 +32,7 @@ Aplikacja internetowa typu PWA (Progressive Web App) do śledzenia, prowadzenia 
 
 1. Sklonuj repozytorium:
    ```bash
-   git clone https://github.com/twoj-username/program-zuzlowy.git
+   git clone https://github.com/k-d-s-z/program-zuzlowy.git
    ```
 2. Otwórz plik `index.html` w dowolnej przeglądarce internetowej lub użyj lokalnego serwera (np. Live Server w VS Code).
 
@@ -69,7 +69,7 @@ A Progressive Web App (PWA) for managing, tracking, and scoring speedway matches
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-username/speedway-program.git
+   git clone https://github.com/k-d-s-z/speedway-program.git
    ```
 2. Open `index.html` in your web browser or use a local HTTP server (e.g., Live Server extension for VS Code).
 
