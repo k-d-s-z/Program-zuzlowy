@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 <!-- Polityka bezpiecze&#324;stwa tre&#347;ci: brak zewn&#281;trznych skrypt&#243;w, brak po&#322;&#261;cze&#324; sieciowych poza w&#322;asnym hostem,
      obrazy tylko data:, czcionki tylko systemowe. Skrypt inline dozwolony wyłącznie przez hash SHA-256 (brak inline handlerów), connect-src 'none'. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-s7NxxU3HDTX4eosFSDfi9E8IHYfTe4j0mC2EotyeRAg='; style-src 'unsafe-inline'; font-src 'none'; img-src data: 'self'; connect-src 'none'; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-2mkfo4ufGarit2q/YFCoypT8y+uzmJDK8q0xhtuHiNs='; style-src 'unsafe-inline'; font-src 'none'; img-src data: 'self'; connect-src 'none'; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'">
 <title>Program &#380;u&#380;lowy</title>
 
 <!-- Typografia: wy&#322;&#261;cznie czcionki systemowe (zero po&#322;&#261;cze&#324; sieciowych) -->
@@ -457,6 +457,7 @@ table.lg-rt td.lg-bon { font-weight: 800; color: var(--amber); background: var(-
 .lg-scorerow .ssc { font-size: 1.9rem; font-weight: 800; font-family: var(--font-head); color: var(--accent-blue); flex-shrink: 0; letter-spacing: 1px; }
 .lg-sbicon { flex: 0 0 44px; background: var(--ov-06); border: 1px solid var(--ov-15); border-radius: 10px; color: var(--text-strong); min-height: 34px; padding: 0; display: flex; align-items: center; justify-content: center; }
 .lg-sbicon svg { width: 18px; height: 18px; fill: currentColor; }
+.lg-sbicon.active { background: linear-gradient(180deg, #d1d5db 0%, #9ca3af 100%); color: #0b0f19; border: 1px solid #e5e7eb; box-shadow: 0 2px 8px rgba(0,0,0,0.4); }
 
 /* Ekran składów drużyny (lineup meczu ligowego) */
 .lg-lineuprow { display: flex; align-items: center; gap: 8px; padding: 6px 0; }
@@ -3073,6 +3074,12 @@ UI.lgReservePick=function(heatIdx,slotIdx,type){
   html+="<button class='btn' data-onclick='UI.closeModal()'>Anuluj</button>";
   UI.openModal(html);
 };
+/* Kolory kasków w biegu 15 ustawia się już PRZED rozegraniem biegu 14. */
+function lgNomPreEditable(heatIdx){
+  const m=lgm();if(!m||!m.nom)return false;
+  const h=m.heats[heatIdx];
+  return h.n===15&&!h.confirmed&&lgFirstOpenIdx(m)===heatIdx-1;
+}
 function lgNomPool(heatIdx,teamKey){
   /* Zawodnicy wybrani w nominacji do tego biegu (i jeszcze niewstawieni do biegu). */
   const m=lgm(),h=m.heats[heatIdx];
@@ -3081,7 +3088,7 @@ function lgNomPool(heatIdx,teamKey){
   return nom?base.filter(n=>nom.includes(n)):base;
 }
 UI.lgNomSlotOpen=function(heatIdx,slotIdx){
-  if(!lgHeatEditable(heatIdx))return;
+  if(!lgHeatEditable(heatIdx)&&!lgNomPreEditable(heatIdx))return;
   const h=lgm().heats[heatIdx],s=h.slots[slotIdx];
   const tk=lgTeamOfHelmet(s.helmet);
   const KASK={C:"czerwonym",N:"niebieskim",B:"białym","Ż":"żółtym"};
@@ -3094,7 +3101,7 @@ UI.lgNomSlotOpen=function(heatIdx,slotIdx){
   UI.openModal(html);
 };
 UI.lgPickNominated=function(heatIdx,slotIdx,val){
-  if(!lgHeatEditable(heatIdx))return;
+  if(!lgHeatEditable(heatIdx)&&!lgNomPreEditable(heatIdx))return;
   const h=lgm().heats[heatIdx],s=h.slots[slotIdx];
   const tk=lgTeamOfHelmet(s.helmet);
   const n=Number(val);
@@ -3173,8 +3180,41 @@ UI.lgTimeSave=function(){
   if(!mutate(()=>{h.time=LgTime.ms?fmtHeatTime(LgTime.ms):null;}))return;
   lgRender();
 };
-UI.lgScrollTeams=function(){window.scrollTo({top:0,behavior:"smooth"});};
-UI.lgScrollToNext=function(){
+/* Dwa widoki meczu ligowego: „teams” (Składy) i „heats” (Wyścigi); przełączane ikonami lub przeciągnięciem. */
+let LgView=null,LgViewFor=null;
+function lgApplyView(){
+  const t=$("lgTeamsWrap"),h=$("lgHeatsWrap");
+  if(t)t.style.display=LgView==="teams"?"":"none";
+  if(h)h.style.display=LgView==="heats"?"":"none";
+}
+UI.lgView=function(v){
+  const m=lgm();if(!m)return;
+  LgView=v;lgApplyView();
+  $("lgScorebar").innerHTML=lgScorebarHtml();
+  if(v==="heats"){
+    const i=lgFirstOpenIdx(m);
+    const el=$("lgheat-"+(i>=0?m.heats[i].n:15));
+    if(el)el.scrollIntoView({behavior:"auto",block:"start"});
+  }else window.scrollTo(0,0);
+};
+(function(){
+  let x0=0,y0=0,ok=false;
+  const hs=el=>{for(;el&&el.id!=="match";el=el.parentElement){
+    if(el.scrollWidth>el.clientWidth+2&&/(auto|scroll)/.test(getComputedStyle(el).overflowX))return true;}return false;};
+  document.addEventListener("touchstart",e=>{
+    const sec=$("match");
+    ok=!!(sec&&sec.classList.contains("on")&&e.touches.length===1&&!e.target.closest("#overlay,select,input,textarea")&&!hs(e.target));
+    if(ok){x0=e.touches[0].clientX;y0=e.touches[0].clientY;}
+  },{passive:true});
+  document.addEventListener("touchend",e=>{
+    if(!ok)return;ok=false;
+    const t=e.changedTouches[0],dx=t.clientX-x0,dy=t.clientY-y0;
+    if(Math.abs(dx)<70||Math.abs(dx)<Math.abs(dy)*1.8)return;
+    if(dx<0&&LgView==="teams")UI.lgView("heats");
+    else if(dx>0&&LgView==="heats")UI.lgView("teams");
+  },{passive:true});
+})();
+UI.lgScrollToNext=function(){ /* (nieużywane — zastąpione przez UI.lgView) */
   const m=lgm();if(!m)return;
   const i=lgFirstOpenIdx(m);
   if(i<0){UI.toast("Wszystkie biegi zostały zatwierdzone.");return;}
@@ -3195,9 +3235,11 @@ UI.leaveMatch=function(){
 /* ===== Render meczu ===== */
 function lgRender(){
   const c=cur();if(!c||!c.league||!c.match){UI.screen("home");return;}
+  if(LgViewFor!==c.id){LgViewFor=c.id;LgView=c.match.heats.some(h=>h.confirmed)?"heats":"teams";}
   $("lgTeamsWrap").innerHTML=lgTeamCard("home")+lgTeamCard("away");
   $("lgHeatsWrap").innerHTML=c.match.heats.map((_,i)=>lgHeatHtml(i)).join("");
   $("lgScorebar").innerHTML=lgScorebarHtml();
+  lgApplyView();
   lgMaybePromptZZ();
   lgMaybeNominate();
 }
@@ -3242,8 +3284,9 @@ function lgScorebarHtml(){
   const c=cur();
   const sc=lgCumulative(c.match,15);
   return "<div class='lg-scorebar-inner'><div class='lg-sbrow'>"+
-    "<button class='lg-skladybtn' data-onclick='UI.lgScrollTeams()'>&#9650; Składy</button>"+
-    "<button class='lg-skladybtn' data-onclick='UI.lgScrollToNext()'>&#9660; Najbliższy wyścig</button>"+
+    "<button class='lg-sbicon"+(LgView==="teams"?" active":"")+"' title='Składy' data-onclick='UI.lgView(\"teams\")'><svg viewBox='0 0 24 24'><path d='M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5C15 14.17 10.33 13 8 13zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z'/></svg></button>"+
+    "<button class='lg-sbicon"+(LgView==="heats"?" active":"")+"' title='Wyścigi' data-onclick='UI.lgView(\"heats\")'><svg viewBox='0 0 24 24'><path d='M14.4 6L14 4H5v17h2v-7h5.6l.4 2h7V6z'/></svg></button>"+
+    "<span style='flex:1'></span>"+
     "<button class='lg-sbicon danger' title='Reset całych zawodów' data-onclick='UI.lgResetMatch()'><svg viewBox='0 0 24 24'><path d='M15 16h4v2h-4zm0-8h7v2h-7zm0-4h6v2h-6zM3 18c0 1.1.9 2 2 2h6c1.1 0 2-.9 2-2V8H3v10zM14 5h-3l-1-1H6L5 5H2v2h12z'/></svg></button>"+
     "<button class='lg-sbicon' title='Ekran główny' data-onclick='UI.leaveMatch()'><svg viewBox='0 0 24 24'><path d='M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z'/></svg></button></div>"+
     "<div class='lg-scorerow'><div class='snm'><span class='wrap2'>"+escq(c.home.name).split(" ").map(w=>"<span>"+w+"</span>").join("")+"</span></div>"+
@@ -3301,7 +3344,8 @@ function lgHeatHtml(heatIdx){
   const h=m.heats[heatIdx];
   const firstOpen=lgFirstOpenIdx(m);
   const active=!h.confirmed&&heatIdx===firstOpen;
-  const dim=!h.confirmed&&!active;
+  const pre=lgNomPreEditable(heatIdx);
+  const dim=!h.confirmed&&!active&&!pre;
   const HELM_COLOR={C:"#ef4444",N:"#3b82f6",B:"#f8fafc","Ż":"#eab308"};
   let extraBar="";
   if(h.n===1){
@@ -3324,7 +3368,7 @@ function lgHeatHtml(heatIdx){
     const isBonusHere=h.confirmed&&h.score&&h.score.bonusSlot===slotIdx;
     let nameHtml,posHtml="",btns="";
     if(slot.num==null){
-      if(active){
+      if(active||pre){
         nameHtml="<span class='name' style='flex:1'><button class='btn secondary small' style='margin:0;text-transform:none' data-onclick='UI.lgNomSlotOpen("+heatIdx+","+slotIdx+")'>Wybierz zawodnika…</button></span>";
       }else{
         nameHtml="<span class='name' style='flex:1;color:var(--text-muted)'>do obsadzenia (nominowany)</span>";
