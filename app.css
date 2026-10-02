@@ -271,7 +271,7 @@ table.pts td.plc { font-weight: 800; color: var(--amber); user-select: none; }
   background: rgba(0,0,0,0.35);
   border: 1px solid var(--ov-12);
   border-radius: 12px;
-  padding: 12px 12px 12px 44px;
+  padding: 12px 12px 12px 14px;
   min-height: 56px;
   display: flex;
   align-items: center;
@@ -282,7 +282,6 @@ table.pts td.plc { font-weight: 800; color: var(--amber); user-select: none; }
 .rcard .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
 .rcard.ex { opacity: 0.85; font-size: 0.9rem; background: var(--tint-red-b); border-color: rgba(248,113,113,0.35); }
 .rcard.locked { opacity: 0.75; }
-.rcard .dot { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; border-radius: 50%; box-shadow: 0 0 0 2px var(--ov-15); }
 .rcardbtns { display: flex; gap: 6px; margin-left: 10px; flex-shrink: 0; }
 .cardbtn {
   width: 44px; height: 44px; padding: 0; flex-shrink: 0;

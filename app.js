@@ -1389,7 +1389,7 @@ function heatCardHtml(c,h,firstOpen){
     else if(active)html+="<button class='btn small primary' style='margin:0' data-onclick='UI.confirmHeat("+h.n+")'>\u2714 Zatwierd\u017a</button>";
     else html+="<span style='color:var(--text-muted);font-size:0.8rem'>"+ICON_LOCK_SM+"Zablokowany</span>";
     html+="</div></div><div class='hrows'>";
-    const rowOf=(e,r,extraCls,inner)=>"<div class='rcard "+(extraCls||"")+"' style='border-left:4px solid "+GATE_COLOR[e.gate]+"'><span class='dot' style='background:"+GATE_COLOR[e.gate]+"'></span>"+inner+"</div>";
+    const rowOf=(e,r,extraCls,inner)=>"<div class='rcard "+(extraCls||"")+"' style='border-left:4px solid "+GATE_COLOR[e.gate]+"'>"+inner+"</div>";
     if(h.confirmed){
       const r=heatResults(h);let pos=0;
       h.order.forEach(ei=>{
@@ -1413,7 +1413,7 @@ function heatCardHtml(c,h,firstOpen){
         const col=GATE_COLOR[e.gate];
         const r=hasRepl?e.repl:e.rider;
         if(e.mark){
-          html+="<div class='rcard ex locked' style='border-left:4px solid "+col+"'><span class='dot' style='background:"+col+"'></span><span class='name'>"+escq(c.mapping[e.rider]||"?")+"<span class='mk'>"+escq(e.mark)+"</span>"+(hasRepl?" <small>(zast. "+escq(c.mapping[e.repl]||"?")+")</small>":"")+"</span></div>";
+          html+="<div class='rcard ex locked' style='border-left:4px solid "+col+"'><span class='name'>"+escq(c.mapping[e.rider]||"?")+"<span class='mk'>"+escq(e.mark)+"</span>"+(hasRepl?" <small>(zast. "+escq(c.mapping[e.repl]||"?")+")</small>":"")+"</span></div>";
         }else if(r===null||r===undefined){
           html+="<div class='slotmark' role='button' tabindex='0' data-onclick='UI.pickOpenRider("+h.n+","+ei+")'>+ Wybierz zawodnika</div>";
         }else{
@@ -1425,7 +1425,7 @@ function heatCardHtml(c,h,firstOpen){
           const subNote=isSub?"<small style='color:var(--text-muted)'> (za "+escq(c.mapping[h.entries[e.replOf].rider]||"?")+")</small>":"";
           const nameAttrs=canReassign?" style='cursor:pointer;text-decoration:underline dotted' title='Zmie\u0144 zawodnika' data-onclick='UI.pickOpenRider("+h.n+","+ei+")'":"";
           html+="<div class='rcard' data-heat='"+h.n+"' data-slot='"+ei+"' data-pos='"+(pos-1)+"' style='border-left:4px solid "+col+"'>"+
-            "<span class='dot' style='background:"+col+"'></span>"+
+            ""+
             "<span class='name'"+nameAttrs+">"+escq(c.mapping[r]||"?")+subNote+"</span>"+
             "<span class='pos'>"+pos+".</span>"+
             "<div class='rcardbtns'>"+
@@ -2758,7 +2758,7 @@ function lgHeatHtml(heatIdx){
         "</div>";
     }
     return "<div class='rcard"+(slot.excl?" ex locked":"")+"' style='border-left:4px solid "+col+"'>"+
-      "<span class='dot' style='background:"+col+"'></span>"+nameHtml+posHtml+btns+
+      ""+nameHtml+posHtml+btns+
       "</div>"+menu;
   }).join("");
   const actions="<div class='heatactions'>"+
