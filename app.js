@@ -507,7 +507,7 @@ const UI={
   },
   promptName(cb){
     const c=cur();if(!c)return;
-    UI.openModal("<h3>Nazwa zawod\u00f3w</h3><input type='text' id='compName' placeholder='np. Grand Prix Gorz\u00f3w' style='margin-bottom:12px'><button class='btn primary' id='nameOk'>Zapisz</button><button class='btn' id='nameSkip'>Domy\u015blna nazwa</button>");
+    UI.openModal("<h3>Nazwa zawod\u00f3w</h3><input type='text' id='compName' placeholder='np. Grand Prix Polski w Lublinie' style='margin-bottom:12px'><button class='btn primary' id='nameOk'>Zapisz</button><button class='btn' id='nameSkip'>Domy\u015blna nazwa</button>");
     const fin=(v)=>{c.name=cleanText(v,80)||("Zawody "+c.format+"-biegowe");persist();UI.closeModal();cb&&cb();};
     $("nameOk").onclick=()=>{fin($("compName").value);};
     $("nameSkip").onclick=()=>{fin("");};
@@ -663,7 +663,7 @@ const UI={
       if(mutate(()=>{c.h2h=!c.h2h;c.overrides={};})){renderLineup();renderPoints();scheduleRenders();}
     };
     if(c.overrides&&Object.keys(c.overrides).length){
-      UI.confirm("Zmiana zasady wyczy\u015bci r\u0119czne rozstrzygni\u0119cia remis\u00f3w w tych zawodach. Zmieni\u0107?",()=>{apply();reopen();},reopen);
+      UI.confirm("Zmiana zasady usunie ręczne rozstrzygnięcia remisów w tych zawodach. Zmienić?",()=>{apply();reopen();},reopen);
     }else apply();
   },
 
@@ -922,7 +922,7 @@ const UI={
     UI._timeHeatN=heatN;
     UI._timeMs=h.time?Math.round(parseFloat(h.time.replace(",","."))*1000):0;
     let html="<h3>Czas biegu "+getHeatLabel(h)+"</h3>";
-    html+="<p style='text-align:center;color:var(--text-muted);font-size:0.75rem;margin:0 0 10px'>Wpisz cyfry \u2014 ostatnie trzy to milisekundy</p>";
+    html+="<p style='text-align:center;color:var(--text-muted);font-size:0.75rem;margin:0 0 10px'>Wpisz cyfry</p>";
     html+="<div class='timedisplay' id='timeVal'>"+fmtHeatTime(UI._timeMs)+"</div>";
     html+="<div class='numpad'>";
     for(let d=1;d<=9;d++)html+="<button class='btn' data-onclick='UI.timeDigit("+d+")'>"+d+"</button>";
@@ -1551,7 +1551,7 @@ UI.assignRosterRider=function(){
   });
 };
 UI.addTeam=function(fromLeague){
-  UI.openModal("<h3>Dodaj drużynę</h3><p style='text-align:center;font-size:0.78rem;color:var(--text-muted);margin:0 0 10px'>Do nowej drużyny automatycznie trafia <b>Zawodnik zastępowany</b> (ZZ).</p><label for='tn' class='sr-label'>Nazwa drużyny</label><input type='text' id='tn' placeholder='Nazwa drużyny' style='width:100%;margin-bottom:12px'><button class='btn primary' id='ok'>Dodaj</button><button class='btn' data-onclick='UI.closeModal()'>Anuluj</button>");
+  UI.openModal("<h3>Dodaj drużynę</h3><p style='text-align:center;font-size:0.78rem;color:var(--text-muted);margin:0 0 10px'>Do nowej drużyny automatycznie zostanie dopisany <b>Zawodnik zastępowany</b> (ZZ).</p><label for='tn' class='sr-label'>Nazwa drużyny</label><input type='text' id='tn' placeholder='Nazwa drużyny' style='width:100%;margin-bottom:12px'><button class='btn primary' id='ok'>Dodaj</button><button class='btn' data-onclick='UI.closeModal()'>Anuluj</button>");
   $("ok").onclick=()=>{
     const v=cleanText($("tn").value,100);if(!v)return;
     if(S.teams.some(t=>t.name===v)){UI.toast("❌ Taka drużyna już istnieje.");return;}
@@ -1707,7 +1707,7 @@ function renderLgLineup(){
       "</div>";
   });
   html+="<div class='lg-hints' style='margin-top:8px'>"+
-    "<div>Jeżeli drużyna będzie korzystać z zastępstwa zawodnika (ZZ), umieść w składzie „Zawodnik zastępowany” na wybranym numerze.</div>"+
+    "<div>Jeżeli drużyna będzie korzystać z zastępstwa zawodnika (ZZ), umieść w składzie pozycję „Zawodnik zastępowany” na wybranym numerze.</div>"+
     "<div>Numery 6–7 / 14–15 mogą zajmować wyłącznie juniorzy.</div></div>";
   $("lgLineupList").innerHTML=html;
 }
@@ -2177,7 +2177,7 @@ UI.lgNominateShow=function(){
   let html="<h3>Nominacja — bieg "+n+"</h3>"+
     "<p style='"+sub+"'>"+escq(lgLineup(tk).name)+" — wybierz "+LgNom.need+(LgNom.need===1?" zawodnika.":" zawodników.")+"</p>"+
     (note?"<p style='"+sub+"'>"+escq(note.trim())+"</p>":"")+
-    "<p style='"+sub+"'>Kolory kasków ustawisz za chwilę na karcie biegu.</p>";
+    "<p style='"+sub+"'>Kolory kasków ustalisz na karcie wyścigu.</p>";
   cands.forEach(x=>{
     const on=LgNom.sel.includes(x);
     const dim=(LgNom.lock||[]).includes(x)||(!on&&n===14&&LgNom.tieSet.includes(x)&&LgNom.sel.filter(v=>LgNom.tieSet.includes(v)).length>=LgNom.cap);
@@ -2291,7 +2291,7 @@ UI.lgConfirmHeat=function(heatIdx){
     if(lgIsZZRider(s.num,tk)){
       /* Gdy nie ma żadnego dostępnego kandydata na ZZ, nie blokujemy zatwierdzenia. */
       if(lgZZCandidates(tk,heatIdx).length===0&&lgZZRtCandidates(tk,heatIdx,s.num).length===0)continue;
-      UI.toast("Bieg "+h.n+": pod numerem "+s.num+" jedzie Zawodnik zastępowany — wybierz najpierw zastępstwo ZZ.");
+      UI.toast("Bieg "+h.n+": pod numerem "+s.num+" jedzie Zawodnik zastępowany — wybierz najpierw zastępstwo.");
       return;
     }
   }
@@ -2392,7 +2392,7 @@ UI.lgReservePrompt=function(heatIdx,slotIdx){
   const btn=(type,ok,txt)=>ok
     ?"<button class='btn primary' data-onclick='UI.lgReservePick("+heatIdx+","+slotIdx+",\""+type+"\")'>"+txt+"</button>"
     :"<button class='btn' disabled style='opacity:0.4'>"+txt+"</button>";
-  UI.openModal("<h3>Rezerwa?</h3><p style='text-align:center;font-size:0.78rem;color:var(--text-muted);margin:0 0 10px'>Bieg "+h.n+" — kod <b>"+escq(s.excl)+"</b>. Czy przewidujesz rezerwę?</p>"+
+  UI.openModal("<h3>Rezerwa?</h3><p style='text-align:center;font-size:0.78rem;color:var(--text-muted);margin:0 0 10px'>Bieg "+h.n+" — symbol <b>"+escq(s.excl)+"</b>. Czy przewidujesz rezerwę?</p>"+
     btn("RZ",rzOk,"RZ — rezerwa zwykła")+
     btn("RT",rtOk,"RT — rezerwa taktyczna")+
     "<button class='btn' data-onclick='UI.closeModal()'>Bez rezerwy</button>");
@@ -2484,7 +2484,7 @@ UI.lgEditTime=function(heatIdx){
   const h=lgm().heats[heatIdx];
   LgTime={heatIdx,ms:h.time?Math.round(parseFloat(h.time.replace(",","."))*1000):0};
   let html="<h3>Czas biegu "+h.n+"</h3>"+
-    "<p style='text-align:center;color:var(--text-muted);font-size:0.75rem;margin:0 0 10px'>Wpisz cyfry — ostatnie trzy to milisekundy</p>"+
+    "<p style='text-align:center;color:var(--text-muted);font-size:0.75rem;margin:0 0 10px'>Wpisz cyfry</p>"+
     "<div class='timedisplay' id='lgTimeVal'>"+fmtHeatTime(LgTime.ms)+"</div><div class='numpad'>";
   for(let d=1;d<=9;d++)html+="<button class='btn' data-onclick='UI.lgTimeDigit("+d+")'>"+d+"</button>";
   html+="<button class='btn secondary' data-onclick='UI.lgTimeBackspace()'>&#9003;</button>"+
@@ -2652,10 +2652,10 @@ function lgSlotMenuHtml(heatIdx,slotIdx,teamKey){
     LG_EXCL_CODES.map(code=>"<button class='btn small "+(curExcl===code?"primary":"secondary")+"' data-onclick='UI.lgSetExcl("+heatIdx+","+slotIdx+",\""+code+"\")'>"+code+"</button>").join("")+
     "</div>";
   if(curExcl){
-    html+="<div class='lg-hints'><div>Po kodach -, T, U/-, W2 pojawi się okienko z pytaniem o rezerwę.</div>"+
+    html+="<div class='lg-hints'><div>Po wybraniu -, T, U/-, W2 pojawi się pytanie o rezerwę.</div>"+
       "<div>ZZ — automatycznie, gdy w biegu jedzie Zawodnik zastępowany.</div></div>";
   }else{
-    html+="<div class='lg-hints'><div>Wskaż kod wykluczenia — dla -, T, U/-, W2 pojawi się pytanie o rezerwę.</div></div>";
+    html+="<div class='lg-hints'><div>Wskaż symbol wykluczenia — dla -, T, U/-, W2 pojawi się pytanie o rezerwę.</div></div>";
   }
   if(h.subListFor&&h.subListFor.slot===slotIdx){
     const type=h.subListFor.type;
