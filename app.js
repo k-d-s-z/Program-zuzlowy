@@ -7,6 +7,8 @@ const GATES=["A","B","C","D"];
 const GATE_ORDER_DISPLAY=["D","C","B","A"];
 const GATE_COLOR={A:"#ef4444",B:"#3b82f6",C:"#f8fafc",D:"#eab308"};
 const MARKS=["W","D","T","U","W2","U/-","-"];
+/* Zastępstwo (rezerwa 17/18) dozwolone tylko przy tych kodach; W, D, U — bez zastępstwa. */
+const SUB_CODES=["T","W2","U/-","-"];
 const LS="zuzel.v1";
 const DATA_SCHEMA=2; /* wersja formatu kopii zapasowej (brak pola = kopia sprzed wersjonowania) */
 
@@ -821,6 +823,7 @@ const UI={
     }))return;
     if(mark===null){UI.closeModal();scheduleRenders();return;}
     renderRaces();
+    if(!SUB_CODES.includes(mark)){UI.closeModal();return;}
 
     const pool=[17,18].filter(n=>c.mapping[n]&&!h.entries.some(x=>x.rider===n&&(!x.mark||x.replOf!==undefined&&x.replOf!==null)));
     let html="<h3>Wyb\u00f3r zast\u0119pstwa</h3><p style='text-align:center'>Oznaczenie: <b>"+escq(mark)+"</b></p>";
