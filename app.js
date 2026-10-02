@@ -1662,14 +1662,18 @@ function renderLgTeamPick(){
   $("lgTeamTitle").textContent=(isHome?"GOSPODARZE":"GOŚCIE")+" — WYBÓR DRUŻYNY";
   const el=$("lgTeamList");
   if(!S.teams.length){el.innerHTML="<p style='color:var(--text-muted);text-align:center;'>Brak utworzonych drużyn. Zanim rozpoczniesz zawody, utwórz drużyny wraz z zawodnikami w sekcji</p><button class='btn secondary' data-onclick='UI.goPeople()'>Zawodnicy i drużyny</button>";return;}
-  el.innerHTML=S.teams.map((t,i)=>"<div style='display:flex;gap:6px;margin-bottom:6px'>"+
+  /* Drużyna wybrana jako gospodarz nie może być jednocześnie gościem. */
+  const taken=(!isHome&&LgW.home)?LgW.home.teamIdx:-1;
+  el.innerHTML=S.teams.map((t,i)=>i===taken?"":"<div style='display:flex;gap:6px;margin-bottom:6px'>"+
     "<button class='btn' style='flex:1;text-transform:none' data-pick='"+i+"'>"+escq(t.name)+" <small style='opacity:0.7'>("+t.riders.length+")</small></button>"+
     "<button class='btn small' style='align-self:center' data-tedit='"+i+"'>Edytuj</button></div>").join("");
+  if(!el.innerHTML)el.innerHTML="<p style='color:var(--text-muted);text-align:center;'>Do wyboru gości potrzebna jest druga drużyna. Dodaj ją w sekcji Zawodnicy i drużyny.</p>";
   el.querySelectorAll("[data-pick]").forEach(b=>b.onclick=()=>UI.lgPickTeam(+b.dataset.pick));
   el.querySelectorAll("[data-tedit]").forEach(b=>b.onclick=()=>{LgFromLeague=true;S.uiTeam=+b.dataset.tedit;UI.screen("teamDetail");});
 }
 UI.lgPickTeam=function(idx){
   const t=S.teams[idx];if(!t||!LgW)return;
+  if(LgW.side==="away"&&LgW.home&&LgW.home.teamIdx===idx){UI.toast("Ta drużyna jest już gospodarzem");return;}
   /* Starsze drużyny mogą nie mieć „Zawodnika zastępowanego” — dodajemy go automatycznie. */
   if(!t.riders.includes(LG_ZZ_NAME))mutate(()=>{t.riders.push(LG_ZZ_NAME);});
   const nums=LgW.side==="home"?[9,10,11,12,13,14,15,16]:[1,2,3,4,5,6,7,8];
