@@ -2045,7 +2045,10 @@ UI.lgPromptZZ=function(heatIdx,slotIdx,teamKey,cands,rt){
           html+="<button class='btn' style='text-transform:none' data-zz='"+n+"' data-t='RT'>"+escq(lgRiderName(n))+" <small style='opacity:0.7'>(pozostałe starty: "+left+""+")</small></button>";
         });
       }
-      /* Bez „Anuluj” — zastępstwo musi zostać wybrane; okna nie zamyka też kliknięcie w tło ani Esc. */
+      /* „Anuluj” zamyka okno bez wyboru: bieg pozostaje nieobsadzony pod tym numerem,
+         a zatwierdzenie biegu z ZZ bez zastępstwa nadal blokuje lgConfirmHeat (toast).
+         Prompt nie wyskoczy ponownie sam (lgZZAsked już odhaczone). */
+      html+="<button class='btn' style='margin-top:10px' data-onclick='UI.closeModal()'>Anuluj</button>";
       UI.openModal(html,true);
       $("modal").querySelectorAll("[data-zz]").forEach(b=>b.onclick=()=>UI.lgPickZZ(heatIdx,slotIdx,teamKey,+b.dataset.zz,b.dataset.t));
     });
@@ -2110,6 +2113,7 @@ function lgEligibleNominated(teamKey,heatIdx){
    zapisujemy dopiero po zako\u0144czeniu ca\u0142ego panelu. ===== */
 let lgNomAsked={}; /* klucz: id zawod\u00f3w \u2014 panel pokazujemy raz na mecz */
 let LgNom=null;
+let LgNomPre=null; /* snapshot stanu meczu sprzed panelu nominacji \u2014 rollback po „Anuluj” */
 function lgMaybeNominate(){
   const m=lgm();if(!m)return;
   const c=cur();if(!c)return;
@@ -2119,10 +2123,15 @@ function lgMaybeNominate(){
   if(m.nom)return; /* pula już wybrana */
   if(m.heats[hi].slots.some(s=>s.num!=null)||m.heats[hi+1].slots.some(s=>s.num!=null))return;
   lgNomAsked[c.id]=true;
-  UI.lgNominatePanel();
+  UI.lgNominatePanel(); /* \u015bcie\u017cka automatyczna \u2014 snapshot bierze bie\u017c\u0105cy (pusty) stan */
 }
-UI.lgNominatePanel=function(){
+UI.lgNominatePanel=function(preSnap){
   const m=lgm();if(!m)return;
+  /* Snapshot stanu meczu sprzed panelu: przy „Anuluj” przywracamy całość
+     (m.nom + obsady bieg\u00f3w 14/15). Dla ponownych nominacji (lgRenominate)
+     snapshot musi zosta\u0107 zrobiony PRZED wyczyszczeniem bieg\u00f3w \u2014 dlatego
+     przyjmujemy go jako argument; w \u015bcie\u017cce automatycznej wystarczy bie\u017c\u0105cy stan. */
+  LgNomPre=(typeof preSnap==="string")?preSnap:JSON.stringify(m);
   UI.announce("Nominacje — biegi 14 i 15",
     "Zatwierdzono biegi 1–13. Trenerzy <b>obu drużyn</b> wybiorą teraz zawodników nominowanych"+
     " — najpierw do biegu 14, potem do biegu 15 (w nim jadą dwaj najlepsi punktowo).",
@@ -2190,6 +2199,7 @@ UI.lgNominateShow=function(){
     (LgNom.sel.length===LgNom.need
       ?"<button class='btn primary' data-onclick='UI.lgNominateNext()'>Dalej &#10132;</button>"
       :"<button class='btn' disabled style='opacity:0.4'>Dalej &#10132;</button>")+
+    "<button class='btn danger' data-onclick='UI.lgNominateCancel()'>Anuluj</button>"+
     "</div>";
   /* Okno nominacji jest ZABLOKOWANE (locked): nie zamknie go kliknięcie w tło
      ani Esc. Zamyka się automatycznie dopiero po zapisaniu WSZYSTKICH czterech
@@ -2225,7 +2235,21 @@ UI.lgNominateNext=function(){
   }
   UI.lgNominateShow();
 };
-UI.lgNominateCancel=function(){LgNom=null;UI.closeModal();lgRender();};
+/* Anulowanie panelu nominacji: przywraca stan meczu sprzed panelu (rollback
+   m.nom i obsad bieg\u00f3w 14/15 zapisany w LgNomPre) i zamyka okno. */
+UI.lgNominateCancel=function(){
+  const m=lgm();
+  const pre=LgNomPre;
+  LgNom=null;LgNomPre=null;
+  if(m&&typeof pre==="string"){
+    let restored=null;
+    try{restored=JSON.parse(pre);}catch(e){}
+    if(restored&&typeof restored==="object"){
+      if(!mutate(()=>{Object.keys(restored).forEach(k=>m[k]=restored[k]);}))return;
+    }
+  }
+  UI.closeModal();lgRender();
+};
 /* Cofnięcie do poprzedniego kroku kreatora nominacji (bez utraty wcześniejszych wyborów). */
 UI.lgNominateBack=function(){
   if(!LgNom||LgNom.i===0)return;
@@ -2243,6 +2267,7 @@ UI.lgRenominate=function(){
   if(!m.heats.slice(0,13).every(h=>h.confirmed)){UI.toast("Nominacje są dostępne po zatwierdzeniu biegów 1–13.");return;}
   if(h14.confirmed||h15.confirmed){UI.toast("Najpierw zresetuj bieg 14 i 15 — nominacje można zmienić tylko przed ich zatwierdzeniem.");return;}
   UI.confirm("Ponownie wybrać nominowanych zawodników do biegów 14 i 15?<br><small style='color:var(--text-muted)'>Obecne obsady tych biegów zostaną wyczyszczone.</small>",()=>{
+    const preMatch=JSON.stringify(m); /* stan sprzed czyszczenia \u2014 rollback dla „Anuluj” */
     if(!mutate(()=>{
       delete m.nom;
       [h14,h15].forEach(h=>{
@@ -2252,7 +2277,7 @@ UI.lgRenominate=function(){
     }))return;
     UI.closeModal();
     lgNomAsked[c.id]=true; /* panel otwieramy ręcznie; po anulowaniu niech nie wyskakuje sam */
-    UI.lgNominatePanel();
+    UI.lgNominatePanel(preMatch);
   });
 };
 
