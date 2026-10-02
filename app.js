@@ -1673,7 +1673,7 @@ function renderLgTeamPick(){
   el.innerHTML=S.teams.map((t,i)=>{
     const blocked=!isHome&&LgW.home&&t.name===LgW.home.name;
     return "<div style='display:flex;gap:6px;margin-bottom:6px'>"+
-    "<button class='btn' style='flex:1;text-transform:none'"+(blocked?" disabled title='Ta dru\\u017cyna jest ju\\u017c wybrana jako gospodarze.'":" data-pick='"+i+"'")+">"+escq(t.name)+" <small style='opacity:0.7'>(\"+t.riders.length+\")</small>"+(blocked?" — gospodarze":"")+"</button>"+
+    "<button class='btn' style='flex:1;text-transform:none'"+(blocked?" disabled title='Ta dru\\u017cyna jest ju\\u017c wybrana jako gospodarze.'":" data-pick='"+i+"'")+">"+escq(t.name)+" <small style='opacity:0.7'>("+t.riders.length+")</small>"+(blocked?" — gospodarze":"")+"</button>"+
     "<button class='btn small' style='align-self:center' data-tedit='"+i+"'>Edytuj</button></div>";
   }).join("");
   el.querySelectorAll("[data-pick]").forEach(b=>b.onclick=()=>UI.lgPickTeam(+b.dataset.pick));
