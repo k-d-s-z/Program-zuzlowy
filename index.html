@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 <!-- Polityka bezpiecze&#324;stwa tre&#347;ci: brak zewn&#281;trznych skrypt&#243;w, brak po&#322;&#261;cze&#324; sieciowych poza w&#322;asnym hostem,
      obrazy tylko data:, czcionki tylko systemowe. Skrypt i arkusz stylów wyłącznie z własnego hosta (app.js, app.css) — skrypty inline i bloki &lt;style&gt; są zablokowane; connect-src 'none'. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-elem 'self'; style-src-attr 'unsafe-inline'; font-src 'none'; img-src data: 'self'; connect-src 'none'; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src-elem 'self'; style-src-attr 'unsafe-inline'; frame-ancestors 'none'; font-src 'none'; img-src data: 'self'; connect-src 'none'; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'">
 <title>Program &#380;u&#380;lowy</title>
 
 <!-- Typografia: wy&#322;&#261;cznie czcionki systemowe (zero po&#322;&#261;cze&#324; sieciowych) -->
@@ -122,7 +122,7 @@
       <div class="switch" id="h2hSwitch" role="switch" tabindex="0" aria-checked="false" aria-label="Decyduj&#261; bezpo&#347;rednie pojedynki" data-onclick="UI.toggleH2H()"><div class="knob"></div></div>
       <span style="font-size:0.8rem;font-weight:800;color:var(--text-muted)">TAK</span>
     </div>
-    <p style="font-size:0.7rem;color:var(--text-muted);text-align:center;margin:8px 0 0">Gdy opcja jest w&#322;&#261;czona, remisy s&#261; rozstrzygane na podstawie wynik&#243;w bezpo&#346;rednich pojedynk&#243;w mi&#281;dzy zawodnikami.</p>
+    <p style="font-size:0.7rem;color:var(--text-muted);text-align:center;margin:8px 0 0">Gdy w&#322;&#261;czona, idealne remisy s&#261; rozstrzygane wynikami bezpo&#347;rednich pojedynk&#243;w mi&#281;dzy zremisowanymi zawodnikami.</p>
   </div>
   <button class="btn primary" data-onclick="UI.launch()">URUCHOM ZAWODY</button>
 </section>
