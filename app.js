@@ -1180,7 +1180,7 @@ function renderPoints(){
   const last=heats.filter(h=>h.confirmed&&!h.extra).reduce((m,h)=>Math.max(m,h.n),0);
   const total=c.format;
   const t=$("ptsTitle");
-  if(t)t.innerHTML="<span class='fbar-t'>Klasyfikacja</span><span class='fbar-s'>po "+last+"/"+total+" wyścigu</span>";
+  if(t)t.innerHTML="<span class='fbar-t'>Klasyfikacja</span><span class='fbar-s'>po wyścigu "+last+"/"+total+"</span>";
   const sb=$("sortPts");
   if(sb)sb.classList.toggle("active",!!S.settings.sortByPlace);
   UI.syncH2H();
