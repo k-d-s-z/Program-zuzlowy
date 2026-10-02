@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 <!-- Polityka bezpiecze&#324;stwa tre&#347;ci: brak zewn&#281;trznych skrypt&#243;w, brak po&#322;&#261;cze&#324; sieciowych poza w&#322;asnym hostem,
      obrazy tylko data:, czcionki tylko systemowe. Skrypt inline dozwolony wyłącznie przez hash SHA-256 (brak inline handlerów), connect-src 'none'. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-I20MzdC9uilU7RlTa5wgxclTmFaF+4Lsn+cMkkLUsPs='; style-src 'unsafe-inline'; font-src 'none'; img-src data: 'self'; connect-src 'none'; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-dQCC+1RTkmXLk9O/wwygOE9xq2xMR2jE44eP0/BrNlQ='; style-src 'unsafe-inline'; font-src 'none'; img-src data: 'self'; connect-src 'none'; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'">
 <title>Program &#380;u&#380;lowy</title>
 
 <!-- Typografia: wy&#322;&#261;cznie czcionki systemowe (zero po&#322;&#261;cze&#324; sieciowych) -->
@@ -462,8 +462,11 @@ table.lg-rt td.lg-bon { font-weight: 800; color: var(--amber); background: var(-
 .fbtn { flex: 0 0 clamp(40px, 11.5vw, 52px); height: 46px; padding: 0; border-radius: 12px; background: var(--ov-06); border: 1px solid var(--ov-15); color: var(--text-strong); display: flex; align-items: center; justify-content: center; }
 .fbtn svg { width: 24px; height: 24px; fill: currentColor; }
 .fbtn.active { background: linear-gradient(180deg, #d1d5db 0%, #9ca3af 100%); color: #0b0f19; border: 1px solid #e5e7eb; box-shadow: 0 2px 8px rgba(0,0,0,0.4); }
-.fbtn.danger { color: #f87171; border-color: rgba(248,113,113,0.7); background: rgba(248,113,113,0.12); }
+.fbtn.danger { margin-left: auto; color: #f87171; border-color: rgba(248,113,113,0.7); background: rgba(248,113,113,0.12); }
 .fbar-lbl { flex: 1; min-width: 0; max-width: 50%; font-size: 0.72rem; font-weight: 800; line-height: 1.15; text-align: center; color: var(--text-strong); background: none; border: 0; padding: 0 2px; text-transform: none; }
+.fbar-lbl.big { font-size: 1.4rem; letter-spacing: 0.3px; }
+.fbar-t { display: block; font-size: 1.15rem; font-weight: 800; }
+.fbar-s { display: block; font-size: 0.7rem; font-weight: 700; color: var(--text-muted); margin-top: 1px; }
 #points, #races { padding-bottom: 84px; }
 .lg-sbicon.active { background: linear-gradient(180deg, #d1d5db 0%, #9ca3af 100%); color: #0b0f19; border: 1px solid #e5e7eb; box-shadow: 0 2px 8px rgba(0,0,0,0.4); }
 
@@ -1842,7 +1845,7 @@ function renderPoints(){
   const last=heats.filter(h=>h.confirmed&&!h.extra).reduce((m,h)=>Math.max(m,h.n),0);
   const total=c.format;
   const t=$("ptsTitle");
-  if(t)t.textContent="Klasyfikacja po "+last+"/"+total+" wyścigu";
+  if(t)t.innerHTML="<span class='fbar-t'>Klasyfikacja</span><span class='fbar-s'>po "+last+"/"+total+" wyścigu</span>";
   const sb=$("sortPts");
   if(sb)sb.classList.toggle("active",!!S.settings.sortByPlace);
   UI.syncH2H();
@@ -3273,9 +3276,9 @@ function lgScorebarHtml(){
     fbtn("","Ekran główny","UI.leaveMatch()","home")+
     fbtn(tv?"active":"","Składy","UI.lgView(\"teams\")","teams")+
     fbtn(tv?"":"active","Wyścigi","UI.lgView(\"heats\")","flag")+
-    fbtn("danger","Reset całych zawodów","UI.lgResetMatch()","reset")+
     (tv?fbtn(LgSort?"active":"","Sortuj zawodników wg punktów","UI.lgSortToggle()","sort"):fbtn("","Następny wyścig","UI.lgScrollToNext()","next"))+
-    "<div class='fbar-lbl'>"+(tv?"Składy":"Wyścigi")+"</div></div>"+
+    "<div class='fbar-lbl big'>"+(tv?"Składy":"Wyścigi")+"</div>"+
+    fbtn("danger","Reset całych zawodów","UI.lgResetMatch()","reset")+"</div>"+
     "<div class='lg-scorerow'><div class='snm'><span class='wrap2'>"+escq(c.home.name).split(" ").map(w=>"<span>"+w+"</span>").join("")+"</span></div>"+
     "<div class='ssc'>"+sc.home+":"+sc.away+"</div>"+
     "<div class='snm away'><span class='wrap2'>"+escq(c.away.name).split(" ").map(w=>"<span>"+w+"</span>").join("")+"</span></div></div></div>";
@@ -3412,15 +3415,15 @@ UI.applyFont();
   $("ptsBar").innerHTML=fbtn("","Ekran główny","UI.leave(\"points\")","home")+
     fbtn("navpts active","Klasyfikacja","UI.navScreen(\"points\")","teams")+
     fbtn("navraces","Wyścigi","UI.navScreen(\"races\")","flag")+
-    fbtn("danger","Resetuj wszystkie wyścigi","UI.resetAllHeats()","reset")+
     fbtn("","Sortuj wg zajmowanego miejsca","UI.toggleSort()","sort","sortPts")+
-    "<button class='fbar-lbl' id='ptsTitle' title='Zasady remisów' data-onclick='UI.tieRules()'>Klasyfikacja</button>";
+    "<button class='fbar-lbl' id='ptsTitle' title='Zasady remisów' data-onclick='UI.tieRules()'><span class='fbar-t'>Klasyfikacja</span></button>"+
+    fbtn("danger","Resetuj wszystkie wyścigi","UI.resetAllHeats()","reset");
   $("racesBar").innerHTML=fbtn("","Ekran główny","UI.leave(\"races\")","home")+
     fbtn("navpts","Klasyfikacja","UI.navScreen(\"points\")","teams")+
     fbtn("navraces active","Wyścigi","UI.navScreen(\"races\")","flag")+
-    fbtn("danger","Resetuj wszystkie wyścigi","UI.resetAllHeats()","reset")+
     fbtn("","Następny wyścig","UI.nextHeat()","next")+
-    "<div class='fbar-lbl' id='racesTitle'>Wyścigi</div>";
+    "<div class='fbar-lbl big' id='racesTitle'>Wyścigi</div>"+
+    fbtn("danger","Resetuj wszystkie wyścigi","UI.resetAllHeats()","reset");
 })();
 UI.goPeople=function(){UI.closeModal();UI.screen("people");};
 UI.nextHeat=function(){
