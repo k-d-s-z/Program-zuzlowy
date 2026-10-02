@@ -1,11 +1,12 @@
 /* Service Worker: cache-first, wyłącznie pliki z własnego hosta.
    Po zmianie index.html / app.js / app.css podbij numer wersji w CACHE. */
 const PREFIX="zuzel-";
-const CACHE=PREFIX+"v13";
+const CACHE=PREFIX+"v15";
 const CORE=["./","./index.html","./app.js","./app.css","./manifest.json"];
+const OPT=["./icon.svg","./icon-192.png","./icon-512.png","./icon-maskable-512.png","./apple-touch-icon.png"];
 self.addEventListener("install",e=>{
-  /* icon.svg jest opcjonalna — jej brak nie może zablokować instalacji całej aplikacji. */
-  e.waitUntil(caches.open(CACHE).then(c=>c.addAll(CORE).then(()=>c.add("./icon.svg").catch(()=>{}))).then(()=>self.skipWaiting()));
+  /* Ikony są opcjonalne — jej brak nie może zablokować instalacji całej aplikacji. */
+  e.waitUntil(caches.open(CACHE).then(c=>c.addAll(CORE).then(()=>Promise.all(OPT.map(f=>c.add(f).catch(()=>{}))))).then(()=>self.skipWaiting()));
 });
 self.addEventListener("activate",e=>{
   /* Kasujemy wyłącznie własne, stare cache (prefiks) — nigdy cudze. */
