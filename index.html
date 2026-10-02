@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 <!-- Polityka bezpiecze&#324;stwa tre&#347;ci: brak zewn&#281;trznych skrypt&#243;w, brak po&#322;&#261;cze&#324; sieciowych poza w&#322;asnym hostem,
      obrazy tylko data:, czcionki tylko systemowe. Skrypt inline dozwolony wyłącznie przez hash SHA-256 (brak inline handlerów), connect-src 'none'. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-2mkfo4ufGarit2q/YFCoypT8y+uzmJDK8q0xhtuHiNs='; style-src 'unsafe-inline'; font-src 'none'; img-src data: 'self'; connect-src 'none'; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-I20MzdC9uilU7RlTa5wgxclTmFaF+4Lsn+cMkkLUsPs='; style-src 'unsafe-inline'; font-src 'none'; img-src data: 'self'; connect-src 'none'; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'">
 <title>Program &#380;u&#380;lowy</title>
 
 <!-- Typografia: wy&#322;&#261;cznie czcionki systemowe (zero po&#322;&#261;cze&#324; sieciowych) -->
@@ -457,6 +457,14 @@ table.lg-rt td.lg-bon { font-weight: 800; color: var(--amber); background: var(-
 .lg-scorerow .ssc { font-size: 1.9rem; font-weight: 800; font-family: var(--font-head); color: var(--accent-blue); flex-shrink: 0; letter-spacing: 1px; }
 .lg-sbicon { flex: 0 0 44px; background: var(--ov-06); border: 1px solid var(--ov-15); border-radius: 10px; color: var(--text-strong); min-height: 34px; padding: 0; display: flex; align-items: center; justify-content: center; }
 .lg-sbicon svg { width: 18px; height: 18px; fill: currentColor; }
+/* Pływające menu (dół ekranu): jednakowe przyciski w zawodach indywidualnych i ligowych */
+.fbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; background: var(--bar-bg); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-top: 1px solid var(--ov-12); padding: 8px 10px calc(8px + env(safe-area-inset-bottom,0px)); box-shadow: 0 -6px 14px -6px rgba(0,0,0,0.6); display: flex; align-items: center; gap: 6px; }
+.fbtn { flex: 0 0 clamp(40px, 11.5vw, 52px); height: 46px; padding: 0; border-radius: 12px; background: var(--ov-06); border: 1px solid var(--ov-15); color: var(--text-strong); display: flex; align-items: center; justify-content: center; }
+.fbtn svg { width: 24px; height: 24px; fill: currentColor; }
+.fbtn.active { background: linear-gradient(180deg, #d1d5db 0%, #9ca3af 100%); color: #0b0f19; border: 1px solid #e5e7eb; box-shadow: 0 2px 8px rgba(0,0,0,0.4); }
+.fbtn.danger { color: #f87171; border-color: rgba(248,113,113,0.7); background: rgba(248,113,113,0.12); }
+.fbar-lbl { flex: 1; min-width: 0; max-width: 50%; font-size: 0.72rem; font-weight: 800; line-height: 1.15; text-align: center; color: var(--text-strong); background: none; border: 0; padding: 0 2px; text-transform: none; }
+#points, #races { padding-bottom: 84px; }
 .lg-sbicon.active { background: linear-gradient(180deg, #d1d5db 0%, #9ca3af 100%); color: #0b0f19; border: 1px solid #e5e7eb; box-shadow: 0 2px 8px rgba(0,0,0,0.4); }
 
 /* Ekran składów drużyny (lineup meczu ligowego) */
@@ -629,7 +637,6 @@ table.lg-rt td.lg-bon { font-weight: 800; color: var(--amber); background: var(-
 <section id="lgTeam" class="screen">
   <div class="topbar"><button class="iconbtn" title="Wróć" data-onclick="UI.cancelLeague()"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></button><h2 class="grow" id="lgTeamTitle">WYBÓR DRUŻYNY</h2></div>
   <div class="card">
-    <button class="btn primary" data-onclick="UI.addTeam(true)">+ NOWA DRUŻYNA</button>
     <div id="lgTeamList"></div>
   </div>
 </section>
@@ -652,16 +659,7 @@ table.lg-rt td.lg-bon { font-weight: 800; color: var(--amber); background: var(-
 
 <!-- ============ OKNO PUNKTACJA ============ -->
 <section id="points" class="screen">
-  <div class="sticky-header">
-    <div class="topbar">
-      <button class="iconbtn" title="Ekran g&#322;&#243;wny" data-onclick="UI.leave('points')"><svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></button>
-      <h2 class="grow" id="ptsTitle" style="font-size:0.85rem;margin:0;text-align:center;display:block;min-width:0">KLASYFIKACJA</h2>
-      <button class="iconbtn navpts active" title="Klasyfikacja" data-onclick="UI.navScreen('points')"></button>
-      <button class="iconbtn navraces" title="Wy&#347;cigi" data-onclick="UI.navScreen('races')"></button>
-      <button class="iconbtn" id="sortPts" title="Sortuj wg zajmowanego miejsca" data-onclick="UI.toggleSort()"><svg viewBox="0 0 24 24"><path d="M3 18h6v-2H3v2zm0-12v2h18V6H3zm0 7h12v-2H3v2z"/></svg></button>
-      <button class="iconbtn" id="tieBtn" title="Zasady remis&#243;w" data-onclick="UI.tieRules()"><svg viewBox="0 0 24 24"><path d="M6.99 11L3 15l3.99 4v-3H14v-2H6.99v-3zM21 9l-3.99-4v3H10v2h7.01v3L21 9z"/></svg></button>
-    </div>
-  </div>
+  <div class="fbar" id="ptsBar"></div>
 
   <div class="card" style="padding:4px; margin-top:8px;">
     <div class="tblwrap" id="ptsWrap">
@@ -672,15 +670,7 @@ table.lg-rt td.lg-bon { font-weight: 800; color: var(--amber); background: var(-
 
 <!-- ============ OKNO WY&#346;CIGI ============ -->
 <section id="races" class="screen">
-  <div class="sticky-header">
-    <div class="topbar">
-      <button class="iconbtn" title="Ekran g&#322;&#243;wny" data-onclick="UI.leave('races')"><svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></button>
-      <h2 class="grow" id="racesTitle" style="font-size:0.85rem;margin:0;text-align:center;display:block;min-width:0">WY&#346;CIGI</h2>
-      <button class="iconbtn navpts" title="Klasyfikacja" data-onclick="UI.navScreen('points')"></button>
-      <button class="iconbtn navraces active" title="Wy&#347;cigi" data-onclick="UI.navScreen('races')"></button>
-      <button class="iconbtn danger" title="Resetuj WSZYSTKIE wy&#347;cigi" data-onclick="UI.resetAllHeats()"><svg viewBox="0 0 24 24"><path d="M15 16h4v2h-4zm0-8h7v2h-7zm0 4h6v2h-6zM3 18c0 1.1.9 2 2 2h6c1.1 0 2-.9 2-2V8H3v10zM14 5h-3l-1-1H6L5 5H2v2h12z"/></svg></button>
-    </div>
-  </div>
+  <div class="fbar" id="racesBar"></div>
 
   <div id="heatList"></div>
   <button class="btn" style="margin-top:12px" data-onclick="UI.promptExtraHeat()">+ WY&#346;CIG DODATKOWY</button>
@@ -1044,6 +1034,17 @@ function lgSetJuniorFlag(name,jr){
   if(jr){if(!S.juniors.includes(name))S.juniors.push(name);}
   else S.juniors=S.juniors.filter(n=>n!==name);
 }
+const IC={
+  home:"M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z",
+  teams:"M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5C15 14.17 10.33 13 8 13zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z",
+  flag:"M14.4 6L14 4H5v17h2v-7h5.6l.4 2h7V6z",
+  reset:"M15 16h4v2h-4zm0-8h7v2h-7zm0-4h6v2h-6zM3 18c0 1.1.9 2 2 2h6c1.1 0 2-.9 2-2V8H3v10zM14 5h-3l-1-1H6L5 5H2v2h12z",
+  sort:"M3 18h6v-2H3v2zm0-12v2h18V6H3zm0 7h12v-2H3v2z",
+  next:"M5.59 7.41L10.18 12l-4.59 4.59L7 18l6-6-6-6zM16 6h2v12h-2z"
+};
+function fbtn(cls,title,act,ic,id){
+  return "<button class='fbtn "+cls+"'"+(id?" id='"+id+"'":"")+" title='"+title+"' data-onclick='"+act+"'><svg viewBox='0 0 24 24'><path d='"+IC[ic]+"'/></svg></button>";
+}
 const UI={
   screen(id){document.querySelectorAll(".screen").forEach(s=>s.classList.remove("on"));$(id).classList.add("on");
     if(id==="riders")renderRiderLib();if(id==="options"){renderSaved();renderSettings();}if(id==="points")renderPoints();
@@ -1283,14 +1284,13 @@ const UI={
   /* Custom picker zamiast natywnego <select> \u2014 pe\u0142nowymiarowe, dotykowe przyciski. */
   pickLineup(num){    const c=cur();if(!c)return;
     let html="<h3>Nr "+num+" \u2014 wybierz zawodnika</h3>";
-    if(!S.riders.length)html+="<p style='text-align:center;color:var(--text-muted)'>Baza zawodnik\u00f3w jest pusta \u2014 dodaj pierwszego.</p>";
+    if(!S.riders.length)html+="<p style='text-align:center;color:var(--text-muted)'>Brak utworzonych zawodników. Zanim rozpoczniesz zawody utwórz zawodników w sekcji</p><button class='btn secondary' data-onclick='UI.goPeople()'>Zawodnicy i drużyny</button>";
     else{
       html+="<label for='riderSearch' class='sr-label'>Szukaj zawodnika</label><input type='text' id='riderSearch' placeholder='Szukaj zawodnika\u2026' style='margin-bottom:10px'>";
       html+="<div id='riderPickList'>"+S.riders.map((r,i)=>"<button class='btn' style='text-transform:none' data-ridx='"+i+"' data-name='"+escq(r.toLowerCase())+"'>"+escq(r)+"</button>").join("")+"</div>";
       html+="<p id='riderPickEmpty' style='display:none;text-align:center;color:var(--text-muted);margin:8px 0'>Brak wynik\u00f3w.</p>";
     }
     html+="<button class='btn danger' style='margin-top:10px' data-clear-num='"+num+"'>\u2014 Brak zawodnika \u2014</button>";
-    html+="<button class='btn secondary' data-onclick='UI.addRider("+num+")'>+ Nowy zawodnik\u2026</button>";
     html+="<button class='btn' style='margin-top:10px' data-onclick='UI.closeModal()'>Anuluj</button>";
     UI.openModal(html);
     /* Nazwiska nigdy nie trafiaj\u0105 do inline JS (onclick) \u2014 pobierane bezpiecznie z S.riders przez indeks. */
@@ -1842,7 +1842,7 @@ function renderPoints(){
   const last=heats.filter(h=>h.confirmed&&!h.extra).reduce((m,h)=>Math.max(m,h.n),0);
   const total=c.format;
   const t=$("ptsTitle");
-  if(t)t.innerHTML="KLASYFIKACJA<span class='ptssub'>"+(last>0?("po wy\u015bcigu "+last+"/"+total):(total+" bieg\u00f3w"))+"</span>";
+  if(t)t.textContent="Klasyfikacja po "+last+"/"+total+" wyścigu";
   const sb=$("sortPts");
   if(sb)sb.classList.toggle("active",!!S.settings.sortByPlace);
   UI.syncH2H();
@@ -2025,7 +2025,7 @@ function renderRaces(){
   const heats=compHeats(c);
   heats.forEach(normalizeOrder);
   const firstOpen=heats.find(h=>!h.extra&&!h.confirmed);
-  $("racesTitle").textContent="WY\u015aCIGI";
+  $("racesTitle").textContent="Wyścigi";
   $("heatList").innerHTML=heats.map(h=>heatCardHtml(c,h,firstOpen)).join("");
 }
 /* Karta pojedynczego biegu \u2014 pozwala aktualizowa\u0107 tylko jeden bieg bez przerysowania ca\u0142ej listy. */
@@ -2321,7 +2321,7 @@ function renderLgTeamPick(){
   const isHome=LgW.side==="home";
   $("lgTeamTitle").textContent=(isHome?"GOSPODARZE":"GOŚCIE")+" — WYBÓR DRUŻYNY";
   const el=$("lgTeamList");
-  if(!S.teams.length){el.innerHTML="<p style='color:var(--text-muted);text-align:center;'>Brak drużyn — dodaj pierwszą.</p>";return;}
+  if(!S.teams.length){el.innerHTML="<p style='color:var(--text-muted);text-align:center;'>Brak utworzonych drużyn. Zanim rozpoczniesz zawody, utwórz drużyny wraz z zawodnikami w sekcji</p><button class='btn secondary' data-onclick='UI.goPeople()'>Zawodnicy i drużyny</button>";return;}
   el.innerHTML=S.teams.map((t,i)=>"<div style='display:flex;gap:6px;margin-bottom:6px'>"+
     "<button class='btn' style='flex:1;text-transform:none' data-pick='"+i+"'>"+escq(t.name)+" <small style='opacity:0.7'>("+t.riders.length+")</small></button>"+
     "<button class='btn small' style='align-self:center' data-tedit='"+i+"'>Edytuj</button></div>").join("");
@@ -2701,7 +2701,7 @@ UI.lgPromptZZ=function(heatIdx,slotIdx,teamKey,cands,rt){
         rt.forEach(n=>{
           const rec=us[n]||{starts:0,usedRT:false,usedZZ:false};
           const left=5+(rec.usedZZ?1:0)-rec.starts;
-          html+="<button class='btn secondary' style='text-transform:none' data-zz='"+n+"' data-t='RT'>"+escq(lgRiderName(n))+" <small style='opacity:0.7'>(pozostałe starty: "+left+(rec.usedZZ?", był już ZZ":"")+")</small></button>";
+          html+="<button class='btn' style='text-transform:none' data-zz='"+n+"' data-t='RT'>"+escq(lgRiderName(n))+" <small style='opacity:0.7'>(pozostałe starty: "+left+""+")</small></button>";
         });
       }
       /* Bez „Anuluj” — zastępstwo musi zostać wybrane; okna nie zamyka też kliknięcie w tło ani Esc. */
@@ -2816,15 +2816,15 @@ UI.lgNominateShow=function(){
     cands=plan.avail.filter(x=>!plan.forced.includes(x));
     need=Math.min(2,plan.cap+plan.below.length);
     LgNom.tieSet=plan.tie.slice();LgNom.cap=plan.cap;
-    if(plan.forced.length)note=" Do biegu 15 jadą z urzędu: "+plan.forced.map(nm).join(", ")+".";
-    if(plan.cap>0)note+=" Remis na "+plan.tie.length+" zawodników ("+plan.tie.map(x=>x).join(", ")+"): do biegu 14 możesz wziąć z nich najwyżej "+plan.cap+" — reszta pojedzie w 15.";
+    if(plan.forced.length)note=(plan.forced.length===1?"Zawodnik przydzielony z urzędu do biegu 15: ":"Zawodnicy przydzieleni z urzędu do biegu 15: ")+plan.forced.map(nm).join(", ")+".";
+    if(plan.cap>0)note+=" Remis punktowy "+plan.tie.length+" zawodników ("+plan.tie.join(", ")+"). Do biegu 14 możesz nominować "+plan.cap+" z nich.";
   }else{
     const ch=LgNom.picks.filter(p=>p.tk===tk&&p.n===14).map(p=>p.riders).flat();
     cands=plan.avail.filter(x=>(plan.locked.includes(x)||plan.tie.includes(x))&&!ch.includes(x));
     need=Math.min(2,cands.length);
     LgNom.lock=plan.locked.filter(x=>cands.includes(x));
     LgNom.lock.forEach(x=>{if(!LgNom.sel.includes(x))LgNom.sel.unshift(x);});
-    if(LgNom.lock.length)note=" Z urzędu: "+LgNom.lock.map(nm).join(", ")+".";
+    if(LgNom.lock.length)note=(LgNom.lock.length===1?"Zawodnik przydzielony z urzędu: ":"Zawodnicy przydzieleni z urzędu: ")+LgNom.lock.map(nm).join(", ")+".";
   }
   if(cands.length<=need)LgNom.lock=cands.slice(); /* brak wyboru — wszyscy jadą */
   LgNom.lock.forEach(x=>{if(!LgNom.sel.includes(x))LgNom.sel.unshift(x);});
@@ -2834,7 +2834,7 @@ UI.lgNominateShow=function(){
   if(!cands.length){UI.lgNominateNext();return;}
   const sub="font-size:0.72rem;color:var(--text-muted);text-align:center;margin:0 0 8px";
   let html="<h3>Nominacja — bieg "+n+"</h3>"+
-    "<p style='"+sub+"'>"+escq(lgLineup(tk).name)+" — wybierz "+LgNom.need+" zawodników.</p>"+
+    "<p style='"+sub+"'>"+escq(lgLineup(tk).name)+" — wybierz "+LgNom.need+(LgNom.need===1?" zawodnika.":" zawodników.")+"</p>"+
     (note?"<p style='"+sub+"'>"+escq(note.trim())+"</p>":"")+
     "<p style='"+sub+"'>Kolory kasków ustawisz za chwilę na karcie biegu.</p>";
   cands.forEach(x=>{
@@ -2861,7 +2861,7 @@ UI.lgNominateToggle=function(x){
   if(LgNom.sel.includes(x))LgNom.sel=LgNom.sel.filter(v=>v!==x);
   else if(LgNom.sel.length<LgNom.need){
     if(LgNom.n===14&&LgNom.tieSet.includes(x)&&LgNom.sel.filter(v=>LgNom.tieSet.includes(v)).length>=LgNom.cap){
-      UI.toast("Za dużo z remisu — ktoś z nich musi pojechać w biegu 15.");return;
+      UI.toast("Z remisu możesz nominować do biegu 14 najwyżej "+LgNom.cap+".");return;
     }
     LgNom.sel=[...LgNom.sel,x];
   }
@@ -3181,7 +3181,7 @@ UI.lgTimeSave=function(){
   lgRender();
 };
 /* Dwa widoki meczu ligowego: „teams” (Składy) i „heats” (Wyścigi); przełączane ikonami lub przeciągnięciem. */
-let LgView=null,LgViewFor=null;
+let LgView=null,LgViewFor=null,LgSort=false;
 function lgApplyView(){
   const t=$("lgTeamsWrap"),h=$("lgHeatsWrap");
   if(t)t.style.display=LgView==="teams"?"":"none";
@@ -3197,23 +3197,7 @@ UI.lgView=function(v){
     if(el)el.scrollIntoView({behavior:"auto",block:"start"});
   }else window.scrollTo(0,0);
 };
-(function(){
-  let x0=0,y0=0,ok=false;
-  const hs=el=>{for(;el&&el.id!=="match";el=el.parentElement){
-    if(el.scrollWidth>el.clientWidth+2&&/(auto|scroll)/.test(getComputedStyle(el).overflowX))return true;}return false;};
-  document.addEventListener("touchstart",e=>{
-    const sec=$("match");
-    ok=!!(sec&&sec.classList.contains("on")&&e.touches.length===1&&!e.target.closest("#overlay,select,input,textarea")&&!hs(e.target));
-    if(ok){x0=e.touches[0].clientX;y0=e.touches[0].clientY;}
-  },{passive:true});
-  document.addEventListener("touchend",e=>{
-    if(!ok)return;ok=false;
-    const t=e.changedTouches[0],dx=t.clientX-x0,dy=t.clientY-y0;
-    if(Math.abs(dx)<70||Math.abs(dx)<Math.abs(dy)*1.8)return;
-    if(dx<0&&LgView==="teams")UI.lgView("heats");
-    else if(dx>0&&LgView==="heats")UI.lgView("teams");
-  },{passive:true});
-})();
+
 UI.lgScrollToNext=function(){ /* (nieużywane — zastąpione przez UI.lgView) */
   const m=lgm();if(!m)return;
   const i=lgFirstOpenIdx(m);
@@ -3255,6 +3239,7 @@ function lgTeamCard(teamKey){
   const side=lgLineup(teamKey);
   const nums=Object.keys(side.lineup).map(Number).sort((a,b)=>a-b);
   const totals=lgRiderTotals(teamKey);
+  if(LgSort)nums.sort((a,b)=>(((totals[b]||{}).pts||0)-((totals[a]||{}).pts||0))||a-b);
   const maxCols=Math.max(5,...nums.map(n=>(totals[n]?totals[n].cells.length:0)),0);
   const cols=Math.min(7,maxCols);
   let head="<th class='lg-nm'>Zawodnik</th>";
@@ -3283,16 +3268,23 @@ function lgTeamCard(teamKey){
 function lgScorebarHtml(){
   const c=cur();
   const sc=lgCumulative(c.match,15);
-  return "<div class='lg-scorebar-inner'><div class='lg-sbrow'>"+
-    "<button class='lg-sbicon"+(LgView==="teams"?" active":"")+"' title='Składy' data-onclick='UI.lgView(\"teams\")'><svg viewBox='0 0 24 24'><path d='M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5C15 14.17 10.33 13 8 13zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z'/></svg></button>"+
-    "<button class='lg-sbicon"+(LgView==="heats"?" active":"")+"' title='Wyścigi' data-onclick='UI.lgView(\"heats\")'><svg viewBox='0 0 24 24'><path d='M14.4 6L14 4H5v17h2v-7h5.6l.4 2h7V6z'/></svg></button>"+
-    "<span style='flex:1'></span>"+
-    "<button class='lg-sbicon danger' title='Reset całych zawodów' data-onclick='UI.lgResetMatch()'><svg viewBox='0 0 24 24'><path d='M15 16h4v2h-4zm0-8h7v2h-7zm0-4h6v2h-6zM3 18c0 1.1.9 2 2 2h6c1.1 0 2-.9 2-2V8H3v10zM14 5h-3l-1-1H6L5 5H2v2h12z'/></svg></button>"+
-    "<button class='lg-sbicon' title='Ekran główny' data-onclick='UI.leaveMatch()'><svg viewBox='0 0 24 24'><path d='M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z'/></svg></button></div>"+
+  const tv=LgView==="teams";
+  return "<div class='lg-scorebar-inner'><div class='lg-sbrow' style='align-items:center'>"+
+    fbtn("","Ekran główny","UI.leaveMatch()","home")+
+    fbtn(tv?"active":"","Składy","UI.lgView(\"teams\")","teams")+
+    fbtn(tv?"":"active","Wyścigi","UI.lgView(\"heats\")","flag")+
+    fbtn("danger","Reset całych zawodów","UI.lgResetMatch()","reset")+
+    (tv?fbtn(LgSort?"active":"","Sortuj zawodników wg punktów","UI.lgSortToggle()","sort"):fbtn("","Następny wyścig","UI.lgScrollToNext()","next"))+
+    "<div class='fbar-lbl'>"+(tv?"Składy":"Wyścigi")+"</div></div>"+
     "<div class='lg-scorerow'><div class='snm'><span class='wrap2'>"+escq(c.home.name).split(" ").map(w=>"<span>"+w+"</span>").join("")+"</span></div>"+
     "<div class='ssc'>"+sc.home+":"+sc.away+"</div>"+
     "<div class='snm away'><span class='wrap2'>"+escq(c.away.name).split(" ").map(w=>"<span>"+w+"</span>").join("")+"</span></div></div></div>";
 }
+UI.lgSortToggle=function(){
+  LgSort=!LgSort;
+  $("lgTeamsWrap").innerHTML=lgTeamCard("home")+lgTeamCard("away");
+  $("lgScorebar").innerHTML=lgScorebarHtml();
+};
 UI.lgResetMatch=function(){
   const m=lgm();if(!m)return;
   UI.confirm("Zresetować <b>całe zawody</b>?<br><small style='color:var(--text-muted)'>Wszystkie wyniki biegów, wykluczenia i zmiany zostaną przywrócone do stanu początkowego. Tej operacji nie można cofnąć.</small>",()=>{
@@ -3415,13 +3407,30 @@ function lgHeatHtml(heatIdx){
 renderHome();
 /* Zastosowanie zapisanego rozmiaru czcionki przy starcie aplikacji. */
 UI.applyFont();
-/* Wype\u0142nienie ikon nawigacyjnych (Klasyfikacja = s\u0142upki, Wy\u015bcigi = flaga z szachownic\u0105). */
+/* Pływające menu zawodów indywidualnych (Klasyfikacja / Wyścigi). */
 (function(){
-  const BARS='<svg viewBox="0 0 24 24"><path d="M4 20V10h3.2v10H4zm6.4 0V4h3.2v16h-3.2zM16.8 20v-7H20v7h-3.2z"/></svg>';
-  const FLAG='<svg viewBox="0 0 24 24"><path d="M14.4 6L14 4H5v17h2v-7h5.6l.4 2h7V6z"/><rect x="8" y="6.5" width="3" height="3" fill="#0b0f19"/><rect x="12.5" y="6.5" width="3" height="3" fill="#f9fafb"/><rect x="17" y="6.5" width="3" height="3" fill="#0b0f19"/><rect x="8" y="10.5" width="3" height="3" fill="#f9fafb"/><rect x="12.5" y="10.5" width="3" height="3" fill="#0b0f19"/><rect x="17" y="10.5" width="3" height="3" fill="#f9fafb"/></svg>';
-  document.querySelectorAll(".navpts").forEach(b=>b.innerHTML=BARS);
-  document.querySelectorAll(".navraces").forEach(b=>b.innerHTML=FLAG);
+  $("ptsBar").innerHTML=fbtn("","Ekran główny","UI.leave(\"points\")","home")+
+    fbtn("navpts active","Klasyfikacja","UI.navScreen(\"points\")","teams")+
+    fbtn("navraces","Wyścigi","UI.navScreen(\"races\")","flag")+
+    fbtn("danger","Resetuj wszystkie wyścigi","UI.resetAllHeats()","reset")+
+    fbtn("","Sortuj wg zajmowanego miejsca","UI.toggleSort()","sort","sortPts")+
+    "<button class='fbar-lbl' id='ptsTitle' title='Zasady remisów' data-onclick='UI.tieRules()'>Klasyfikacja</button>";
+  $("racesBar").innerHTML=fbtn("","Ekran główny","UI.leave(\"races\")","home")+
+    fbtn("navpts","Klasyfikacja","UI.navScreen(\"points\")","teams")+
+    fbtn("navraces active","Wyścigi","UI.navScreen(\"races\")","flag")+
+    fbtn("danger","Resetuj wszystkie wyścigi","UI.resetAllHeats()","reset")+
+    fbtn("","Następny wyścig","UI.nextHeat()","next")+
+    "<div class='fbar-lbl' id='racesTitle'>Wyścigi</div>";
 })();
+UI.goPeople=function(){UI.closeModal();UI.screen("people");};
+UI.nextHeat=function(){
+  const c=cur();if(!c)return;
+  const hs=compHeats(c);
+  const next=hs.find(x=>!x.confirmed&&!x.extra)||hs.find(x=>!x.confirmed);
+  if(!next){UI.toast("Wszystkie wyścigi zostały zatwierdzone.");return;}
+  const el=$("heat-"+next.n);
+  if(el)el.scrollIntoView({behavior:"smooth",block:"start"});
+};
 
 /* Aktualizacja tylko jednej karty biegu (np. po przesuni\u0119ciu zawodnika). */
 function updateHeatCard(h){
