@@ -177,15 +177,21 @@ function heatResults(h){
   return res;
 }
 function fmtRes(rr){return rr?((rr.mark!==null&&rr.mark!==undefined)?escq(rr.mark):rr.pts+" pkt"):"";}
+/* L1: true, gdy kt\\u00f3rykolwiek biegi dodatkowy (D) jest zatwierdzony - chroni sp\\u00f3jno\\u015b\\u0107 biegi \\u2264 20. */
+function hasConfirmedExtraHeats(c){return compHeats(c).some(x=>x.extra&&x.confirmed);}
 
 function standings(c,upto){
   const st={};
-  for(let n=1;n<=18;n++)if(c.mapping[n])st[n]={num:n,pts:0,c3:0,c2:0,c1:0,c0:0,x:0};
+  /* Tabela punktacji budowana z c.mapping (zwykle miejsca 1-18) -
+     odporna na podmiane danych w localStorage, nie hardcoduje zakresu. */
+  Object.keys(c.mapping).map(Number).sort((a,b)=>a-b).forEach(n=>{
+    st[n]={num:n,pts:0,c3:0,c2:0,c1:0,c0:0,x:0};
+  });
   compHeats(c).forEach(h=>{
     if(!h.confirmed || h.extra || (upto && h.n>upto)) return;
     const r=heatResults(h);
     for(const[k,v]of Object.entries(r)){
-      if(!st[k])continue;
+      if(!st[k]){console.warn("Punkty pomij\\u0142y zawodnika nr "+k+" - poza tabel\\u0105 mapping. Sprawd\\u017a dane w localStorage.");continue;}
       st[k].pts+=v.pts;
       if(v.mark)st[k].x++;
       else{if(v.pts===3)st[k].c3++;else if(v.pts===2)st[k].c2++;else if(v.pts===1)st[k].c1++;else st[k].c0++;}
@@ -870,12 +876,14 @@ const UI={
 
   editHeat(heatN){
     const c=cur();const h=compHeats(c).find(x=>x.n===heatN);
+    if(h.n<=20&&!h.extra&&hasConfirmedExtraHeats(c)){UI.toast("Najpierw cofnij zatwierdzenie bieg\\u00f3w dodatkowych (D).");return;}
     h.confirmed=false;persist();renderRaces();renderPoints();
   },
 
   resetHeat(heatN){
     const c=cur();if(!c)return;
     const h=compHeats(c).find(x=>x.n===heatN);
+    if(h.n<=20&&!h.extra&&hasConfirmedExtraHeats(c)){UI.toast("Najpierw cofnij zatwierdzenie bieg\\u00f3w dodatkowych (D).");return;}
     UI.confirm("Zresetowa\u0107 bieg "+getHeatLabel(h)+" do stanu sprzed wy\u015bcigu?",()=>{
       if(!mutate(()=>{
         h.entries=h.entries.filter(e=>e.replOf===undefined||e.replOf===null);
@@ -1662,14 +1670,19 @@ function renderLgTeamPick(){
   $("lgTeamTitle").textContent=(isHome?"GOSPODARZE":"GOŚCIE")+" — WYBÓR DRUŻYNY";
   const el=$("lgTeamList");
   if(!S.teams.length){el.innerHTML="<p style='color:var(--text-muted);text-align:center;'>Brak utworzonych drużyn. Zanim rozpoczniesz zawody, utwórz drużyny wraz z zawodnikami w sekcji</p><button class='btn secondary' data-onclick='UI.goPeople()'>Zawodnicy i drużyny</button>";return;}
-  el.innerHTML=S.teams.map((t,i)=>"<div style='display:flex;gap:6px;margin-bottom:6px'>"+
-    "<button class='btn' style='flex:1;text-transform:none' data-pick='"+i+"'>"+escq(t.name)+" <small style='opacity:0.7'>("+t.riders.length+")</small></button>"+
-    "<button class='btn small' style='align-self:center' data-tedit='"+i+"'>Edytuj</button></div>").join("");
+  el.innerHTML=S.teams.map((t,i)=>{
+    const blocked=!isHome&&LgW.home&&t.name===LgW.home.name;
+    return "<div style='display:flex;gap:6px;margin-bottom:6px'>"+
+    "<button class='btn' style='flex:1;text-transform:none'"+(blocked?" disabled title='Ta dru\\u017cyna jest ju\\u017c wybrana jako gospodarze.'":" data-pick='"+i+"'")+">"+escq(t.name)+" <small style='opacity:0.7'>(\"+t.riders.length+\")</small>"+(blocked?" — gospodarze":"")+"</button>"+
+    "<button class='btn small' style='align-self:center' data-tedit='"+i+"'>Edytuj</button></div>";
+  }).join("");
   el.querySelectorAll("[data-pick]").forEach(b=>b.onclick=()=>UI.lgPickTeam(+b.dataset.pick));
   el.querySelectorAll("[data-tedit]").forEach(b=>b.onclick=()=>{LgFromLeague=true;S.uiTeam=+b.dataset.tedit;UI.screen("teamDetail");});
 }
 UI.lgPickTeam=function(idx){
   const t=S.teams[idx];if(!t||!LgW)return;
+  /* Goscie nie moga byc ta sama druzyna co gospodarze (np. Motor vs Motor). */
+  if(LgW.side!=="home"&&LgW.home&&t.name===LgW.home.name){UI.toast("Go\\u015bcie nie mog\\u0105 by\\u0107 t\\u0105 sam\\u0105 dru\\u017cyn\\u0105 co gospodarze.");return;}
   /* Starsze drużyny mogą nie mieć „Zawodnika zastępowanego” — dodajemy go automatycznie. */
   if(!t.riders.includes(LG_ZZ_NAME))mutate(()=>{t.riders.push(LG_ZZ_NAME);});
   const nums=LgW.side==="home"?[9,10,11,12,13,14,15,16]:[1,2,3,4,5,6,7,8];
@@ -2282,7 +2295,13 @@ UI.lgRenominate=function(){
 };
 
 /* ===== Interakcje meczu ===== */
-let lgExclSeq=0;
+/* L3: kolejno\\u015b\\u0107 wyklucze\\u0144 liczona z danych (max exclSeq w meczu + 1),
+   dzieki czemu jest sp\\u00f3jna tak\\u017ce po prze\\u0142adowaniu strony. */
+function lgNextExclSeq(){
+  let m=0;
+  lgm().heats.forEach(h=>h.slots.forEach(s=>{if((s.exclSeq||0)>m)m=s.exclSeq;}));
+  return m+1;
+}
 function lgReorder(h){
   /* Dop\u00f3ki w biegu nominowanym s\u0105 nieobsadzone pola \u2014 zachowujemy uk\u0142ad p\u00f3l startowych;
      przestawianie (meta/wykluczenia) zaczyna dzia\u0142a\u0107 dopiero po obsadzeniu ca\u0142ego biegu. */
@@ -2378,7 +2397,7 @@ UI.lgSetExcl=function(heatIdx,slotIdx,code){
   const wasSet=s.excl===code;
   if(!mutate(()=>{
     s.excl=wasSet?null:code;
-    if(!wasSet)s.exclSeq=++lgExclSeq;
+    if(!wasSet)s.exclSeq=lgNextExclSeq();
     lgReorder(h);
     /* Menu ZOSTAJE otwarte — po kodach -, T, U/-, W2 dodatkowo pytamy o rezerwę. */
     h.subListFor=null;

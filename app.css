@@ -470,3 +470,11 @@ table.lg-rt td.lg-bon { font-weight: 800; color: var(--amber); background: var(-
   :root { font-size: 17px; }
 }
 @media (hover: hover) { .btn:hover, .iconbtn:hover { filter: brightness(1.06); } }
+
+/* ===== Naprawa: karta klasyfikacji wypelnia ekran od paska po dolne menu ===== */
+#points.on { display: flex; flex-direction: column; }
+#points > .card { flex: 1; min-height: 0; margin: 8px 0 0; }
+#points > .card > .tblwrap { height: 100%; }
+@media (min-width: 700px) {
+  .screen { padding-bottom: 96px; }
+}
