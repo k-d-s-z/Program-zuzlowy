@@ -295,7 +295,7 @@ table.pts td.plc { font-weight: 800; color: var(--amber); user-select: none; }
 .cardbtn svg { width: 20px; height: 20px; fill: currentColor; }
 .cardbtn:active { transform: scale(0.92); }
 .cardbtn:disabled { opacity: 0.25; pointer-events: none; }
-.cardbtn.flag { color: var(--warn); border-color: rgba(251,146,60,0.5); background: var(--tint-org-b); }
+.cardbtn.flag { color: #ef4444; border-color: rgba(239,68,68,0.55); background: rgba(127,29,29,0.3); }
 .cardbtn.del { color: var(--danger-fg); border-color: rgba(248,113,113,0.5); background: var(--tint-danger); }
 .rcard .mk { margin-left: 6px; color: var(--warn); font-weight: 800; }
 .rcard .pos { margin-left: 6px; font-weight: 800; color: var(--text-strong); font-size: 1rem; }
@@ -404,7 +404,7 @@ table.lg-rt td.lg-bon { font-weight: 800; color: var(--amber); background: var(-
 .lg-heatscore { font-weight: 800; font-size: 1.7rem; font-family: var(--font-head); color: var(--accent-blue); min-width: 64px; text-align: center; flex-shrink: 0; }
 .lg-heatscore.empty { color: var(--text-muted); font-size: 1.2rem; }
 .lg-tag { font-size: 0.65rem; font-weight: 800; color: var(--warn); margin-left: 4px; }
-.cardbtn.flag.on { background: var(--tint-org-a); border-color: var(--warn); }
+.cardbtn.flag.on { background: rgba(127,29,29,0.55); border-color: #ef4444; }
 .lg-heatscore { margin-left: auto; margin-right: 10px; }
 
 .lg-menu { background: rgba(0,0,0,0.4); border: 1px dashed var(--ov-25); border-radius: 10px; padding: 10px; margin-top: 8px; }
@@ -475,3 +475,10 @@ table.lg-rt td.lg-bon { font-weight: 800; color: var(--amber); background: var(-
   :root { font-size: 17px; }
 }
 @media (hover: hover) { .btn:hover, .iconbtn:hover { filter: brightness(1.06); } }
+
+/* Wybór zawodnika z bazy: lista + pasek liter */
+.rp-wrap { display: flex; gap: 6px; align-items: stretch; }
+.rp-list { flex: 1; min-width: 0; max-height: 46vh; overflow-y: auto; position: relative; overscroll-behavior: contain; }
+.rp-index { display: flex; flex-direction: column; align-items: center; max-height: 46vh; overflow-y: auto; gap: 1px; padding: 2px 0; flex-shrink: 0; }
+.rp-index button { background: transparent; border: 0; color: var(--accent-blue); font-weight: 800; font-size: 0.8rem; min-width: 28px; min-height: 26px; padding: 0 4px; border-radius: 6px; cursor: pointer; }
+.rp-index button:active { background: var(--ov-15); }

@@ -363,7 +363,7 @@ const IC={
   flag:"M14.4 6L14 4H5v17h2v-7h5.6l.4 2h7V6z",
   reset:"M15 16h4v2h-4zm0-8h7v2h-7zm0-4h6v2h-6zM3 18c0 1.1.9 2 2 2h6c1.1 0 2-.9 2-2V8H3v10zM14 5h-3l-1-1H6L5 5H2v2h12z",
   sort:"M3 18h6v-2H3v2zm0-12v2h18V6H3zm0 7h12v-2H3v2z",
-  next:"M5.59 7.41L10.18 12l-4.59 4.59L7 18l6-6-6-6zM16 6h2v12h-2z"
+  next:"M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3A8.994 8.994 0 0 0 13 3.06V1h-2v2.06A8.994 8.994 0 0 0 3.06 11H1v2h2.06A8.994 8.994 0 0 0 11 20.94V23h2v-2.06A8.994 8.994 0 0 0 20.94 13H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"
 };
 function fbtn(cls,title,act,ic,id){
   return "<button class='fbtn "+cls+"'"+(id?" id='"+id+"'":"")+" title='"+title+"' data-onclick='"+act+"'><svg viewBox='0 0 24 24'><path d='"+IC[ic]+"'/></svg></button>";
@@ -538,12 +538,25 @@ const UI={
   },
   exportData(){
     persist();
+    const n=Object.keys(S.comps||{}).length;
+    /* Bez zapisanych zawodów nie ma o co pytać — kopia zawiera samą bazę (zawodnicy, drużyny, listy serii). */
+    if(!n){UI.doExport(false);return;}
+    UI.openModal("<h3>Zapisz kopi\u0119 danych</h3><p style='text-align:center;margin:0 0 14px'>Kopia zawsze zawiera zawodników, drużyny oraz listy zawodników SGP, SEC, IMP i INNE.<br>Czy dołączyć też historię zawodów ("+n+")?</p>"+
+      "<button class='btn primary' id='xyes'>Z historią zawodów</button>"+
+      "<button class='btn' id='xno'>Bez historii zawodów</button>"+
+      "<button class='btn' data-onclick='UI.closeModal()'>Anuluj</button>");
+    $("xyes").onclick=()=>{UI.closeModal();UI.doExport(true);};
+    $("xno").onclick=()=>{UI.closeModal();UI.doExport(false);};
+  },
+  doExport(withComps){
     const dt=new Date(),p2=n=>String(n).padStart(2,"0");
     const stamp=dt.getFullYear()+"-"+p2(dt.getMonth()+1)+"-"+p2(dt.getDate())+"_"+p2(dt.getHours())+p2(dt.getMinutes());
-    const out=Object.assign({schemaVersion:DATA_SCHEMA,exportedAt:dt.toISOString()},S);
+    /* Ustawienia (rozmiar czcionki) są specyficzne dla urządzenia — nie trafiają do kopii. */
+    const out={schemaVersion:DATA_SCHEMA,exportedAt:dt.toISOString(),riders:S.riders,teams:S.teams,juniors:S.juniors,rosters:S.rosters};
+    if(withComps)out.comps=S.comps;
     const blob=new Blob([JSON.stringify(out,null,1)],{type:"application/json"});
     const a=document.createElement("a");a.href=URL.createObjectURL(blob);
-    a.download="program-zuzel_"+stamp+".json";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+    a.download=(withComps?"program-zuzel_":"program-zuzel-baza_")+stamp+".json";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000);
   },
   importData(inp){
     const f=inp.files[0];if(!f)return;
@@ -556,12 +569,14 @@ const UI={
       if(d&&typeof d==="object"&&typeof d.schemaVersion==="number"&&d.schemaVersion>DATA_SCHEMA){UI.toast("❌ Kopia pochodzi z nowszej wersji aplikacji — zaktualizuj aplikację.");return;}
       const err=validateData(d);
       if(err){UI.toast("\u274c Nieprawid\u0142owa kopia: "+err);return;}
-      UI.confirm("<b>Kopia"+(d.exportedAt&&!isNaN(new Date(d.exportedAt))?" z "+escq(new Date(d.exportedAt).toLocaleString("pl-PL")):"")+":</b><br>"+d.riders.length+" zawodników · "+(Array.isArray(d.teams)?d.teams.length:0)+" drużyn · "+Object.keys(d.comps).length+" zawodów<br><br>Wczytanie kopii nadpisze WSZYSTKIE obecne dane. Kontynuować?",()=>{
+      const hasComps=d.comps!==undefined;
+      UI.confirm("<b>Kopia"+(d.exportedAt&&!isNaN(new Date(d.exportedAt))?" z "+escq(new Date(d.exportedAt).toLocaleString("pl-PL")):"")+":</b><br>"+d.riders.length+" zawodników · "+(Array.isArray(d.teams)?d.teams.length:0)+" drużyn · "+(hasComps?Object.keys(d.comps).length+" zawodów":"bez historii zawodów")+"<br><br>"+(hasComps?"Przywrócenie kopii zastąpi WSZYSTKIE obecne dane (zawodników, drużyny, listy SGP/SEC/IMP/INNE i historię zawodów). Kontynuować?":"Przywrócenie kopii zastąpi obecnych zawodników, drużyny i listy SGP/SEC/IMP/INNE. Historia zawodów zostanie zachowana. Kontynuować?"),()=>{
         /* Sanityzacja tekst\u00f3w z pliku: znaki kontrolne i limity d\u0142ugo\u015bci \u2014 tak\u017ce po walidacji. */
         d.riders=d.riders.map(r=>cleanText(r,100)).filter(Boolean);
         d.teams=(Array.isArray(d.teams)?d.teams:[]).map(t=>({...t,name:cleanText(t.name,100)||"Dru\u017cyna",riders:t.riders.map(r=>cleanText(r,100)).filter(Boolean)}));
         d.juniors=(Array.isArray(d.juniors)?d.juniors:[]).map(r=>cleanText(r,100)).filter(Boolean);
         if(d.rosters&&typeof d.rosters==="object"){const ro={};Object.keys(d.rosters).forEach(k=>{const kk=cleanText(k,10);if(!kk||kk==="__proto__"||kk==="constructor"||kk==="prototype")return;ro[kk]=d.rosters[k].map(r=>cleanText(r,100)).filter(Boolean);});d.rosters=ro;}
+        if(!hasComps)d.comps={};
         Object.values(d.comps).forEach(c=>{["home","away"].forEach(k=>{if(c&&c[k]&&typeof c[k].name==="string")c[k].name=cleanText(c[k].name,100);});});
         Object.values(d.comps).forEach(c=>{
           if(c.name)c.name=cleanText(c.name,80);
@@ -572,15 +587,15 @@ const UI={
            Przy b\u0142\u0119dzie (np. brak miejsca) stan sprzed importu jest w ca\u0142o\u015bci odtwarzany. */
         const oldS=S;
         const oldIds=Object.keys(oldS.comps||{});
-        const newIds=Object.keys(d.comps);
+        const newIds=hasComps?Object.keys(d.comps):[];
         try{
           newIds.forEach(id=>DB.set(DB.compKey(id),d.comps[id]));
-          oldIds.filter(id=>!d.comps[id]).forEach(id=>DB.removeComp(id));
-          S={riders:d.riders,comps:d.comps,current:null,settings:oldS.settings,
+          if(hasComps)oldIds.filter(id=>!d.comps[id]).forEach(id=>DB.removeComp(id));
+          S={riders:d.riders,comps:hasComps?d.comps:oldS.comps,current:hasComps?null:oldS.current,settings:oldS.settings,
              teams:Array.isArray(d.teams)?d.teams:[],
              juniors:Array.isArray(d.juniors)?d.juniors:[],
              rosters:(d.rosters&&typeof d.rosters==="object")?d.rosters:{SGP:[],SEC:[],IMP:[],INNE:[]}};
-          DB.set(DB.metaKey,{riders:S.riders,current:null,settings:S.settings,teams:S.teams,juniors:S.juniors,rosters:S.rosters});
+          DB.set(DB.metaKey,{riders:S.riders,current:S.current,settings:S.settings,teams:S.teams,juniors:S.juniors,rosters:S.rosters});
         }catch(e){
           try{
             newIds.filter(id=>!oldS.comps[id]).forEach(id=>DB.removeComp(id));
@@ -592,7 +607,7 @@ const UI={
           renderSaved();
           return;
         }
-        UI.toast("\u2714 Wczytano dane.");renderSaved();
+        UI.toast("\u2714 Przywr\u00f3cono kopi\u0119 danych.");renderSaved();
       });
     };
     rd.readAsText(f);inp.value="";
@@ -610,37 +625,14 @@ const UI={
 
   /* Custom picker zamiast natywnego <select> \u2014 pe\u0142nowymiarowe, dotykowe przyciski. */
   pickLineup(num){    const c=cur();if(!c)return;
-    let html="<h3>Nr "+num+" \u2014 wybierz zawodnika</h3>";
-    if(!S.riders.length)html+="<p style='text-align:center;color:var(--text-muted)'>Brak utworzonych zawodników. Zanim rozpoczniesz zawody utwórz zawodników w sekcji</p><button class='btn secondary' data-onclick='UI.goPeople()'>Zawodnicy i drużyny</button>";
-    else{
-      html+="<label for='riderSearch' class='sr-label'>Szukaj zawodnika</label><input type='text' id='riderSearch' placeholder='Szukaj zawodnika\u2026' style='margin-bottom:10px'>";
-      html+="<div id='riderPickList'>"+S.riders.map((r,i)=>"<button class='btn' style='text-transform:none' data-ridx='"+i+"' data-name='"+escq(r.toLowerCase())+"'>"+escq(r)+"</button>").join("")+"</div>";
-      html+="<p id='riderPickEmpty' style='display:none;text-align:center;color:var(--text-muted);margin:8px 0'>Brak wynik\u00f3w.</p>";
+    if(!S.riders.length){
+      UI.openModal("<h3>Nr "+num+" \u2014 wybierz zawodnika</h3><p style='text-align:center;color:var(--text-muted)'>Brak utworzonych zawodników. Zanim rozpoczniesz zawody utwórz zawodników w sekcji</p><button class='btn secondary' data-onclick='UI.goPeople()'>Zawodnicy i drużyny</button><button class='btn danger' style='margin-top:10px' id='rpClear0'>\u2014 Brak zawodnika \u2014</button><button class='btn' style='margin-top:10px' data-onclick='UI.closeModal()'>Anuluj</button>");
+      $("rpClear0").onclick=()=>UI.clearRider(num);
+      return;
     }
-    html+="<button class='btn danger' style='margin-top:10px' data-clear-num='"+num+"'>\u2014 Brak zawodnika \u2014</button>";
-    html+="<button class='btn' style='margin-top:10px' data-onclick='UI.closeModal()'>Anuluj</button>";
-    UI.openModal(html);
-    /* Nazwiska nigdy nie trafiaj\u0105 do inline JS (onclick) \u2014 pobierane bezpiecznie z S.riders przez indeks. */
-    $("modal").querySelectorAll("[data-ridx]").forEach(btn=>{
-      btn.onclick=()=>UI.setRider(num,S.riders[+btn.dataset.ridx]);
-    });
-    const clearBtn=$("modal").querySelector("[data-clear-num]");
-    if(clearBtn)clearBtn.onclick=()=>UI.clearRider(num);
-    /* Filtrowanie listy na bie\u017c\u0105co wg wpisanego tekstu (bez rozr\u00f3\u017cniania wielko\u015bci liter). */
-    const search=$("modal").querySelector("#riderSearch");
-    if(search){
-      search.addEventListener("input",()=>{
-        const q=search.value.trim().toLowerCase();
-        let visible=0;
-        $("modal").querySelectorAll("#riderPickList [data-ridx]").forEach(btn=>{
-          const match=!q||btn.dataset.name.includes(q);
-          btn.style.display=match?"":"none";
-          if(match)visible++;
-        });
-        const empty=$("modal").querySelector("#riderPickEmpty");
-        if(empty)empty.style.display=visible?"none":"block";
-      });
-    }
+    riderPicker({title:"Nr "+num+" \u2014 wybierz zawodnika",names:S.riders,
+      onPick:name=>UI.setRider(num,name),
+      clear:{label:"\u2014 Brak zawodnika \u2014",fn:()=>UI.clearRider(num)}});
   },
   clearRider(num){UI.setRider(num,"");},
 
@@ -803,9 +795,12 @@ const UI={
     const c=cur();if(!c)return;
     const h=compHeats(c).find(x=>x.n===heatN);
     const e=h.entries[slotIdx];
-    let html="<h3>Oznaczenie zawodnika</h3>";
-    html+=MARKS.map((m,mi)=>"<button class='btn small' style='margin:3px;width:auto' data-onclick='UI.setMarkIdx("+heatN+","+slotIdx+","+mi+")'>"+m+"</button>").join("");
-    if(e.mark)html+="<button class='btn danger' data-onclick='UI.setMark("+heatN+","+slotIdx+",null)'>Usu\u0144 oznaczenie</button>";
+    let html="<h3>Wykluczenie \u2014 "+escq(c.mapping[e.rider]||"?")+"</h3>";
+    if(e.mark){
+      html+="<p style='text-align:center;font-size:0.78rem;color:var(--text-muted);margin:0 0 10px'>Obecnie: <b>"+escq(e.mark)+"</b>"+(e.repl?" (zast. "+escq(c.mapping[e.repl]||"?")+")":"")+". Wybierz inny kod, aby go zmieni\u0107"+(SUB_CODES.includes(e.mark)?" (ten sam kod \u2014 zmiana zast\u0119pcy)":"")+".</p>";
+    }
+    html+=MARKS.map((m,mi)=>"<button class='btn small "+(e.mark===m?"primary":"")+"' style='margin:3px;width:auto' data-onclick='UI.setMarkIdx("+heatN+","+slotIdx+","+mi+")'>"+m+"</button>").join("");
+    if(e.mark)html+="<button class='btn danger' data-onclick='UI.setMark("+heatN+","+slotIdx+",null)'>Usu\u0144 wykluczenie</button>";
     html+="<button class='btn' style='margin-top:10px' data-onclick='UI.closeModal()'>Anuluj</button>";
     UI.openModal(html);
   },
@@ -815,10 +810,12 @@ const UI={
     const e=h.entries[slotIdx];
     /* Zabezpieczenie: nie wolno oznacza\u0107 wpisu zast\u0119pstwa (zagnie\u017cd\u017cone zast\u0119pstwo psuje model). */
     if(e.replOf!==undefined&&e.replOf!==null){UI.toast("Nie mo\u017cna oznaczy\u0107 zast\u0119pcy \u2014 usu\u0144 zast\u0119pstwo i oznacz ponownie.");return;}
+    const hadMark=!!e.mark;
     if(!mutate(()=>{
       removeRepl(h,slotIdx);
       e.mark=mark;e.repl=null;
-      if(mark!==null){c.markSeq=(c.markSeq||0)+1;e.markSeq=c.markSeq;}
+      if(mark!==null&&!(e.markSeq&&hadMark)){c.markSeq=(c.markSeq||0)+1;e.markSeq=c.markSeq;}
+      if(mark===null)delete e.markSeq;
       normalizeOrder(h);
     }))return;
     if(mark===null){UI.closeModal();scheduleRenders();return;}
@@ -1243,6 +1240,61 @@ function attachPlaceTap(){
 
 function escq(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 
+/* ===== Wspólny wybór zawodnika z bazy: wyszukiwarka + sortowanie wg nazwisk + skok do litery ===== */
+const RP_COLL=new Intl.Collator("pl");
+function rpSurname(n){const p=String(n).trim().split(/\s+/);return p[p.length-1]||"";}
+function rpSorted(names){
+  return names.slice().sort((a,b)=>RP_COLL.compare(rpSurname(a),rpSurname(b))||RP_COLL.compare(a,b));
+}
+function rpNorm(s){
+  return String(s).toLowerCase().replace(/ł/g,"l").normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+}
+function rpLetter(n){return (rpSurname(n).charAt(0)||"#").toLocaleUpperCase("pl");}
+/* opts: {title, names, onPick(name), clear:{label,fn}} */
+function riderPicker(opts){
+  const names=rpSorted(opts.names);
+  let html="<h3>"+escq(opts.title)+"</h3>";
+  if(!names.length){
+    html+="<p style='text-align:center;color:var(--text-muted)'>Brak zawodników do wyboru.</p>";
+  }else{
+    const letters=[];names.forEach(n=>{const l=rpLetter(n);if(!letters.includes(l))letters.push(l);});
+    html+="<label for='riderSearch' class='sr-label'>Szukaj zawodnika</label><input type='text' id='riderSearch' placeholder='Szukaj zawodnika\u2026' autocomplete='off' style='margin-bottom:10px'>";
+    html+="<div class='rp-wrap'><div class='rp-list' id='rpList'>"+
+      names.map((n,i)=>"<button class='btn' style='text-transform:none' data-i='"+i+"' data-l='"+escq(rpLetter(n))+"' data-s='"+escq(rpNorm(n))+"'>"+escq(n)+"</button>").join("")+
+      "</div><div class='rp-index' id='rpIndex'>"+
+      letters.map(l=>"<button type='button' data-letter='"+escq(l)+"'>"+escq(l)+"</button>").join("")+
+      "</div></div>";
+    html+="<p id='riderPickEmpty' style='display:none;text-align:center;color:var(--text-muted);margin:8px 0'>Brak wyników.</p>";
+  }
+  if(opts.clear)html+="<button class='btn danger' id='rpClear' style='margin-top:10px'>"+escq(opts.clear.label)+"</button>";
+  html+="<button class='btn' style='margin-top:10px' data-onclick='UI.closeModal()'>Anuluj</button>";
+  UI.openModal(html);
+  const md=$("modal");
+  md.querySelectorAll("#rpList [data-i]").forEach(b=>b.onclick=()=>opts.onPick(names[+b.dataset.i]));
+  const clr=md.querySelector("#rpClear");
+  if(clr)clr.onclick=opts.clear.fn;
+  const list=md.querySelector("#rpList");if(!list)return;
+  const idx=md.querySelector("#rpIndex");
+  const search=md.querySelector("#riderSearch");
+  /* Skok do pierwszego zawodnika, którego nazwisko zaczyna się od wybranej litery. */
+  idx.querySelectorAll("[data-letter]").forEach(lb=>lb.onclick=()=>{
+    const t=[...list.querySelectorAll("[data-l]")].find(b=>b.dataset.l===lb.dataset.letter&&b.style.display!=="none");
+    if(t)list.scrollTo({top:t.offsetTop-list.offsetTop,behavior:"smooth"});
+  });
+  search.addEventListener("input",()=>{
+    const q=rpNorm(search.value.trim());
+    let visible=0;const shown=new Set();
+    list.querySelectorAll("[data-i]").forEach(b=>{
+      const ok=!q||b.dataset.s.includes(q);
+      b.style.display=ok?"":"none";
+      if(ok){visible++;shown.add(b.dataset.l);}
+    });
+    idx.querySelectorAll("[data-letter]").forEach(lb=>{lb.style.display=shown.has(lb.dataset.letter)?"":"none";});
+    list.scrollTop=0;
+    const em=md.querySelector("#riderPickEmpty");if(em)em.style.display=visible?"none":"block";
+  });
+}
+
 /* Sanityzacja tekstu od u\u017cytkownika: przyci\u0119cie, limit d\u0142ugo\u015bci, usuni\u0119cie znak\u00f3w kontrolnych. */
 function cleanText(v,max){
   return String(v||"").replace(/[\u0000-\u001F\u007F\u200E\u200F\u202A-\u202E\u2066-\u2069]/g,"").trim().slice(0,max||100);
@@ -1263,7 +1315,7 @@ function validateData(d){
   if(!Array.isArray(d.riders))return "brak listy zawodnik\u00f3w";
   if(d.riders.length>IMPORT_LIMITS.riders)return "zbyt wielu zawodnik\u00f3w";
   if(!d.riders.every(r=>typeof r==="string"&&r.length<=100))return "b\u0142\u0119dna lista zawodnik\u00f3w";
-  if(!isObj(d.comps))return "brak obiektu zawod\u00f3w";
+  if(d.comps!==undefined&&!isObj(d.comps))return "b\u0142\u0119dny obiekt zawod\u00f3w";
   if(d.teams!==undefined&&d.teams!==null){
     if(!Array.isArray(d.teams))return "b\u0142\u0119dna lista dru\u017cyn";
     if(d.teams.length>200)return "zbyt wiele dru\u017cyn";
@@ -1286,7 +1338,7 @@ function validateData(d){
       if(!d.rosters[k].every(r=>typeof r==="string"&&r.length<=100))return "b\u0142\u0119dny zawodnik w serii "+k.slice(0,10);
     }
   }
-  const ids=Object.keys(d.comps);
+  const ids=Object.keys(d.comps||{});
   if(ids.length>IMPORT_LIMITS.comps)return "zbyt wiele zawod\u00f3w";
   for(const id of ids){
     if(!/^[A-Za-z0-9_-]{1,64}$/.test(id))return "zawody: niedozwolony identyfikator";
@@ -1413,7 +1465,8 @@ function heatCardHtml(c,h,firstOpen){
         const col=GATE_COLOR[e.gate];
         const r=hasRepl?e.repl:e.rider;
         if(e.mark){
-          html+="<div class='rcard ex locked' style='border-left:4px solid "+col+"'><span class='name'>"+escq(c.mapping[e.rider]||"?")+"<span class='mk'>"+escq(e.mark)+"</span>"+(hasRepl?" <small>(zast. "+escq(c.mapping[e.repl]||"?")+")</small>":"")+"</span></div>";
+          html+="<div class='rcard ex locked' style='border-left:4px solid "+col+"'><span class='name'>"+escq(c.mapping[e.rider]||"?")+"<span class='mk'>"+escq(e.mark)+"</span>"+(hasRepl?" <small>(zast. "+escq(c.mapping[e.repl]||"?")+")</small>":"")+"</span>"+
+            "<div class='rcardbtns'><button class='cardbtn flag on' title='Zmień lub usuń wykluczenie' data-onclick='UI.markerMenu("+h.n+","+ei+")'>"+ICON_FLAG+"</button></div></div>";
         }else if(r===null||r===undefined){
           html+="<div class='slotmark' role='button' tabindex='0' data-onclick='UI.pickOpenRider("+h.n+","+ei+")'>+ Wybierz zawodnika</div>";
         }else{
@@ -1546,12 +1599,10 @@ UI.assignRosterRider=function(){
   if(!series){UI.toast("Najpierw wybierz serię (np. SGP, SEC).");return;}
   const pool=S.riders.filter(n=>!(S.rosters[series]||[]).includes(n));
   if(!pool.length){UI.toast("Wszyscy zawodnicy bazy są już na tej liście.");return;}
-  UI.openModal("<h3>Przypisz z bazy</h3>"+pool.map(n=>"<button class='btn' style='text-transform:none' data-a='"+escq(n)+"'>"+escq(n)+"</button>").join("")+"<button class='btn' style='margin-top:10px' data-onclick='UI.closeModal()'>Anuluj</button>");
-  $("modal").querySelectorAll("[data-a]").forEach(b=>b.onclick=()=>{
-    const nm=b.dataset.a;
+  riderPicker({title:"Przypisz z bazy",names:pool,onPick:nm=>{
     if(!mutate(()=>{if(!S.rosters[series].includes(nm))S.rosters[series].push(nm);}))return;
     UI.closeModal();renderRiderLib();
-  });
+  }});
 };
 UI.addTeam=function(fromLeague){
   UI.openModal("<h3>Dodaj drużynę</h3><p style='text-align:center;font-size:0.78rem;color:var(--text-muted);margin:0 0 10px'>Do nowej drużyny automatycznie zostanie dopisany <b>Zawodnik zastępowany</b> (ZZ).</p><label for='tn' class='sr-label'>Nazwa drużyny</label><input type='text' id='tn' placeholder='Nazwa drużyny' style='width:100%;margin-bottom:12px'><button class='btn primary' id='ok'>Dodaj</button><button class='btn' data-onclick='UI.closeModal()'>Anuluj</button>");
@@ -1645,12 +1696,10 @@ UI.assignTeamRider=function(){
   const t=S.teams[S.uiTeam];if(!t)return;
   const pool=S.riders.filter(n=>!t.riders.includes(n));
   if(!pool.length){UI.toast("Wszyscy zawodnicy bazy są już w tej drużynie.");return;}
-  UI.openModal("<h3>Przypisz z bazy</h3>"+pool.map(n=>"<button class='btn' style='text-transform:none' data-a='"+escq(n)+"'>"+escq(n)+"</button>").join("")+"<button class='btn' style='margin-top:10px' data-onclick='UI.closeModal()'>Anuluj</button>");
-  $("modal").querySelectorAll("[data-a]").forEach(b=>b.onclick=()=>{
-    const nm=b.dataset.a;
+  riderPicker({title:"Przypisz z bazy",names:pool,onPick:nm=>{
     if(!mutate(()=>{if(!t.riders.includes(nm))t.riders.push(nm);}))return;
     UI.closeModal();renderTeamDetail();
-  });
+  }});
 };
 
 /* ===== Kreator meczu ligowego ===== */
@@ -2278,7 +2327,7 @@ UI.lgRenominate=function(){
     if(!mutate(()=>{
       delete m.nom;
       [h14,h15].forEach(h=>{
-        h.slots.forEach(s=>{s.num=null;s.excl=null;s.subType=null;delete s.exclSeq;});
+        h.slots.forEach(s=>{s.num=null;s.excl=null;s.subType=null;delete s.exclSeq;delete s.exclWas;});
         h.order=[0,1,2,3];h.confirmed=false;h.score=null;h.menuOpen=null;h.subListFor=null;h.time=null;
       });
     }))return;
@@ -2364,7 +2413,7 @@ UI.lgResetHeat=function(heatIdx){
   const h=lgm().heats[heatIdx];
   UI.confirm("Zresetować bieg "+h.n+" do stanu sprzed wyścigu?",()=>{
     if(!mutate(()=>{
-      h.slots.forEach(s=>{s.num=s.origNum;s.excl=null;s.subType=null;delete s.exclSeq;});
+      h.slots.forEach(s=>{s.num=s.origNum;s.excl=null;s.subType=null;delete s.exclSeq;delete s.exclWas;});
       h.order=[0,1,2,3];h.confirmed=false;h.score=null;h.menuOpen=null;h.subListFor=null;h.time=null;
       Object.keys(lgZZAsked).forEach(k=>{if(k.split("_")[0]===String(heatIdx))delete lgZZAsked[k];});
     }))return;
@@ -2403,12 +2452,27 @@ UI.lgPickSub=function(heatIdx,slotIdx,type,newNum){
   const m=lgm();const h=m.heats[heatIdx];
   const s=h.slots[slotIdx];
   if(!mutate(()=>{
+    s.exclWas=s.excl||s.exclWas||null;
     s.num=newNum;s.subType=type;s.excl=null;
     h.menuOpen=null;h.subListFor=null;
     lgReorder(h);
   }))return;
   UI.closeModal();
   lgRender();
+};
+/* Cofnięcie rezerwy/zastępstwa: przywraca zawodnika podstawowego z jego poprzednim symbolem wykluczenia. */
+UI.lgUndoSub=function(heatIdx,slotIdx){
+  if(!lgHeatEditable(heatIdx))return;
+  const h=lgm().heats[heatIdx];
+  const s=h.slots[slotIdx];
+  if(!s.subType||s.origNum==null)return;
+  if(!mutate(()=>{
+    s.num=s.origNum;s.subType=null;s.excl=s.exclWas||"-";delete s.exclWas;
+    if(!s.exclSeq)s.exclSeq=++lgExclSeq;
+    h.subListFor=null;
+    lgReorder(h);
+  }))return;
+  lgRenderHeatOnly(heatIdx);
 };
 /* Okno rezerwy: po kodach -, T, U/-, W2 automatycznie pytamy, czy będzie rezerwa. */
 UI.lgReservePrompt=function(heatIdx,slotIdx){
@@ -2646,7 +2710,7 @@ function lgScorebarHtml(){
     fbtn("","Ekran główny","UI.leaveMatch()","home")+
     fbtn(tv?"active":"","Składy","UI.lgView(\"teams\")","teams")+
     fbtn(tv?"":"active","Wyścigi","UI.lgView(\"heats\")","flag")+
-    (tv?fbtn(LgSort?"active":"","Sortuj zawodników wg punktów","UI.lgSortToggle()","sort"):fbtn("","Następny wyścig","UI.lgScrollToNext()","next"))+
+    (tv?fbtn(LgSort?"active":"","Sortuj zawodników wg punktów","UI.lgSortToggle()","sort"):fbtn("","Przejdź do bieżącego wyścigu","UI.lgScrollToNext()","next"))+
     "<div class='fbar-lbl big'>"+(tv?"Składy":"Wyścigi")+"</div>"+
     fbtn("danger","Reset całych zawodów","UI.lgResetMatch()","reset")+"</div>"+
     "<div class='lg-scorerow'><div class='snm'><span class='wrap2'>"+escq(c.home.name).split(" ").map(w=>"<span>"+w+"</span>").join("")+"</span></div>"+
@@ -2680,7 +2744,12 @@ function lgSlotMenuHtml(heatIdx,slotIdx,teamKey){
   const slot=h.slots[slotIdx];
   const exclNum=slot.num!=null?slot.num:slot.origNum;
   const isMain=teamKey==="home"?(exclNum>=9&&exclNum<=13):(exclNum>=1&&exclNum<=5);
-  let html="<div class='lg-menu'><div class='sublabel'>Wykluczenie</div><div class='mrow'>"+
+  let html="<div class='lg-menu'>";
+  if(slot.subType&&slot.origNum!=null){
+    html+="<div class='sublabel'>"+escq(slot.subType)+": "+escq(lgRiderName(slot.num))+" za "+escq(lgRiderName(slot.origNum))+"</div>"+
+      "<button class='btn small danger' data-onclick='UI.lgUndoSub("+heatIdx+","+slotIdx+")'>Cofnij zastępstwo</button>";
+  }
+  html+="<div class='sublabel'>Wykluczenie</div><div class='mrow'>"+
     LG_EXCL_CODES.map(code=>"<button class='btn small "+(curExcl===code?"primary":"secondary")+"' data-onclick='UI.lgSetExcl("+heatIdx+","+slotIdx+",\""+code+"\")'>"+code+"</button>").join("")+
     "</div>";
   if(curExcl){
@@ -2748,7 +2817,11 @@ function lgHeatHtml(heatIdx){
       }
     }
     const menu=(active&&h.menuOpen===slotIdx)?lgSlotMenuHtml(heatIdx,slotIdx,teamKey):"";
-    if(active&&slot.num!=null&&!slot.excl){
+    if(active&&slot.num!=null&&slot.excl){
+      btns="<div class='rcardbtns'>"+
+        "<button class='cardbtn flag on' title='Zmień lub usuń wykluczenie' data-onclick='UI.lgToggleMenu("+heatIdx+","+slotIdx+")'>"+ICON_FLAG+"</button>"+
+        "</div>";
+    }else if(active&&slot.num!=null&&!slot.excl){
       const upDis=finPos<=0?"disabled":"";
       const downDis=(finPos<0||finPos>=fins.length-1)?"disabled":"";
       btns="<div class='rcardbtns'>"+
@@ -2791,7 +2864,7 @@ UI.applyFont();
   $("racesBar").innerHTML=fbtn("","Ekran główny","UI.leave(\"races\")","home")+
     fbtn("navpts","Klasyfikacja","UI.navScreen(\"points\")","teams")+
     fbtn("navraces active","Wyścigi","UI.navScreen(\"races\")","flag")+
-    fbtn("","Następny wyścig","UI.nextHeat()","next")+
+    fbtn("","Przejdź do bieżącego wyścigu","UI.nextHeat()","next")+
     "<div class='fbar-lbl big' id='racesTitle'>Wyścigi</div>"+
     fbtn("danger","Resetuj wszystkie wyścigi","UI.resetAllHeats()","reset");
 })();
